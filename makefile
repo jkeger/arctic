@@ -1,7 +1,7 @@
 
 # Compiler
 CXX := g++
-CXXFLAGS := -Wall
+CXXFLAGS := -std=c++11 #-Wall
 
 # Executables
 TARGET := arctic
@@ -22,15 +22,15 @@ TEST_SOURCES := $(shell find $(DIR_TEST) -type f -name *.cpp)
 TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 
-# Main program and tests
-all: $(TARGET) $(TEST_TARGET)
-
 # Main program
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $^ -o $@
+
+# Main program and tests
+all: $(TARGET) $(TEST_TARGET)
 
 # Tests
 test: $(TEST_TARGET)
