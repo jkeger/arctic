@@ -25,11 +25,29 @@ Contents
 + Examples
 
 
+Installation
+============
+Compile the main code with `make` (or `make arctic` or `make all`) in the top 
+directory.
+
+Run with `./arctic`.
+
+
+Unit Tests
+==========
+Tests are included for most individual pieces of the code, along with more 
+example-style tests, organised with Catch2.
+
+Compile the tests with `make test` (or `make all`) in the top directory, then 
+run with `./test_arctic`.
+
+
 Documentation
 =============
 
 Files
 -----
+
 
 
 Examples
