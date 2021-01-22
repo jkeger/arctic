@@ -21,7 +21,7 @@ void print_array(std::valarray<double>& array) {
 }
 
 /*
-    Neatly print an array as 2D with n_col columns (2nd dimension).
+    Neatly print a 1D array as 2D with n_col columns (2nd dimension).
 */
 void print_array_2D(std::valarray<double>& array, int n_col) {
     int n_tot = array.size();
@@ -35,6 +35,36 @@ void print_array_2D(std::valarray<double>& array, int n_col) {
             printf(" [");
         for (int i_col = 0; i_col < n_col; ++i_col) {
             printf("%g", array[i_row * n_col + i_col]);
+            if (i_col != n_col - 1)
+                printf(", ");
+            else if (i_row != n_row - 1)
+                printf("]\n");
+            else
+                printf("]]\n");
+        }
+    }
+
+    return;
+}
+
+/*
+    Neatly print an actual 2D array.
+*/
+void print_array_2D(std::valarray<std::valarray<double>>& array) {
+    int n_row = array.size();
+    int n_col;
+
+    printf("[");
+    for (int i_row = 0; i_row < n_row; ++i_row) {
+        n_col = array[i_row].size();
+        
+        if (i_row == 0)
+            printf("[");
+        else
+            printf(" [");
+        
+        for (int i_col = 0; i_col < n_col; ++i_col) {
+            printf("%g", array[i_row][i_col]);
             if (i_col != n_col - 1)
                 printf(", ");
             else if (i_row != n_row - 1)
