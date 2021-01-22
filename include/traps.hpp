@@ -4,21 +4,21 @@
 
 class Trap {
    public:
-    float density;
-    float release_timescale;
-    float capture_timescale;
-    float capture_rate;
-    float emission_rate;
+    double density;
+    double release_timescale;
+    double capture_timescale;
+    double capture_rate;
+    double emission_rate;
 
-    Trap(float density, float release_timescale, float capture_timescale);
+    Trap(double density, double release_timescale, double capture_timescale);
     ~Trap(){};
 
-    float fill_fraction_from_time_elapsed(float time_elapsed);
+    double fill_fraction_from_time_elapsed(double time_elapsed);
 };
 
 class TrapInstantCapture : public Trap {
    public:
-    TrapInstantCapture(float density, float release_timescale);
+    TrapInstantCapture(double density, double release_timescale);
     ~TrapInstantCapture(){};
 };
 
