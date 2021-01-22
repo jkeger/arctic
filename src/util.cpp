@@ -57,12 +57,12 @@ void print_array_2D(std::valarray<std::valarray<double>>& array) {
     printf("[");
     for (int i_row = 0; i_row < n_row; ++i_row) {
         n_col = array[i_row].size();
-        
+
         if (i_row == 0)
             printf("[");
         else
             printf(" [");
-        
+
         for (int i_col = 0; i_col < n_col; ++i_col) {
             printf("%g", array[i_row][i_col]);
             if (i_col != n_col - 1)

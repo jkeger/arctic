@@ -7,7 +7,7 @@
     Class Trap.
 
     A single trap species.
-    
+    
     Controls the density of traps and the timescales/probabilities of
     capture and release, along with utilities for the watermarking tracking
     of trap states and the calculation of capture and release.
@@ -16,14 +16,14 @@
     ----------
     density : double
         The density of the trap species in a pixel.
-        
+        
     release_timescale : double
         The release timescale of the trap, in the same units as the time
         spent in each pixel or phase.
-        
+        
     capture_timescale : double
         The capture timescale of the trap. Default 0 for instant capture.
-        
+        
     Attributes
     ----------
     capture_rate, emission_rate : double
@@ -61,18 +61,18 @@ double Trap::fill_fraction_from_time_elapsed(double time_elapsed) {
 
 /*
     Class TrapInstantCapture.
-    
+    
     For the old release-then-instant-capture algorithm.
 
     Parameters
     ----------
     density : double
         The density of the trap species in a pixel.
-        
+        
     release_timescale : double
         The release timescale of the trap, in the same units as the time
         spent in each pixel or phase.
-        
+        
     Attributes
     ----------
     emission_rate : double

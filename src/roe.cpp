@@ -18,21 +18,23 @@
 
     Parameters
     ----------
-    pixels : int
-        The number of pixels in the image.
+    n_pixels : int
+        The number of pixels in one column of the image. i.e. the number of
+        pixel-to-pixel transfers to move charge from the furthest pixel to the
+        readout register (if there is no offset).
 
     express : int
         The number of times the pixel-to-pixel transfers are computed,
         determining the balance between accuracy (high values) and speed
         (low values).
-            n_pix   (slower, accurate) Compute every pixel-to-pixel
-                    transfer. The default 0 = alias for n_pix.
-            k       Recompute on k occasions the effect of each transfer.
-                    After a few transfers (and e.g. eroded leading edges),
-                    the incremental effect of subsequent transfers can
-                    change.
-            1       (faster, approximate) Compute the effect of each
-                    transfer only once.
+            n_pixels    (slower, accurate) Compute every pixel-to-pixel
+                        transfer. The default 0 is an alias for n_pixels.
+            k           Recompute on k occasions the effect of each transfer.
+                        After a few transfers (and e.g. eroded leading edges),
+                        the incremental effect of subsequent transfers can
+                        change.
+            1           (faster, approximate) Compute the effect of each
+                        transfer only once.
 
     offset : int (>= 0)
         Consider all pixels to be offset by this number of pixels from the
@@ -43,10 +45,10 @@
     integer_express_matrix : bool
         Old versions of this algorithm assumed (unnecessarily) that all
         express multipliers must be integers. If
-        force_release_away_from_readout is true (no effect if false), then
+        force_release_away_from_readout ## is true (no effect if false), then
         it's slightly more efficient if this requirement is dropped, but the
         option to force it is included for backwards compatability.
-    
+    
     empty_traps_for_first_transfers : bool
         If True and if using express != n_pixels, then tweak the express
         algorithm to treat every first pixel-to-pixel transfer separately
