@@ -14,12 +14,15 @@ class TrapManager {
     int n_traps;
     int max_n_transfers;
     int n_watermarks_per_transfer;
+    int max_n_watermarks;
     double empty_watermark;
     double filled_watermark;
 
     TrapManager(){};
     TrapManager(std::valarray<Trap> traps, int max_n_transfers);
     ~TrapManager(){};
+
+    void initialise_watermarks();
 };
 
 class TrapManagerInstantCapture : public TrapManager {
