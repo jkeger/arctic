@@ -9,12 +9,13 @@
 class TrapManager {
    public:
     std::valarray<Trap> traps;
-    std::valarray<std::valarray<double>> watermarks;
+    std::valarray<double> watermarks;
 
     int n_traps;
     int max_n_transfers;
     int n_watermarks_per_transfer;
-    int max_n_watermarks;
+    int n_watermarks;
+    int n_wmk_col;
     double empty_watermark;
     double filled_watermark;
 
@@ -23,6 +24,7 @@ class TrapManager {
     ~TrapManager(){};
 
     void initialise_watermarks();
+    double n_trapped_electrons_from_watermarks(std::valarray<double> wmks);
 };
 
 class TrapManagerInstantCapture : public TrapManager {
