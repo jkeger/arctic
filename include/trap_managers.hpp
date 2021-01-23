@@ -8,6 +8,10 @@
 
 class TrapManager {
    public:
+    TrapManager(){};
+    TrapManager(std::valarray<Trap> traps, int max_n_transfers);
+    ~TrapManager(){};
+
     std::valarray<Trap> traps;
     std::valarray<double> watermarks;
 
@@ -15,15 +19,17 @@ class TrapManager {
     int max_n_transfers;
     int n_watermarks_per_transfer;
     int n_watermarks;
-    int n_wmk_col;
+    int n_col_wmk;
+    int n_active_watermarks;
     double empty_watermark;
     double filled_watermark;
 
-    TrapManager(){};
-    TrapManager(std::valarray<Trap> traps, int max_n_transfers);
-    ~TrapManager(){};
+    std::valarray<double> fill_probabilities_from_empty;
+    std::valarray<double> fill_probabilities_from_full;
+    std::valarray<double> fill_probabilities_from_release;
 
     void initialise_watermarks();
+    void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_trapped_electrons_from_watermarks(std::valarray<double> wmks);
 };
 
@@ -31,6 +37,8 @@ class TrapManagerInstantCapture : public TrapManager {
    public:
     TrapManagerInstantCapture(std::valarray<Trap> traps, int max_n_transfers);
     ~TrapManagerInstantCapture(){};
+
+    double n_electrons_released();
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP
