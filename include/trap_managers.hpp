@@ -13,13 +13,13 @@ class TrapManager {
     ~TrapManager(){};
 
     std::valarray<Trap> traps;
-    std::valarray<double> watermarks;
+    std::valarray<double> watermark_volumes;
+    std::valarray<double> watermark_fills;
 
     int n_traps;
     int max_n_transfers;
     int n_watermarks_per_transfer;
     int n_watermarks;
-    int n_col_wmk;
     int n_active_watermarks;
     double empty_watermark;
     double filled_watermark;
@@ -30,7 +30,10 @@ class TrapManager {
 
     void initialise_watermarks();
     void set_fill_probabilities_from_dwell_time(double dwell_time);
-    double n_trapped_electrons_from_watermarks(std::valarray<double> wmks);
+    double n_trapped_electrons_from_watermarks(
+        std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
+    int watermark_index_above_cloud_from_volumes(
+        std::valarray<double> wmk_volumes, double cloud_fractional_volume);
 };
 
 class TrapManagerInstantCapture : public TrapManager {
@@ -39,6 +42,7 @@ class TrapManagerInstantCapture : public TrapManager {
     ~TrapManagerInstantCapture(){};
 
     double n_electrons_released();
+    double n_electrons_captured(double cloud_fractional_volume);
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP
