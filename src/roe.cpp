@@ -3,7 +3,48 @@
 #include <stdio.h>
 #include <valarray>
 
+#include "roe.hpp"
 #include "util.hpp"
+
+/*
+    Class ROE.
+
+    Information about the read-out electronics.
+    
+    ##todo: reimplement multiple phases
+    
+    Parameters
+    ----------
+    dwell_times : double (opt.)
+        The time between steps in the clocking sequence, in the same units
+        as the trap capture/release timescales. Default 1.0.
+        
+    integer_express_matrix : bool (opt.)
+        Old versions of this algorithm assumed (unnecessarily) that all
+        express multipliers must be integers. It can be slightly more efficient
+        if this requirement is dropped, but the option to force it is included
+        for backwards compatability.
+        
+    empty_traps_for_first_transfers : bool (opt.)
+        If True and if using express != n_pixels, then tweak the express
+        algorithm to treat every first pixel-to-pixel transfer separately
+        to the rest.
+        
+        Physically, the first ixel that a charge cloud finds itself in will
+        start with empty traps; whereas every subsequent transfer sees traps
+        that may have been filled previously. With the default express
+        algorithm, this means the inherently different first-transfer would
+        be replicated many times for some pixels but not others. This
+        modification prevents that issue by modelling the first single
+        transfer for each pixel separately and then using the express
+        algorithm normally for the remainder.
+*/
+ROE::ROE(
+    double dwell_time, bool empty_traps_for_first_transfers,
+    bool integer_express_matrix)
+    : dwell_time(dwell_time),
+      empty_traps_for_first_transfers(empty_traps_for_first_transfers),
+      integer_express_matrix(integer_express_matrix) {}
 
 /*
     Calculate the matrices of express multipliers and when to monitor traps.
@@ -48,7 +89,7 @@
         force_release_away_from_readout ## is true (no effect if false), then
         it's slightly more efficient if this requirement is dropped, but the
         option to force it is included for backwards compatability.
-    
+    
     empty_traps_for_first_transfers : bool
         If True and if using express != n_pixels, then tweak the express
         algorithm to treat every first pixel-to-pixel transfer separately
@@ -68,9 +109,8 @@
     express_matrix : [[float]]
         The express multiplier value for each pixel-to-pixel transfer.
 */
-std::valarray<double> express_matrix_from_pixels_and_express(
-    int n_pixels, int express = 0, int offset = 0, bool integer_express_matrix = false,
-    bool empty_traps_for_first_transfers = true) {
+std::valarray<double> ROE::express_matrix_from_pixels_and_express(
+    int n_pixels, int express, int offset) {
 
     int n_transfers = n_pixels + offset;
 
