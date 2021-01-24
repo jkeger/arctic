@@ -16,8 +16,10 @@ class TrapManager {
     std::valarray<Trap> traps;
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
-    std::valarray<double> tmp_volumes;
-    std::valarray<double> tmp_fills;
+    std::valarray<double> tmp_watermark_volumes;
+    std::valarray<double> tmp_watermark_fills;
+    std::valarray<double> stored_watermark_volumes;
+    std::valarray<double> stored_watermark_fills;
     CCD ccd;
 
     int n_traps;
@@ -25,13 +27,17 @@ class TrapManager {
     int n_watermarks_per_transfer;
     int n_watermarks;
     int n_active_watermarks;
+    int stored_n_active_watermarks;
     double empty_watermark;
 
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
     std::valarray<double> fill_probabilities_from_release;
 
-    void initialise_watermarks();
+    void initialise_trap_states();
+    void reset_trap_states();
+    void store_trap_states();
+    void restore_trap_states();
     void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
@@ -46,6 +52,7 @@ class TrapManagerInstantCapture : public TrapManager {
 
     double n_electrons_released();
     double n_electrons_captured(double n_free_electrons);
+    double n_electrons_released_and_captured(double n_free_electrons);
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP
