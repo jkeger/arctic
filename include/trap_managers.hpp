@@ -4,17 +4,19 @@
 
 #include <valarray>
 
+#include "ccd.hpp"
 #include "traps.hpp"
 
 class TrapManager {
    public:
     TrapManager(){};
-    TrapManager(std::valarray<Trap> traps, int max_n_transfers);
+    TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCD ccd);
     ~TrapManager(){};
 
     std::valarray<Trap> traps;
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
+    CCD ccd;
 
     int n_traps;
     int max_n_transfers;
@@ -38,11 +40,11 @@ class TrapManager {
 
 class TrapManagerInstantCapture : public TrapManager {
    public:
-    TrapManagerInstantCapture(std::valarray<Trap> traps, int max_n_transfers);
+    TrapManagerInstantCapture(std::valarray<Trap> traps, int max_n_transfers, CCD ccd);
     ~TrapManagerInstantCapture(){};
 
     double n_electrons_released();
-    double n_electrons_captured(double cloud_fractional_volume);
+    double n_electrons_captured(double n_free_electrons);
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP
