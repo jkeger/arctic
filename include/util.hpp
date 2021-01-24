@@ -4,6 +4,8 @@
 
 #include <valarray>
 
+double clamp(double value, double minimum, double maximum);
+
 void print_array(std::valarray<double>& array);
 
 void print_array_2D(std::valarray<double>& image, int n_col);

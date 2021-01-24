@@ -5,6 +5,18 @@
 #include <vector>
 
 /*
+    Restrict a value to between two limits.
+*/
+double clamp(double value, double minimum, double maximum) {
+    if (value < minimum)
+        return minimum;
+    else if (value > maximum)
+        return maximum;
+    else
+        return value;
+}
+
+/*
     Neatly print a 1D array.
 */
 void print_array(std::valarray<double>& array) {

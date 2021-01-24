@@ -5,19 +5,26 @@
 #include <valarray>
 #include <vector>
 
+TEST_CASE("Test clamp", "[util]") {
+    double value = 123.456;
+    REQUIRE(clamp(value, 100.0, 200.0) == 123.456);
+    REQUIRE(clamp(value, 0.0, 1.0) == 1.0);
+    REQUIRE(clamp(value, 999.0, 1000.0) == 999.0);
+}
+
 TEST_CASE("Test arange", "[util]") {
     std::valarray<double> array;
-    std::vector<double> answer, array_;
+    std::vector<double> answer, test;
 
     array = arange(0, 5);
     answer = {0, 1, 2, 3, 4};
-    array_.assign(std::begin(array), std::end(array));
-    REQUIRE(array_ == answer);
+    test.assign(std::begin(array), std::end(array));
+    REQUIRE_THAT(test, Catch::Approx(answer));
 
     array = arange(1.1, 4, 0.9);
     answer = {1.1, 2, 2.9, 3.8};
-    array_.assign(std::begin(array), std::end(array));
-    REQUIRE(array_ == answer);
+    test.assign(std::begin(array), std::end(array));
+    REQUIRE_THAT(test, Catch::Approx(answer));
 }
 
 TEST_CASE("Demo 2D-style valarray slicing", "[util]") {
