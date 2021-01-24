@@ -12,6 +12,19 @@ TEST_CASE("Test clamp", "[util]") {
     REQUIRE(clamp(value, 999.0, 1000.0) == 999.0);
 }
 
+TEST_CASE("Test flatten", "[util]") {
+    std::vector<double> answer;
+    std::valarray<std::valarray<double>> array{
+        // clang-format off
+        {0.0, 1.0, 2.0, 3.0},
+        {4.0, 5.0, 6.0, 7.0},
+        {8.0, 9.0, 10.0, 11.0}
+        // clang-format on
+    };
+    answer = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0};
+    REQUIRE_THAT(flatten(array), Catch::Approx(answer));
+}
+
 TEST_CASE("Test arange", "[util]") {
     std::valarray<double> array;
     std::vector<double> answer, test;

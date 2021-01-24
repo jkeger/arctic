@@ -3,8 +3,11 @@
 #define ARCTIC_UTIL_HPP
 
 #include <valarray>
+#include <vector>
 
 double clamp(double value, double minimum, double maximum);
+
+std::vector<double> flatten(std::valarray<std::valarray<double>>& array);
 
 void print_array(std::valarray<double>& array);
 

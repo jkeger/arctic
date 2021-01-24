@@ -17,6 +17,21 @@ double clamp(double value, double minimum, double maximum) {
 }
 
 /*
+    Flatten a 2D valarray into a 1D vector. Useful for Catch2 test comparisons.
+*/
+std::vector<double> flatten(std::valarray<std::valarray<double>>& array) {
+    std::vector<double> vector;
+
+    for (int i_row = 0; i_row < array.size(); i_row++) {
+        for (int i_col = 0; i_col < array[i_row].size(); i_col++) {
+            vector.push_back(array[i_row][i_col]);
+        }
+    }
+
+    return vector;
+}
+
+/*
     Neatly print a 1D array.
 */
 void print_array(std::valarray<double>& array) {
