@@ -16,6 +16,8 @@ class TrapManager {
     std::valarray<Trap> traps;
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
+    std::valarray<double> tmp_volumes;
+    std::valarray<double> tmp_fills;
     CCD ccd;
 
     int n_traps;
@@ -24,7 +26,6 @@ class TrapManager {
     int n_watermarks;
     int n_active_watermarks;
     double empty_watermark;
-    double filled_watermark;
 
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
