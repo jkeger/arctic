@@ -7,16 +7,18 @@
 class ROE {
    public:
     ROE(double dwell_time = 1.0, bool empty_traps_for_first_transfers = true,
-        bool integer_express_matrix = false);
+        bool use_integer_express_matrix = false);
     ~ROE(){};
 
     double dwell_time;
     bool empty_traps_for_first_transfers;
-    bool integer_express_matrix;
+    bool use_integer_express_matrix;
+    int n_express_runs;
 
     std::valarray<double> express_matrix;
+    std::valarray<bool> monitor_traps_matrix;
 
-    void set_express_matrix_from_pixels_and_express(
+    void set_express_matrix_and_monitor_traps_matrix_from_pixels_and_express(
         int n_pixels, int express = 0, int offset = 0);
 };
 
