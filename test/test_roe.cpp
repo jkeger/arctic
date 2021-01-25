@@ -363,3 +363,141 @@ TEST_CASE("Test express matrix", "[roe]") {
         }
     }
 }
+
+TEST_CASE("Test store trap states matrix", "[roe]") {
+    std::vector<bool> test, answer;
+    int n_pixels = 12;
+    int express = 0;
+    int offset = 0;
+
+    SECTION("Empty traps for first transfers: no need to store trap states") {
+        ROE roe(1.0, true, false);
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+    }
+
+    SECTION("Not empty traps for first transfers") {
+        // Store on the pixel before where the next express pass will begin, so
+        // that the trap states are appropriate for continuing in the next pass
+        ROE roe(1.0, false, false);
+
+        // But no need for express = 1
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+    }
+}
