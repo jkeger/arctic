@@ -14,13 +14,14 @@ class TrapManager {
     ~TrapManager(){};
 
     std::valarray<Trap> traps;
+    CCD ccd;
+
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
     std::valarray<double> tmp_watermark_volumes;
     std::valarray<double> tmp_watermark_fills;
     std::valarray<double> stored_watermark_volumes;
     std::valarray<double> stored_watermark_fills;
-    CCD ccd;
 
     int n_traps;
     int max_n_transfers;
@@ -38,6 +39,7 @@ class TrapManager {
     void reset_trap_states();
     void store_trap_states();
     void restore_trap_states();
+
     void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
