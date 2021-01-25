@@ -1,0 +1,8 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+AlignAfterOpenBracket: AlwaysBreak
+KeepEmptyLinesAtTheStartOfBlocks: true
+IndentWidth: 4
+ColumnLimit: 88
+...
