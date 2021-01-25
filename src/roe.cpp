@@ -10,20 +10,28 @@
     Class ROE.
 
     Information about the read-out electronics.
-    
+    
     ##todo: reimplement multiple phases
-    
+    
     Parameters
     ----------
     dwell_times : double (opt.)
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default 1.0.
-        
+                   
+    empty_traps_between_columns : bool (opt.)
+        true:  Each column has independent traps (appropriate for parallel
+               clocking)
+        false: Each column moves through the same traps, which therefore
+               preserve occupancy, allowing trails to extend onto the next
+               column (appropriate for serial clocking, if all prescan and
+               overscan pixels are included in the image array). Default true.
+    
     empty_traps_for_first_transfers : bool (opt.)
         If true (and express != n_pixels), then tweak the express algorithm to
         treat every first pixel-to-pixel transfer separately to the rest.
         Default true.
-        
+        
         Physically, the first pixel that a charge cloud finds itself in will
         start with empty traps, whereas every subsequent transfer sees traps
         that may have been filled previously. With the default express
@@ -32,7 +40,7 @@
         modification prevents that issue by modelling the first single
         transfer for each pixel separately and then using the express
         algorithm normally for the remainder.
-        
+        
     use_integer_express_matrix : bool (opt.)
         Old versions of this algorithm assumed (unnecessarily) that all
         express multipliers must be integers. It can be slightly more efficient
@@ -40,10 +48,11 @@
         for backwards compatability. Default false.
 */
 ROE::ROE(
-    double dwell_time, bool empty_traps_for_first_transfers,
-    bool use_integer_express_matrix)
+    double dwell_time, bool empty_traps_between_columns,
+    bool empty_traps_for_first_transfers, bool use_integer_express_matrix)
     : dwell_time(dwell_time),
       empty_traps_for_first_transfers(empty_traps_for_first_transfers),
+      empty_traps_between_columns(empty_traps_between_columns),
       use_integer_express_matrix(use_integer_express_matrix) {}
 
 /*
@@ -88,8 +97,8 @@ ROE::ROE(
     express_matrix : std::valarray<double>
         The express multiplier value for each pixel-to-pixel transfer, as a
         2D-style 1D array.
-        
-    n_express_runs : int
+        
+    n_express_passes : int
         The number of express passes to run, i.e. the number of rows in the
         matrices.
 */
@@ -167,16 +176,16 @@ void ROE::set_express_matrix_from_pixels_and_express(
         }
 
         tmp_express_matrix = express_matrix_full;
-        n_express_runs = n_transfers;
+        n_express_passes = n_transfers;
     } else {
-        n_express_runs = express;
+        n_express_passes = express;
     }
 
     // Remove the offset (which is not represented in the image pixels)
-    std::valarray<double> express_matrix_trim(0.0, n_express_runs * n_pixels);
+    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_pixels);
 
     // Copy the post-offset slices of each row
-    for (int express_index = 0; express_index < n_express_runs; express_index++) {
+    for (int express_index = 0; express_index < n_express_passes; express_index++) {
         express_matrix_trim[std::slice(express_index * n_pixels, n_pixels, 1)] =
             tmp_express_matrix[std::slice(
                 express_index * n_transfers + offset, n_pixels, 1)];
@@ -188,10 +197,10 @@ void ROE::set_express_matrix_from_pixels_and_express(
 /*
     Set the accompanying array to the express matrix of when to store the trap
     occupancy states.
-    
+    
     Allows the next express iteration to continue from an (approximately)
     suitable configuration by restoring the saved states.
-    
+    
     If the traps start empty (rather than restored), then the first capture in
     each express loop is different from the rest: many electrons are lost. This
     behaviour may be appropriate for the first pixel-to-pixel transfer of
@@ -199,7 +208,7 @@ void ROE::set_express_matrix_from_pixels_and_express(
     causes problems if the first transfer is used to represent many
     transfers through the express mechanism, as the large loss of electrons
     is multiplied up.
-     
+     
     Returns
     -------
     store_trap_states_matrix : std::valarray<bool>
@@ -208,7 +217,7 @@ void ROE::set_express_matrix_from_pixels_and_express(
 */
 void ROE::set_store_trap_states_matrix() {
     store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
-    int n_transfers = express_matrix.size() / n_express_runs;
+    int n_transfers = express_matrix.size() / n_express_passes;
     int row_index;
 
     // No need to store states if already using empty traps for first transfers
@@ -216,7 +225,7 @@ void ROE::set_store_trap_states_matrix() {
 
     // Store on the pixel before where the next express pass will begin, so
     // that the trap states are appropriate for continuing in the next pass
-    for (int express_index = 0; express_index < n_express_runs - 1; express_index++) {
+    for (int express_index = 0; express_index < n_express_passes - 1; express_index++) {
         for (row_index = 0; row_index < n_transfers - 1; row_index++) {
             if (express_matrix[(express_index + 1) * n_transfers + row_index + 1] > 0.0)
                 break;
