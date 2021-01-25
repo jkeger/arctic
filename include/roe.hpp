@@ -16,9 +16,8 @@ class ROE {
     int n_express_runs;
 
     std::valarray<double> express_matrix;
-    std::valarray<bool> monitor_traps_matrix;
 
-    void set_express_matrix_and_monitor_traps_matrix_from_pixels_and_express(
+    void set_express_matrix_from_pixels_and_express(
         int n_pixels, int express = 0, int offset = 0);
 };
 

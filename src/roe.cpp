@@ -10,26 +10,26 @@
     Class ROE.
 
     Information about the read-out electronics.
-    
+    
     ##todo: reimplement multiple phases
-    
+    
     Parameters
     ----------
     dwell_times : double (opt.)
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default 1.0.
-        
+        
     use_integer_express_matrix : bool (opt.)
         Old versions of this algorithm assumed (unnecessarily) that all
         express multipliers must be integers. It can be slightly more efficient
         if this requirement is dropped, but the option to force it is included
         for backwards compatability.
-        
+        
     empty_traps_for_first_transfers : bool (opt.)
         If True and if using express != n_pixels, then tweak the express
         algorithm to treat every first pixel-to-pixel transfer separately
         to the rest.
-        
+        
         Physically, the first ixel that a charge cloud finds itself in will
         start with empty traps; whereas every subsequent transfer sees traps
         that may have been filled previously. With the default express
@@ -47,7 +47,7 @@ ROE::ROE(
       use_integer_express_matrix(use_integer_express_matrix) {}
 
 /*
-    Set the matrices of express multipliers and when to monitor traps.
+    Set the matrix of express multipliers.
 
     To reduce runtime, instead of calculating the effects of every
     pixel-to-pixel transfer, it is possible to approximate readout by
@@ -88,16 +88,12 @@ ROE::ROE(
     express_matrix : std::valarray<double>
         The express multiplier value for each pixel-to-pixel transfer, as a
         2D-style 1D array.
-        
-    monitor_traps_matrix : std::valarray<bool>
-        For each pixel-to-pixel transfer, set true if the release and capture
-        of charge needs to be monitored, as a 2D-style 1D array.
-        
+        
     n_express_runs : int
         The number of express passes to run, i.e. the number of rows in the
         matrices.
 */
-void ROE::set_express_matrix_and_monitor_traps_matrix_from_pixels_and_express(
+void ROE::set_express_matrix_from_pixels_and_express(
     int n_pixels, int express, int offset) {
 
     int n_transfers = n_pixels + offset;
@@ -176,25 +172,15 @@ void ROE::set_express_matrix_and_monitor_traps_matrix_from_pixels_and_express(
         n_express_runs = express;
     }
 
-    // When to monitor traps
-    monitor_traps_matrix = std::valarray<bool>(false, tmp_express_matrix.size());
-    monitor_traps_matrix[tmp_express_matrix > 0.0] = true;
-
     // Remove the offset (which is not represented in the image pixels)
     std::valarray<double> express_matrix_trim(0.0, n_express_runs * n_pixels);
-    std::valarray<bool> monitor_traps_matrix_trim(false, n_express_runs * n_pixels);
 
     // Copy the post-offset slices of each row
     for (int express_index = 0; express_index < n_express_runs; express_index++) {
         express_matrix_trim[std::slice(express_index * n_pixels, n_pixels, 1)] =
             tmp_express_matrix[std::slice(
                 express_index * n_transfers + offset, n_pixels, 1)];
-
-        monitor_traps_matrix_trim[std::slice(express_index * n_pixels, n_pixels, 1)] =
-            monitor_traps_matrix[std::slice(
-                express_index * n_transfers + offset, n_pixels, 1)];
     }
 
     express_matrix = express_matrix_trim;
-    monitor_traps_matrix = monitor_traps_matrix_trim;
 }
