@@ -1,7 +1,9 @@
 
 # Compiler
 CXX := g++
-CXXFLAGS := -std=c++11 #-Wall
+CXXFLAGS := -std=c++11 -O3 #-Wall
+# CXXFLAGS := -std=c++11 -pg -no-pie -fno-builtin		# Profiling with gprof
+# CXXFLAGS := -std=c++11 -g 							# Profiling with valgrind
 
 # Executables
 TARGET := arctic
@@ -27,6 +29,12 @@ TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
 # Ignore any files with these names
 .PHONY: all test clean
 
+# Default to main program
+.DEFAULT_GOAL := $(TARGET)
+
+# Main program and unit tests
+all: $(TARGET) $(TEST_TARGET)
+
 # Main program
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -35,9 +43,6 @@ $(TARGET): $(OBJECTS)
 
 $(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@
-
-# Main program and tests
-all: $(TARGET) $(TEST_TARGET)
 
 # Unit tests
 test: $(TEST_TARGET)
