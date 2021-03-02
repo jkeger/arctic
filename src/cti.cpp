@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <valarray>
+#include <sys/time.h>
 
 #include "ccd.hpp"
 #include "cti.hpp"
@@ -114,6 +115,13 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     TrapManagerInstantCapture trap_manager(traps, n_rows, ccd);
     trap_manager.initialise_trap_states();
     trap_manager.set_fill_probabilities_from_dwell_time(roe.dwell_time);
+        
+    // Measure wall-clock time taken for the primary loop
+    //## Use clock_gettime() instead?
+    struct timeval wall_time_start;
+    struct timeval wall_time_end;
+    double wall_time_elapsed;
+    gettimeofday(&wall_time_start, NULL);
 
     // Clock one column of pixels through the (column of) traps
     for (int column_index = column_start; column_index < column_stop; column_index++) {
@@ -152,6 +160,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         if (roe.empty_traps_between_columns) trap_manager.reset_trap_states();
         trap_manager.store_trap_states();
     }
+    
+    // Time taken
+    gettimeofday(&wall_time_end, NULL);
+    wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
+    printf("Wall-clock time elapsed: %.2g \n", wall_time_elapsed);
 
     // print_array_2D(image);
 

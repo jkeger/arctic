@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <valarray>
 #include <vector>
+#include <sys/time.h>
 
 /*
     Restrict a value to between two limits.
@@ -115,4 +116,24 @@ std::valarray<double> arange(double start, double stop, double step = 1) {
     // Convert to a valarray
     std::valarray<double> array(tmp_array.data(), tmp_array.size());
     return array;
+}
+
+/*
+    Calculate the number of elapsed seconds between two times.
+*/
+double gettimelapsed(struct timeval start, struct timeval end) {
+    double seconds;
+    double microseconds;
+
+    seconds = end.tv_sec - start.tv_sec;
+    microseconds = end.tv_usec - start.tv_usec;
+
+    if (microseconds < 0.0) {
+        seconds -= 1.0;
+        microseconds = 1e6 - microseconds;
+    }
+
+    microseconds /= 1e6;
+
+    return seconds + microseconds;
 }
