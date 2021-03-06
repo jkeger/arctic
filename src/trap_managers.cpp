@@ -269,7 +269,7 @@ int TrapManager::watermark_index_above_cloud_from_volumes(
     double cumulative_volume = 0.0;
 
     // Sum up the fractional volumes until surpassing the cloud volume
-    for (int i_wmk = i_first_active_wmk; i_wmk < n_active_watermarks; i_wmk++) {
+    for (int i_wmk = i_first_active_wmk; i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
         // Total volume so far
         cumulative_volume += watermark_volumes[i_wmk];
 
@@ -319,7 +319,7 @@ double TrapManagerInstantCapture::n_electrons_released() {
     double frac_released;
 
     // Each active watermark
-    for (int i_wmk = 0; i_wmk < n_active_watermarks; i_wmk++) {
+    for (int i_wmk = i_first_active_wmk; i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
         n_released_this_trap = 0;
         
         // Each trap species

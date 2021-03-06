@@ -493,7 +493,46 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
     
-    //### add non-zero i_first_active_wmk 
+    SECTION("Multiple traps release, non-zero first active watermark") {
+        TrapManagerInstantCapture trap_manager(
+            std::valarray<Trap>{trap_1, trap_2}, 4, ccd);
+        trap_manager.initialise_trap_states();
+        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.n_active_watermarks = 3;
+        trap_manager.i_first_active_wmk = 2;
+        trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1};
+        trap_manager.watermark_fills = {
+            // clang-format off
+            0.8, 0.3,
+            0.4, 0.2,
+            0.8, 0.3,
+            0.4, 0.2,
+            0.2, 0.1,
+            // clang-format on
+        };
+    
+        n_electrons_released = trap_manager.n_electrons_released();
+    
+        REQUIRE(n_electrons_released == Approx(2.5 + 1.28));
+        answer = {0.3, 0.2, 0.5, 0.2, 0.1};
+        test.assign(
+            std::begin(trap_manager.watermark_volumes),
+            std::end(trap_manager.watermark_volumes));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {
+            // clang-format off
+            0.8, 0.3,
+            0.4, 0.2,
+            0.4, 0.06,
+            0.2, 0.04,
+            0.1, 0.02,
+            // clang-format on
+        };
+        test.assign(
+            std::begin(trap_manager.watermark_fills),
+            std::end(trap_manager.watermark_fills));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+    }
 }
 
 TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
