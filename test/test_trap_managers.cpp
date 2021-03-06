@@ -701,7 +701,7 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
-
+    
     SECTION("Multiple traps capture, cloud between watermarks 2") {
         TrapManagerInstantCapture trap_manager(
             std::valarray<Trap>{trap_1, trap_2}, 5, ccd);
@@ -852,6 +852,99 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     double n_electrons_captured;
     std::vector<double> test, answer;
+    
+    SECTION("Multiple traps capture, cloud below watermarks") {
+        TrapManagerInstantCapture trap_manager(
+            std::valarray<Trap>{trap_1, trap_2}, 5, ccd);
+        trap_manager.initialise_trap_states();
+        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.n_active_watermarks = 3;
+        trap_manager.i_first_active_wmk = 2;
+        trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1, 0.0};
+        trap_manager.watermark_fills = {
+            // clang-format off
+            0.8, 0.7,
+            0.4, 0.3,
+            0.8, 0.7,
+            0.4, 0.3,
+            0.3, 0.2,
+            0.0, 0.0
+            // clang-format on
+        };
+        n_electrons_captured = trap_manager.n_electrons_captured(3e3);
+    
+        REQUIRE(n_electrons_captured == Approx((0.3 * 0.2) * 10.0 + (0.3 * 0.3) * 8.0));
+        REQUIRE(trap_manager.n_active_watermarks == 4);
+        REQUIRE(trap_manager.i_first_active_wmk == 2);
+    
+        answer = {0.3, 0.2, 0.3, 0.2, 0.2, 0.1};
+        test.assign(
+            std::begin(trap_manager.watermark_volumes),
+            std::end(trap_manager.watermark_volumes));
+        REQUIRE_THAT(test, Catch::Approx(answer).margin(1e-99));
+        answer = {
+            // clang-format off
+            0.8, 0.7,
+            0.4, 0.3,
+            1.0, 1.0,
+            0.8, 0.7,
+            0.4, 0.3,
+            0.3, 0.2
+            // clang-format on
+        };
+        test.assign(
+            std::begin(trap_manager.watermark_fills),
+            std::end(trap_manager.watermark_fills));
+        REQUIRE_THAT(test, Catch::Approx(answer).margin(1e-99));
+    }
+
+    SECTION("Multiple traps capture, cloud between watermarks") {
+        TrapManagerInstantCapture trap_manager(
+            std::valarray<Trap>{trap_1, trap_2}, 5, ccd);
+        trap_manager.initialise_trap_states();
+        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.n_active_watermarks = 4;
+        trap_manager.i_first_active_wmk = 2;
+        trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1, 0.1};
+        trap_manager.watermark_fills = {
+            // clang-format off
+            0.8, 0.7,
+            0.4, 0.3,
+            0.8, 0.7,
+            0.4, 0.3,
+            0.3, 0.2,
+            0.2, 0.1
+            // clang-format on
+        };
+        n_electrons_captured = trap_manager.n_electrons_captured(7.5e3);
+    
+        REQUIRE(
+            n_electrons_captured == Approx(
+                                        (0.5 * 0.2 + 0.2 * 0.6 + 0.05 * 0.7) * 10.0 +
+                                        (0.5 * 0.3 + 0.2 * 0.7 + 0.05 * 0.8) * 8.0));
+        REQUIRE(trap_manager.n_active_watermarks == 3);
+        REQUIRE(trap_manager.i_first_active_wmk == 3);
+    
+        answer = {0.3, 0.2, 0.5, 0.75, 0.05, 0.1};
+        test.assign(
+            std::begin(trap_manager.watermark_volumes),
+            std::end(trap_manager.watermark_volumes));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {
+            // clang-format off
+            0.8, 0.7,
+            0.4, 0.3,
+            0.8, 0.7,
+            1.0, 1.0,
+            0.3, 0.2,
+            0.2, 0.1
+            // clang-format on
+        };
+        test.assign(
+            std::begin(trap_manager.watermark_fills),
+            std::end(trap_manager.watermark_fills));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+    }
 
     /* //###
     CCD ccd_2(1e4, 1e-7, 0.5);

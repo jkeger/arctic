@@ -73,7 +73,7 @@
 
     n_watermarks : int
         The total number of available watermark levels, determined by the number
-        of potential watermark-creating transfers and n_watermarks_per_transfer.
+        of potential watermark-creating transfers and the watermarking scheme.
         
     i_first_active_wmk : int
         The index of the first active watermark. The effective starting point 
@@ -236,7 +236,7 @@ double TrapManager::n_trapped_electrons_from_watermarks(
 
         // Multiply the fill fractions by the fractional volumes
         n_trapped_electrons_each_watermark *= wmk_volumes[
-            std::slice(i_first_active_wmk, n_active_watermarks + 1, 1)];
+            std::slice(i_first_active_wmk, n_active_watermarks, 1)];
 
         // Sum the number of electrons in each watermark level and multiply by
         // the trap density
@@ -391,28 +391,32 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     }
 
     // Cloud below all current watermarks: set new watermark and update the rest
-    else if (i_wmk_above_cloud == 0) {
+    else if (i_wmk_above_cloud == i_first_active_wmk) {
+        //### Could instead just do i_first_active_wmk--
+        
         // Copy-paste all higher watermarks up one to make room
-        watermark_volumes[std::slice(1, n_active_watermarks, 1)] =
+        watermark_volumes[std::slice(i_first_active_wmk + 1, n_active_watermarks, 1)] =
             (std::valarray<double>)
-                watermark_volumes[std::slice(0, n_active_watermarks, 1)];
-        watermark_fills[std::slice(n_traps, n_active_watermarks * n_traps, 1)] =
+                watermark_volumes[std::slice(i_first_active_wmk, n_active_watermarks, 1)];
+        watermark_fills[std::slice(
+            (i_first_active_wmk + 1) * n_traps, n_active_watermarks * n_traps, 1)] =
             (std::valarray<double>)
-                watermark_fills[std::slice(0, n_active_watermarks * n_traps, 1)];
+                watermark_fills[std::slice(
+                    i_first_active_wmk * n_traps, n_active_watermarks * n_traps, 1)];
 
         // Update count of active watermarks
         n_active_watermarks++;
 
         // New watermark
-        watermark_volumes[0] = cloud_fractional_volume;
-        watermark_fills[std::slice(0, n_traps, 1)] = 1.0;
+        watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
+        watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] = 1.0;
 
         // Update fractional volume of the partially overwritten watermark above
-        watermark_volumes[1] -= cloud_fractional_volume;
+        watermark_volumes[i_first_active_wmk + 1] -= cloud_fractional_volume;
     }
 
     // Cloud above all current watermarks: ignore all old watermarks
-    else if (i_wmk_above_cloud == n_active_watermarks) {
+    else if (i_wmk_above_cloud == i_first_active_wmk + n_active_watermarks) {
         // Skip all overwritten watermarks
         i_first_active_wmk = i_wmk_above_cloud - 1;
         
@@ -429,10 +433,13 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
         // Update fractional volume of the partially overwritten watermark
         double previous_total_volume =
             ((std::valarray<double>)
-                 watermark_volumes[std::slice(0, i_wmk_above_cloud + 1, 1)])
+                 watermark_volumes[std::slice(i_first_active_wmk, i_wmk_above_cloud + 1 - i_first_active_wmk, 1)])
                 .sum();
         watermark_volumes[i_wmk_above_cloud] =
             previous_total_volume - cloud_fractional_volume;
+
+        // Update count of active watermarks
+        n_active_watermarks += i_first_active_wmk - i_wmk_above_cloud + 1;
         
         // Skip all overwritten watermarks
         i_first_active_wmk = i_wmk_above_cloud - 1;
@@ -440,9 +447,6 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
         // New first watermark
         watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
         watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] = 1.0;
-
-        // Update count of active watermarks
-        n_active_watermarks += 1 - i_wmk_above_cloud;
     }
 
     double n_trapped_electrons_final =
