@@ -59,7 +59,7 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager.n_watermarks_per_transfer == 2);
         REQUIRE(trap_manager.empty_watermark == 0.0);
         REQUIRE(trap_manager.n_active_watermarks == 0);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
 
         // Instant-capture traps
         TrapManagerInstantCapture trap_manager_ic(
@@ -69,7 +69,7 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager_ic.n_watermarks_per_transfer == 1);
         REQUIRE(trap_manager_ic.empty_watermark == 0.0);
         REQUIRE(trap_manager_ic.n_active_watermarks == 0);
-        REQUIRE(trap_manager_ic.first_active_watermark == 0);
+        REQUIRE(trap_manager_ic.i_first_active_wmk == 0);
     }
 
     SECTION("Initial watermarks") {
@@ -128,17 +128,18 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         // Standard traps
         TrapManager trap_manager(std::valarray<Trap>{trap_1}, 2, ccd);
         trap_manager.initialise_trap_states();
+        trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {0.8, 0.4, 0.2, 0.0, 0.0};
         n_trapped_electrons = trap_manager.n_trapped_electrons_from_watermarks(
             trap_manager.watermark_volumes, trap_manager.watermark_fills);
-
         REQUIRE(
             n_trapped_electrons ==
             (0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_1.density);
 
         TrapManager trap_manager_2(std::valarray<Trap>{trap_1, trap_2}, 2, ccd);
         trap_manager_2.initialise_trap_states();
+        trap_manager_2.n_active_watermarks = 3;
         trap_manager_2.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager_2.watermark_fills = {
             // clang-format off
@@ -151,7 +152,27 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         };
         n_trapped_electrons = trap_manager_2.n_trapped_electrons_from_watermarks(
             trap_manager_2.watermark_volumes, trap_manager_2.watermark_fills);
+        REQUIRE(
+            n_trapped_electrons ==
+            (0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_1.density +
+                (0.5 * 0.3 + 0.2 * 0.2 + 0.1 * 0.1) * trap_2.density);
 
+        // i_first_active_wmk > 0
+        trap_manager_2.initialise_trap_states();
+        trap_manager_2.n_active_watermarks = 3;
+        trap_manager_2.i_first_active_wmk = 2;
+        trap_manager_2.watermark_volumes = {0.4, 0.3, 0.5, 0.2, 0.1};
+        trap_manager_2.watermark_fills = {
+            // clang-format off
+            0.8, 0.3,
+            0.4, 0.2,
+            0.8, 0.3,
+            0.4, 0.2,
+            0.2, 0.1,
+            // clang-format on
+        };
+        n_trapped_electrons = trap_manager_2.n_trapped_electrons_from_watermarks(
+            trap_manager_2.watermark_volumes, trap_manager_2.watermark_fills);
         REQUIRE(
             n_trapped_electrons ==
             (0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_1.density +
@@ -160,11 +181,11 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         // Instant-capture traps
         TrapManagerInstantCapture trap_manager_ic(std::valarray<Trap>{trap_3}, 3, ccd);
         trap_manager_ic.initialise_trap_states();
+        trap_manager_ic.n_active_watermarks = 3;
         trap_manager_ic.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager_ic.watermark_fills = {0.8, 0.4, 0.2, 0.0, 0.0};
         n_trapped_electrons = trap_manager_ic.n_trapped_electrons_from_watermarks(
             trap_manager_ic.watermark_volumes, trap_manager_2.watermark_fills);
-
         REQUIRE(
             n_trapped_electrons ==
             (0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_3.density);
@@ -211,7 +232,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         // First watermark
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 0;
-        trap_manager.first_active_watermark = 0;
+        trap_manager.i_first_active_wmk = 0;
         watermark_index_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
                 trap_manager.watermark_volumes, 0.6);
@@ -220,7 +241,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         // Cloud below watermarks
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
-        trap_manager.first_active_watermark = 0;
+        trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         watermark_index_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
@@ -230,7 +251,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         // Cloud above watermarks
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
-        trap_manager.first_active_watermark = 0;
+        trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         watermark_index_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
@@ -240,7 +261,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         // Cloud between watermarks
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
-        trap_manager.first_active_watermark = 0;
+        trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         watermark_index_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
@@ -253,7 +274,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
             std::valarray<Trap>{trap_1, trap_2}, 4, ccd);
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
-        trap_manager.first_active_watermark = 0; //###todo test non-zero
+        trap_manager.i_first_active_wmk = 0; //###todo test non-zero
         std::valarray<double> volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         std::valarray<double> fills = {
             // clang-format off
@@ -272,7 +293,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.store_trap_states();
 
         REQUIRE(trap_manager.stored_n_active_watermarks == 3);
-        REQUIRE(trap_manager.stored_first_active_watermark == 0);
+        REQUIRE(trap_manager.stored_i_first_active_wmk == 0);
         answer.assign(std::begin(volumes), std::end(volumes));
         test.assign(
             std::begin(trap_manager.stored_watermark_volumes),
@@ -288,7 +309,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.reset_trap_states();
 
         REQUIRE(trap_manager.n_active_watermarks == 0);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
         answer = {0.0, 0.0, 0.0, 0.0, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),
@@ -304,7 +325,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.restore_trap_states();
 
         REQUIRE(trap_manager.n_active_watermarks == 3);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
         answer.assign(std::begin(volumes), std::end(volumes));
         test.assign(
             std::begin(trap_manager.watermark_volumes),
@@ -460,9 +481,13 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
+    
+    //### add non-zero i_first_active_wmk 
 }
 
-TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
+TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
+    // Base cases: i_first_active_wmk = 0, enough > 1
+    
     TrapInstantCapture trap_1(10.0, -1.0 / log(0.5));
     TrapInstantCapture trap_2(8.0, -1.0 / log(0.2));
 
@@ -479,7 +504,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
     
         REQUIRE(n_electrons_captured == Approx(0.6 * 10.0 + 0.6 * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 1);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
     
         answer = {0.6, 0.0, 0.0, 0.0, 0.0, 0.0};
         test.assign(
@@ -523,7 +548,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
     
         REQUIRE(n_electrons_captured == Approx((0.3 * 0.2) * 10.0 + (0.3 * 0.3) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 4);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
     
         answer = {0.3, 0.2, 0.2, 0.1, 0.0, 0.0};
         test.assign(
@@ -572,7 +597,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
                 (0.5 * 0.2 + 0.2 * 0.6 + 0.1 * 0.7 + 0.1 * 1.0) * 10.0 +
                 (0.5 * 0.3 + 0.2 * 0.7 + 0.1 * 0.8 + 0.1 * 1.0) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 1);
-        REQUIRE(trap_manager.first_active_watermark == 2);
+        REQUIRE(trap_manager.i_first_active_wmk == 2);
     
         answer = {0.5, 0.2, 0.9, 0.0, 0.0, 0.0};
         test.assign(
@@ -606,7 +631,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
     
         REQUIRE(n_electrons_captured == Approx((0.5 * 0.2 + 0.1 * 0.6) * 10.0));
         REQUIRE(trap_manager.n_active_watermarks == 3);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
     
         answer = {0.6, 0.1, 0.1, 0.0, 0.0, 0.0};
         test.assign(
@@ -643,7 +668,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             n_electrons_captured ==
             Approx((0.5 * 0.2 + 0.1 * 0.6) * 10.0 + (0.5 * 0.3 + 0.1 * 0.7) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 3);
-        REQUIRE(trap_manager.first_active_watermark == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
     
         answer = {0.6, 0.1, 0.1, 0.0, 0.0, 0.0};
         test.assign(
@@ -690,7 +715,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
                                         (0.5 * 0.2 + 0.2 * 0.6 + 0.05 * 0.7) * 10.0 +
                                         (0.5 * 0.3 + 0.2 * 0.7 + 0.05 * 0.8) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 3);
-        REQUIRE(trap_manager.first_active_watermark == 1);
+        REQUIRE(trap_manager.i_first_active_wmk == 1);
     
         answer = {0.5, 0.75, 0.05, 0.1, 0.0, 0.0};
         test.assign(
@@ -738,7 +763,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
                 (0.5 * 0.2 + 0.2 * 0.6 + 0.1 * 0.7 + 0.05 * 0.8) * 10.0 +
                 (0.5 * 0.3 + 0.2 * 0.7 + 0.1 * 0.8 + 0.05 * 0.9) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 2);
-        REQUIRE(trap_manager.first_active_watermark == 2);
+        REQUIRE(trap_manager.i_first_active_wmk == 2);
     
         answer = {0.5, 0.2, 0.85, 0.05, 0.0, 0.0};
         test.assign(
@@ -760,8 +785,6 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
-    
-    //### add non-zero initial first_active_watermark 
     
     SECTION("Same cloud volume as existing watermark") {
         TrapManagerInstantCapture trap_manager(
@@ -786,7 +809,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             n_electrons_captured ==
             Approx((0.5 * 0.2 + 0.2 * 0.6) * 10.0 + (0.5 * 0.3 + 0.2 * 0.7) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 3);
-        REQUIRE(trap_manager.first_active_watermark == 1);
+        REQUIRE(trap_manager.i_first_active_wmk == 1);
     
         answer = {0.5, 0.7, 0.1, 0.1, 0.0, 0.0};
         test.assign(
@@ -808,10 +831,20 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
-    
+}
+
+TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
+    // More complicated cases: i_first_active_wmk != 0 and/or enough < 1
+
+    TrapInstantCapture trap_1(10.0, -1.0 / log(0.5));
+    TrapInstantCapture trap_2(8.0, -1.0 / log(0.2));
+
+    double n_electrons_captured;
+    std::vector<double> test, answer;
+
     /* //###
     CCD ccd_2(1e4, 1e-7, 0.5);
-    
+
     SECTION("Not-enough capture, first watermark") {
         TrapManagerInstantCapture trap_manager(std::valarray<Trap>{trap_1}, 5, ccd_2);
         trap_manager.initialise_trap_states();
@@ -819,10 +852,10 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
         trap_manager.n_active_watermarks = 0;
         n_electrons_captured = trap_manager.n_electrons_captured(2.5e-3);
         // --> cloud_fractional_volume = 4.9999e-4, enough = 0.50001
-    
+
         REQUIRE(n_electrons_captured == Approx(4.9999e-4 * 0.50001 * 10.0));
         REQUIRE(trap_manager.n_active_watermarks == 1);
-    
+
         answer = {4.9999e-4, 0.0, 0.0, 0.0, 0.0, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),
@@ -834,7 +867,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
-    
+
     SECTION("Not-enough capture, cloud below watermarks") {
         TrapManagerInstantCapture trap_manager(
             std::valarray<Trap>{trap_1, trap_2}, 5, ccd_2);
@@ -855,13 +888,13 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
         n_electrons_captured = trap_manager.n_electrons_captured(2.5e-3);
         // --> cloud_fractional_volume = 4.9999e-4, enough = 0.454555
         double enough = 0.454555;
-    
+
         REQUIRE(
             n_electrons_captured ==
             Approx(
                 (4.9999e-4 * enough * 0.5) * 10.0 + (4.9999e-4 * enough * 0.75) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 4);
-    
+
         answer = {4.9999e-4, 0.5 - 4.9999e-4, 0.2, 0.1, 0.0, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),
@@ -882,7 +915,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer).margin(1e-99));
     }
-    
+
     SECTION("Not-enough capture, cloud above watermarks") {
         TrapManagerInstantCapture trap_manager(
             std::valarray<Trap>{trap_1, trap_2}, 5, ccd_2);
@@ -903,7 +936,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
         n_electrons_captured = trap_manager.n_electrons_captured(2.5e-3);
         // --> cloud_fractional_volume = 4.9999e-4, enough = 0.443277
         double enough = 0.443277;
-    
+
         REQUIRE(
             n_electrons_captured ==
             Approx(
@@ -911,7 +944,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
                 (1e-4 * enough * 0.6) * 10.0 + (1e-4 * enough * 0.7) * 8.0 +
                 (4.9999e-4 * enough) * 10.0 + (4.9999e-4 * enough) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 3);
-    
+
         answer = {2e-4, 1e-4, 4.9999e-4, 0.0, 0.0, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),
@@ -932,7 +965,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer).margin(1e-99));
     }
-    
+
     SECTION("Not-enough capture, cloud between watermarks") {
         TrapManagerInstantCapture trap_manager(
             std::valarray<Trap>{trap_1, trap_2}, 5, ccd_2);
@@ -953,7 +986,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
         n_electrons_captured = trap_manager.n_electrons_captured(2.5e-3);
         // --> cloud_fractional_volume = 4.9999e-4, enough = 0.529676
         double enough = 0.529676;
-    
+
         REQUIRE(
             n_electrons_captured ==
             Approx(
@@ -961,7 +994,7 @@ TEST_CASE("Test instant-capture traps: capture", "[trap_managers]") {
                 (1e-4 * enough * 0.6) * 10.0 + (1e-4 * enough * 0.7) * 8.0 +
                 (1.9999e-4 * enough * 0.7) * 10.0 + (1.9999e-4 * enough * 0.8) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 5);
-    
+
         answer = {2e-4, 1e-4, 1.9999e-4, 0.2 - 1.9999e-4, 0.1, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),

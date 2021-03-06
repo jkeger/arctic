@@ -28,9 +28,9 @@ class TrapManager {
     int n_watermarks_per_transfer;
     int n_watermarks;
     int n_active_watermarks;
-    int first_active_watermark;
+    int i_first_active_wmk;
     int stored_n_active_watermarks;
-    int stored_first_active_watermark;
+    int stored_i_first_active_wmk;
     double empty_watermark;
 
     std::valarray<double> fill_probabilities_from_empty;
