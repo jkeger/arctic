@@ -227,57 +227,68 @@ TEST_CASE("Test utilities", "[trap_managers]") {
     SECTION("Watermark index above cloud") {
         TrapManagerInstantCapture trap_manager(
             std::valarray<Trap>{trap_1, trap_2}, 4, ccd);
-        int watermark_index_above_cloud;
+        int i_wmk_above_cloud;
 
         // First watermark
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 0;
         trap_manager.i_first_active_wmk = 0;
-        watermark_index_above_cloud =
+        i_wmk_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
                 trap_manager.watermark_volumes, 0.6);
-        REQUIRE(watermark_index_above_cloud == 0);
+        REQUIRE(i_wmk_above_cloud == 0);
 
         // Cloud below watermarks
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        watermark_index_above_cloud =
+        i_wmk_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
                 trap_manager.watermark_volumes, 0.3);
-        REQUIRE(watermark_index_above_cloud == 0);
+        REQUIRE(i_wmk_above_cloud == 0);
 
         // Cloud above watermarks
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        watermark_index_above_cloud =
+        i_wmk_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
                 trap_manager.watermark_volumes, 0.9);
-        REQUIRE(watermark_index_above_cloud == 3);
+        REQUIRE(i_wmk_above_cloud == 3);
 
         // Cloud between watermarks
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        watermark_index_above_cloud =
+        i_wmk_above_cloud =
             trap_manager.watermark_index_above_cloud_from_volumes(
                 trap_manager.watermark_volumes, 0.6);
-        REQUIRE(watermark_index_above_cloud == 1);
+        REQUIRE(i_wmk_above_cloud == 1);
+
+        // Cloud between watermarks, i_first_active_wmk > 0
+        trap_manager.initialise_trap_states();
+        trap_manager.n_active_watermarks = 3;
+        trap_manager.i_first_active_wmk = 2;
+        trap_manager.watermark_volumes = {0.2, 0.1, 0.5, 0.2, 0.0};
+        i_wmk_above_cloud =
+            trap_manager.watermark_index_above_cloud_from_volumes(
+                trap_manager.watermark_volumes, 0.6);
+        REQUIRE(i_wmk_above_cloud == 3);
     }
 
     SECTION("Store, reset, and restore trap states") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<Trap>{trap_1, trap_2}, 4, ccd);
+            std::valarray<Trap>{trap_1, trap_2}, 5, ccd);
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
-        trap_manager.i_first_active_wmk = 0; //###todo test non-zero
-        std::valarray<double> volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
+        trap_manager.i_first_active_wmk = 1;
+        std::valarray<double> volumes = {0.3, 0.5, 0.2, 0.1, 0.0, 0.0};
         std::valarray<double> fills = {
             // clang-format off
+            0.4, 0.2,
             0.8, 0.3,
             0.4, 0.2,
             0.2, 0.1,
@@ -293,7 +304,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.store_trap_states();
 
         REQUIRE(trap_manager.stored_n_active_watermarks == 3);
-        REQUIRE(trap_manager.stored_i_first_active_wmk == 0);
+        REQUIRE(trap_manager.stored_i_first_active_wmk == 1);
         answer.assign(std::begin(volumes), std::end(volumes));
         test.assign(
             std::begin(trap_manager.stored_watermark_volumes),
@@ -310,12 +321,12 @@ TEST_CASE("Test utilities", "[trap_managers]") {
 
         REQUIRE(trap_manager.n_active_watermarks == 0);
         REQUIRE(trap_manager.i_first_active_wmk == 0);
-        answer = {0.0, 0.0, 0.0, 0.0, 0.0};
+        answer = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),
             std::end(trap_manager.watermark_volumes));
         REQUIRE_THAT(test, Catch::Approx(answer));
-        answer = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        answer = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_fills),
             std::end(trap_manager.watermark_fills));
@@ -325,7 +336,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.restore_trap_states();
 
         REQUIRE(trap_manager.n_active_watermarks == 3);
-        REQUIRE(trap_manager.i_first_active_wmk == 0);
+        REQUIRE(trap_manager.i_first_active_wmk == 1);
         answer.assign(std::begin(volumes), std::end(volumes));
         test.assign(
             std::begin(trap_manager.watermark_volumes),
