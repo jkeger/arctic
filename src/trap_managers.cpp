@@ -37,6 +37,9 @@
 
     Attributes
     ----------
+    n_traps : int
+        The number of trap species.
+            
     watermark_volumes : std::valarray<double>
         Array of watermark fractional volumes to describe the trap states, i.e.
         the proportion of the pixel volume occupied by each (active) watermark.
@@ -59,28 +62,25 @@
             The ith-to-jth watermark slices of the volumes and (all) the fills:
                 watermark_volumes[ std::slice(i, j - i, 1) ]
                 watermark_fills[ std::slice(i * n_traps, (j - i) * n_traps, 1) ]
+        
+    i_first_active_wmk : int
+        The index of the first active watermark. The effective starting point
+        for the active region of the watermark arrays. i.e. watermark levels 
+        below this are ignored because they've been superseded.
 
-    n_traps : int
-        The number of trap species.
+    n_active_watermarks : int
+        The number of currently active watermark levels. So the index of the 
+        last active watermark is (i_first_active_wmk + n_active_watermarks - 1).
 
     n_watermarks_per_transfer : int
         The number of new watermarks that could be made in each transfer.
-
-    empty_watermark : double
-        The watermark value corresponding to empty traps.
 
     n_watermarks : int
         The total number of available watermark levels, determined by the number
         of potential watermark-creating transfers and the watermarking scheme.
 
-    i_first_active_wmk : int
-        The index of the first active watermark. The effective starting point
-        for the active region of the watermark arrays. i.e. The number of old
-        watermark levels to ignore because they've been overwritten.
-
-    n_active_watermarks : int
-        The number of currently active watermark levels. So the last active
-        watermark is at (i_first_active_wmk + n_active_watermarks - 1).
+    empty_watermark : double
+        The watermark value corresponding to empty traps.
 */
 TrapManager::TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCD ccd)
     : traps(traps), max_n_transfers(max_n_transfers), ccd(ccd) {
@@ -650,10 +650,8 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
     double n_free_electrons) {
 
     double n_released = n_electrons_released();
-    // printf("  n_released %g \n", n_released);
 
     double n_captured = n_electrons_captured(n_free_electrons + n_released);
-    // printf("  n_captured %g \n", n_captured);
 
     return n_released - n_captured;
 }

@@ -1,7 +1,7 @@
 
 #include <stdio.h>
-#include <valarray>
 #include <sys/time.h>
+#include <valarray>
 
 #include "ccd.hpp"
 #include "cti.hpp"
@@ -40,18 +40,18 @@
              [2.0,     3.9,     192.1,   0.0  ],
              [1.3,     2.5,     4.8,     0.0  ],
              [0.8,     1.5,     2.9,     0.0  ]]
-        
+        
     roe : ROE
         An object describing the timing and direction(s) in which electrons are
         moved during readout.
-        
+        
     ccd : CCD
         An object to describe how electrons fill the volume inside (each phase
         of) a pixel in a CCD detector.
-        
+        
     traps : std::valarray<Trap>
         A list of one or more trap species.
-        
+        
     express : int (opt.)
         The number of times the pixel-to-pixel transfers are computed,
         determining the balance between accuracy (high values) and speed
@@ -64,16 +64,16 @@
             1       (faster, approximate) Compute the effect of each
                     transfer only once.
         Runtime scales approximately as O(express^0.5). ###WIP
-        
+        
     offset : int (opt.)
         The number of (e.g. prescan) pixels separating the supplied image from
         the readout register. Defaults to 0.
-        
+        
     row_start, row_stop : int (opt.)
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
-    
+    
     column_start, column_stop : int (opt.)
         The subset of column pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_columns for the
@@ -115,15 +115,16 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     TrapManagerInstantCapture trap_manager(traps, n_rows, ccd);
     trap_manager.initialise_trap_states();
     trap_manager.set_fill_probabilities_from_dwell_time(roe.dwell_time);
-        
+
     // Measure wall-clock time taken for the primary loop
-    //## Use clock_gettime() instead?
     struct timeval wall_time_start;
     struct timeval wall_time_end;
     double wall_time_elapsed;
     gettimeofday(&wall_time_start, NULL);
 
-    // Clock one column of pixels through the (column of) traps
+    // ========
+    // Clock each column of pixels through the column of traps
+    // ========
     for (int column_index = column_start; column_index < column_stop; column_index++) {
 
         // Monitor the traps in every pixel (express=n_rows), or just one
@@ -131,8 +132,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         for (int express_index = 0; express_index < roe.n_express_passes;
              express_index++) {
 
-            // Restore the trap occupancy levels (either to empty or to a saved
-            // state from a previous express pass)
+            // Restore the trap occupancy levels, either to empty or to a saved
+            // state from a previous express pass
             trap_manager.restore_trap_states();
 
             // Each pixel
@@ -144,6 +145,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
                 n_free_electrons = image[row_index][column_index];
 
+                // Release and capture electrons with the traps in this pixel
                 n_electrons_released_and_captured =
                     trap_manager.n_electrons_released_and_captured(n_free_electrons);
 
@@ -160,13 +162,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         if (roe.empty_traps_between_columns) trap_manager.reset_trap_states();
         trap_manager.store_trap_states();
     }
-    
+
     // Time taken
     gettimeofday(&wall_time_end, NULL);
     wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
-    printf("Wall-clock time elapsed: %.2g \n", wall_time_elapsed);
-
-    // print_array_2D(image);
+    printf("Wall-clock time elapsed: %.3g s \n", wall_time_elapsed);
 
     return image;
 }
