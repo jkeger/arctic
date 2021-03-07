@@ -114,8 +114,7 @@ void TrapManager::initialise_trap_states() {
     n_watermarks = max_n_transfers * n_watermarks_per_transfer + 1;
 
     watermark_volumes = std::valarray<double>(empty_watermark, n_watermarks);
-    watermark_fills = std::valarray<std::valarray<double>>(
-        std::valarray<double>(empty_watermark, n_traps), n_watermarks);
+    watermark_fills = std::valarray<double>(empty_watermark, n_traps * n_watermarks);
 
     // Initialise the stored trap states too
     store_trap_states();
@@ -128,8 +127,7 @@ void TrapManager::reset_trap_states() {
     n_active_watermarks = 0;
     i_first_active_wmk = 0;
     watermark_volumes = std::valarray<double>(empty_watermark, n_watermarks);
-    watermark_fills = std::valarray<std::valarray<double>>(
-        std::valarray<double>(empty_watermark, n_traps), n_watermarks);
+    watermark_fills = std::valarray<double>(empty_watermark, n_traps * n_watermarks);
 }
 
 /*
@@ -226,18 +224,22 @@ void TrapManager::set_fill_probabilities_from_dwell_time(double dwell_time) {
         The number of electrons stored in traps.
 */
 double TrapManager::n_trapped_electrons_from_watermarks(
-    std::valarray<double> wmk_volumes, std::valarray<std::valarray<double>> wmk_fills) {
+    std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills) {
 
     // No watermarks
     if (n_active_watermarks == 0) return 0.0;
 
     double n_trapped_electrons = 0.0;
+    std::valarray<double> n_trapped_electrons_this_wmk(n_traps);
     
     // Each active watermark
     for (int i_wmk = i_first_active_wmk; 
          i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
+        // Extract the fill fractions in a 1D array
+        n_trapped_electrons_this_wmk = wmk_fills[std::slice(i_wmk * n_traps, n_traps, 1)];
+        
         // Sum the fill fractions and multiply by the fractional volume
-        n_trapped_electrons += wmk_fills[i_wmk].sum() * wmk_volumes[i_wmk];
+        n_trapped_electrons += n_trapped_electrons_this_wmk.sum() * wmk_volumes[i_wmk];
     }
 
     return n_trapped_electrons;
@@ -257,7 +259,7 @@ double TrapManager::n_trapped_electrons_from_watermarks(
     Returns
     -------
     i_wmk_above_cloud : int
-        The index of the watermark that reaches above the cloud.
+        The index of the first active watermark that reaches above the cloud.
 */
 int TrapManager::watermark_index_above_cloud_from_volumes(
     std::valarray<double> wmk_volumes, double cloud_fractional_volume) {
@@ -313,40 +315,269 @@ double TrapManagerInstantCapture::n_electrons_released() {
     double n_released = 0;
     double n_released_this_wmk;
     double frac_released;
-    std::valarray<double> frac_released_each_trap(n_traps);
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk;
          i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
-         
-        // // Fraction of released electrons
-        // frac_released_each_trap = 
-        //     watermark_fills[i_wmk] * empty_probabilities_from_release;
-        // 
-        // // Update the watermark fill fraction
-        // watermark_fills[i_wmk] -= frac_released_each_trap;
-        // 
-        // // Multiply by the watermark fractional volume
-        // n_released += (frac_released_each_trap * watermark_volumes[i_wmk]).sum();
-        
         n_released_this_wmk = 0;
-        
+
         // Each trap species
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             // Fraction of released electrons
-            frac_released = watermark_fills[i_wmk][i_trap] *
+            frac_released = watermark_fills[i_wmk * n_traps + i_trap] *
                             empty_probabilities_from_release[i_trap];
             n_released_this_wmk += frac_released;
-        
+
             // Update the watermark fill fraction
-            watermark_fills[i_wmk][i_trap] -= frac_released;
+            watermark_fills[i_wmk * n_traps + i_trap] -= frac_released;
         }
-        
+
         // Multiply by the watermark fractional volume
         n_released += n_released_this_wmk * watermark_volumes[i_wmk];
     }
 
     return n_released;
+}
+
+/*
+    Modify the watermarks for normal capture.
+
+    Parameters
+    ----------
+    cloud_fractional_volume : double 
+        The fractional volume the electron cloud reaches in the pixel well.
+        
+    i_wmk_above_cloud : int
+        The index of the first active watermark that reaches above the cloud.
+
+    Updates
+    -------
+    watermark_volumes, watermark_fills : std::valarray<double>
+        The updated watermarks. See TrapManager().
+*/
+void TrapManagerInstantCapture::update_watermarks_capture(
+    double cloud_fractional_volume, int i_wmk_above_cloud) {
+    // First capture
+    if (n_active_watermarks == 0) {
+        // Set fractional volume
+        watermark_volumes[0] = cloud_fractional_volume;
+
+        // Set fill fractions for all trap species
+        watermark_fills[std::slice(0, n_traps, 1)] = trap_densities;
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+    }
+
+    // Cloud below all current watermarks
+    else if (i_wmk_above_cloud == i_first_active_wmk) {
+        // Make room for the new lowest watermark
+        if (i_first_active_wmk > 0) {
+            // Use existing room below the current first active watermark
+            i_first_active_wmk--;
+        } else {
+            // Copy-paste all higher watermarks up one to make room
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+                 i_wmk >= i_first_active_wmk; i_wmk--) {
+                watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
+                for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+                    watermark_fills[(i_wmk + 1) * n_traps + i_trap] =
+                        watermark_fills[i_wmk * n_traps + i_trap];
+                }
+            }
+        }
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+
+        // New watermark
+        watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
+        watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] = 
+            trap_densities;
+
+        // Update fractional volume of the partially overwritten watermark above
+        watermark_volumes[i_first_active_wmk + 1] -= cloud_fractional_volume;
+    }
+
+    // Cloud above all current watermarks
+    else if (i_wmk_above_cloud == i_first_active_wmk + n_active_watermarks) {
+        // Skip all overwritten watermarks
+        i_first_active_wmk = i_wmk_above_cloud - 1;
+
+        // New first watermark
+        watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
+        watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] = 
+            trap_densities;
+
+        // Update count of active watermarks
+        n_active_watermarks = 1;
+    }
+
+    // Cloud between current watermarks
+    else {
+        // Update fractional volume of the partially overwritten watermark
+        double previous_total_volume = 0.0;
+        for (int i_wmk = i_first_active_wmk; i_wmk <= i_wmk_above_cloud; i_wmk++) {
+            previous_total_volume += watermark_volumes[i_wmk];
+        }
+        watermark_volumes[i_wmk_above_cloud] =
+            previous_total_volume - cloud_fractional_volume;
+
+        // Update count of active watermarks
+        n_active_watermarks += i_first_active_wmk - i_wmk_above_cloud + 1;
+
+        // Skip all overwritten watermarks
+        i_first_active_wmk = i_wmk_above_cloud - 1;
+
+        // New first watermark
+        watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
+        watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] = 
+            trap_densities;
+    }
+}
+
+/*
+    Modify the watermarks for capture when not enough electrons are available.
+    
+    Each watermark is partially filled a fraction (`enough`) of the way to full, 
+    such that the resulting number of captured electrons is restricted to the 
+    number actually available for capture. 
+    
+    This only becomes relevant for tiny numbers of electrons, where the cloud 
+    can reach a disproportionately large volume in the pixel (reaching 
+    correspondingly many traps) for the small amount of charge.
+
+    Parameters
+    ----------
+    cloud_fractional_volume : double 
+        The fractional volume the electron cloud reaches in the pixel well.
+        
+    i_wmk_above_cloud : int
+        The index of the first active watermark that reaches above the cloud.
+        
+    enough : double
+        The amount of electrons available as a fraction of the number that 
+        could be captured by the watermarks reached by the cloud volume.
+
+    Updates
+    -------
+    watermark_volumes, watermark_fills : std::valarray<double>
+        The updated watermarks. See TrapManager().
+*/
+void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
+    double cloud_fractional_volume, int i_wmk_above_cloud, double enough) {
+    // First capture
+    if (n_active_watermarks == 0) {
+        // Set fractional volume
+        watermark_volumes[0] = cloud_fractional_volume;
+
+        // Set fill fractions for all trap species
+        watermark_fills[std::slice(0, n_traps, 1)] = trap_densities * enough;
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+    }
+
+    // Cloud below all current watermarks
+    else if (i_wmk_above_cloud == i_first_active_wmk) {
+        // Make room for the new lowest watermark
+        if (i_first_active_wmk > 0) {
+            // Use existing room below the current first active watermark
+            i_first_active_wmk--;
+        } else {
+            // Copy-paste all higher watermarks up one to make room
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+                 i_wmk >= i_first_active_wmk; i_wmk--) {
+                watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
+                for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+                    watermark_fills[(i_wmk + 1) * n_traps + i_trap] =
+                        watermark_fills[i_wmk * n_traps + i_trap];
+                }
+            }
+        }
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+
+        // New watermark
+        watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
+        watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] =
+            (std::valarray<double>)watermark_fills[std::slice(
+                i_first_active_wmk * n_traps, n_traps, 1)] *
+                (1.0 - enough) +
+            enough * trap_densities;
+
+        // Update fractional volume of the partially overwritten watermark above
+        watermark_volumes[i_first_active_wmk + 1] -= cloud_fractional_volume;
+    }
+
+    // Cloud above all current watermarks
+    else if (i_wmk_above_cloud == i_first_active_wmk + n_active_watermarks) {
+        // Cumulative volume of the watermark just below the new one
+        double volume_below = 0.0;
+        for (int i_wmk = i_first_active_wmk; i_wmk < i_wmk_above_cloud; i_wmk++) {
+            volume_below += watermark_volumes[i_wmk];
+        }
+
+        // New watermark
+        watermark_volumes[i_wmk_above_cloud] =
+            cloud_fractional_volume - volume_below;
+        watermark_fills[std::slice(
+            (i_first_active_wmk + n_active_watermarks) * n_traps, n_traps, 1)] =
+            enough * trap_densities;
+
+        // Update all other watermarks part-way to full
+        for (int i_wmk = i_first_active_wmk; i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
+            watermark_fills[std::slice(i_wmk * n_traps, n_traps, 1)] =
+                (std::valarray<double>)watermark_fills[std::slice(
+                    i_wmk * n_traps, n_traps, 1)] *
+                    (1.0 - enough) +
+                enough * trap_densities;
+        }
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+    }
+
+    // Cloud between current watermarks
+    else {
+        // Copy-paste all higher watermarks up one to make room
+        for (int i_wmk =
+                 i_wmk_above_cloud - 1 + n_active_watermarks - i_first_active_wmk;
+             i_wmk >= i_wmk_above_cloud; i_wmk--) {
+            watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
+            for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+                watermark_fills[(i_wmk + 1) * n_traps + i_trap] =
+                    watermark_fills[i_wmk * n_traps + i_trap];
+            }
+        }
+
+        // Cumulative volume of the watermark just below the new one
+        double volume_below = 0.0;
+        for (int i_wmk = i_first_active_wmk; i_wmk < i_wmk_above_cloud; i_wmk++) {
+            volume_below += watermark_volumes[i_wmk];
+        }
+
+        // New watermark
+        watermark_volumes[i_wmk_above_cloud] =
+            cloud_fractional_volume - volume_below;
+
+        // Update volume of the partially overwritten watermark
+        watermark_volumes[i_wmk_above_cloud + 1] -=
+            watermark_volumes[i_wmk_above_cloud];
+
+        // Update all watermarks, including the new one, part-way to full
+        for (int i_wmk = i_first_active_wmk; i_wmk <= i_wmk_above_cloud; i_wmk++) {
+            watermark_fills[std::slice(i_wmk * n_traps, n_traps, 1)] =
+                (std::valarray<double>)watermark_fills[std::slice(
+                    i_wmk * n_traps, n_traps, 1)] *
+                    (1.0 - enough) +
+                enough * trap_densities;
+        }
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+    }
 }
 
 /*
@@ -396,8 +627,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
         // Each trap species
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-            n_captured_this_wmk += 
-                trap_densities[i_trap] - watermark_fills[i_wmk][i_trap];
+            n_captured_this_wmk += trap_densities[i_trap] - watermark_fills[i_wmk * n_traps + i_trap];
         }
 
         // Capture from the bottom of the last watermark up to the cloud volume
@@ -420,191 +650,14 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
     // Normal full capture
     if (enough >= 1.0) {
-        // First capture
-        if (n_active_watermarks == 0) {
-            // Set fractional volume
-            watermark_volumes[0] = cloud_fractional_volume;
-
-            // Set fill fractions for all trap species
-            watermark_fills[0] = trap_densities;
-
-            // Update count of active watermarks
-            n_active_watermarks++;
-        }
-
-        // Cloud below all current watermarks
-        else if (i_wmk_above_cloud == i_first_active_wmk) {
-            // Make room for the new lowest watermark
-            if (i_first_active_wmk > 0) {
-                // Use existing room below the current first active watermark
-                i_first_active_wmk--;
-            } else {
-                // Copy-paste all higher watermarks up one to make room
-                for (int i_wmk = i_first_active_wmk + n_active_watermarks;
-                     i_wmk >= i_first_active_wmk; i_wmk--) {
-                    watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
-                    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-                        watermark_fills[i_wmk + 1][i_trap] =
-                            watermark_fills[i_wmk][i_trap];
-                    }
-                }
-            }
-
-            // Update count of active watermarks
-            n_active_watermarks++;
-
-            // New watermark
-            watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
-            watermark_fills[i_first_active_wmk] = trap_densities;
-
-            // Update fractional volume of the partially overwritten watermark above
-            watermark_volumes[i_first_active_wmk + 1] -= cloud_fractional_volume;
-        }
-
-        // Cloud above all current watermarks
-        else if (i_wmk_above_cloud == i_first_active_wmk + n_active_watermarks) {
-            // Skip all overwritten watermarks
-            i_first_active_wmk = i_wmk_above_cloud - 1;
-
-            // New first watermark
-            watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
-            watermark_fills[i_first_active_wmk] = trap_densities;
-
-            // Update count of active watermarks
-            n_active_watermarks = 1;
-        }
-
-        // Cloud between current watermarks
-        else {
-            // Update fractional volume of the partially overwritten watermark
-            double previous_total_volume = 0.0;
-            for (int i_wmk = i_first_active_wmk; i_wmk <= i_wmk_above_cloud; i_wmk++) {
-                previous_total_volume += watermark_volumes[i_wmk];
-            }
-            watermark_volumes[i_wmk_above_cloud] =
-                previous_total_volume - cloud_fractional_volume;
-
-            // Update count of active watermarks
-            n_active_watermarks += i_first_active_wmk - i_wmk_above_cloud + 1;
-
-            // Skip all overwritten watermarks
-            i_first_active_wmk = i_wmk_above_cloud - 1;
-
-            // New first watermark
-            watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
-            watermark_fills[i_first_active_wmk] = trap_densities;
-        }
+        update_watermarks_capture(cloud_fractional_volume, i_wmk_above_cloud);
     }
     // Partial capture
     else {
-        // Each watermark is partially filled a fraction (`enough`) of the way
-        // to full, such that the resulting number of captured electrons is
-        // restricted to the number actually available for capture. This only
-        // becomes relevant for tiny numbers of electrons, where the cloud can
-        // reach a disproportionately large volume in the pixel (reaching
-        // correspondingly many traps) for the small amount of charge.
+        update_watermarks_capture_not_enough(
+            cloud_fractional_volume, i_wmk_above_cloud, enough);
+        
         n_captured *= enough;
-
-        // First capture
-        if (n_active_watermarks == 0) {
-            // Set fractional volume
-            watermark_volumes[0] = cloud_fractional_volume;
-
-            // Set fill fractions for all trap species
-            watermark_fills[0] = trap_densities * enough;
-
-            // Update count of active watermarks
-            n_active_watermarks++;
-        }
-
-        // Cloud below all current watermarks
-        else if (i_wmk_above_cloud == i_first_active_wmk) {
-            // Make room for the new lowest watermark
-            if (i_first_active_wmk > 0) {
-                // Use existing room below the current first active watermark
-                i_first_active_wmk--;
-            } else {
-                // Copy-paste all higher watermarks up one to make room
-                for (int i_wmk = i_first_active_wmk + n_active_watermarks;
-                     i_wmk >= i_first_active_wmk; i_wmk--) {
-                    watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
-                    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-                        watermark_fills[i_wmk + 1][i_trap] =
-                            watermark_fills[i_wmk][i_trap];
-                    }
-                }
-            }
-
-            // Update count of active watermarks
-            n_active_watermarks++;
-
-            // New watermark
-            watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
-            watermark_fills[i_first_active_wmk] =
-                watermark_fills[i_first_active_wmk] * (1.0 - enough) + enough * trap_densities;
-
-            // Update fractional volume of the partially overwritten watermark above
-            watermark_volumes[i_first_active_wmk + 1] -= cloud_fractional_volume;
-        }
-
-        // Cloud above all current watermarks
-        else if (i_wmk_above_cloud == i_first_active_wmk + n_active_watermarks) {
-            // Cumulative volume of the watermark just below the new one
-            double volume_below = 0.0;
-            for (int i_wmk = i_first_active_wmk; i_wmk < i_wmk_above_cloud; i_wmk++) {
-                volume_below += watermark_volumes[i_wmk];
-            }
-
-            // New watermark
-            watermark_volumes[i_wmk_above_cloud] = cloud_fractional_volume - volume_below;
-            watermark_fills[i_first_active_wmk] = enough * trap_densities;
-
-            // Update all other watermarks part-way to full
-            for (int i_wmk = i_first_active_wmk; i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
-                watermark_fills[i_wmk] =
-                    watermark_fills[i_wmk] * (1.0 - enough) + enough * trap_densities;
-            }
-
-            // Update count of active watermarks
-            n_active_watermarks++;
-        }
-
-        // Cloud between current watermarks
-        else {
-            // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk =
-                     i_wmk_above_cloud - 1 + n_active_watermarks - i_first_active_wmk;
-                 i_wmk >= i_wmk_above_cloud; i_wmk--) {
-                watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
-                for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-                    watermark_fills[i_wmk + 1][i_trap] =
-                        watermark_fills[i_wmk][i_trap];
-                }
-            }
-
-            // Cumulative volume of the watermark just below the new one
-            double volume_below = 0.0;
-            for (int i_wmk = i_first_active_wmk; i_wmk < i_wmk_above_cloud; i_wmk++) {
-                volume_below += watermark_volumes[i_wmk];
-            }
-
-            // New watermark
-            watermark_volumes[i_wmk_above_cloud] =
-                cloud_fractional_volume - volume_below;
-
-            // Update volume of the partially overwritten watermark
-            watermark_volumes[i_wmk_above_cloud + 1] -=
-                watermark_volumes[i_wmk_above_cloud];
-
-            // Update all watermarks, including the new one, part-way to full
-            for (int i_wmk = i_first_active_wmk; i_wmk <= i_wmk_above_cloud; i_wmk++) {
-                watermark_fills[i_wmk] =
-                    watermark_fills[i_wmk] * (1.0 - enough) + enough * trap_densities;
-            }
-
-            // Update count of active watermarks
-            n_active_watermarks++;
-        }
     }
 
     return n_captured;
