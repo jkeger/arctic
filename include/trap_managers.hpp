@@ -17,9 +17,9 @@ class TrapManager {
     CCD ccd;
 
     std::valarray<double> watermark_volumes;
-    std::valarray<double> watermark_fills;
+    std::valarray<std::valarray<double>> watermark_fills;
     std::valarray<double> stored_watermark_volumes;
-    std::valarray<double> stored_watermark_fills;
+    std::valarray<std::valarray<double>> stored_watermark_fills;
 
     int n_traps;
     int max_n_transfers;
@@ -44,7 +44,7 @@ class TrapManager {
 
     void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_trapped_electrons_from_watermarks(
-        std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
+        std::valarray<double> wmk_volumes, std::valarray<std::valarray<double>> wmk_fills);
     int watermark_index_above_cloud_from_volumes(
         std::valarray<double> wmk_volumes, double cloud_fractional_volume);
 };
