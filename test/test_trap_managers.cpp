@@ -787,7 +787,7 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
-
+    
     SECTION("Multiple traps capture, cloud between watermarks 3") {
         TrapManagerInstantCapture trap_manager(
             std::valarray<Trap>{trap_1, trap_2}, 5, ccd);
