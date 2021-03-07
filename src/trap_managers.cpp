@@ -426,17 +426,22 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     
         // Cloud below all current watermarks: set new watermark and update the rest
         else if (i_wmk_above_cloud == i_first_active_wmk) {
-            //### Could instead just do i_first_active_wmk--
-            
-            // Copy-paste all higher watermarks up one to make room
-            watermark_volumes[std::slice(i_first_active_wmk + 1, n_active_watermarks, 1)] =
-                (std::valarray<double>)
-                    watermark_volumes[std::slice(i_first_active_wmk, n_active_watermarks, 1)];
-            watermark_fills[std::slice(
-                (i_first_active_wmk + 1) * n_traps, n_active_watermarks * n_traps, 1)] =
-                (std::valarray<double>)
-                    watermark_fills[std::slice(
-                        i_first_active_wmk * n_traps, n_active_watermarks * n_traps, 1)];
+            // Make room for the new lowest watermark
+            if (i_first_active_wmk > 0) {
+                // Use existing room below the current first active watermark
+                i_first_active_wmk--;
+            }
+            else {
+                // Copy-paste all higher watermarks up one to make room
+                watermark_volumes[std::slice(i_first_active_wmk + 1, n_active_watermarks, 1)] =
+                    (std::valarray<double>)
+                        watermark_volumes[std::slice(i_first_active_wmk, n_active_watermarks, 1)];
+                watermark_fills[std::slice(
+                    (i_first_active_wmk + 1) * n_traps, n_active_watermarks * n_traps, 1)] =
+                    (std::valarray<double>)
+                        watermark_fills[std::slice(
+                            i_first_active_wmk * n_traps, n_active_watermarks * n_traps, 1)];
+            }
     
             // Update count of active watermarks
             n_active_watermarks++;
@@ -506,17 +511,22 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
         // Cloud below all current watermarks: set new watermark and update the rest
         else if (i_wmk_above_cloud == i_first_active_wmk) {
-            //### Could instead just do i_first_active_wmk--
-            
-            // Copy-paste all higher watermarks up one to make room
-            watermark_volumes[std::slice(i_first_active_wmk + 1, n_active_watermarks, 1)] =
-                (std::valarray<double>)
-                    watermark_volumes[std::slice(i_first_active_wmk, n_active_watermarks, 1)];
-            watermark_fills[std::slice(
-                (i_first_active_wmk + 1) * n_traps, n_active_watermarks * n_traps, 1)] =
-                (std::valarray<double>)
-                    watermark_fills[std::slice(
-                        i_first_active_wmk * n_traps, n_active_watermarks * n_traps, 1)];
+            // Make room for the new lowest watermark
+            if (i_first_active_wmk > 0) {
+                // Use existing room below the current first active watermark
+                i_first_active_wmk--;
+            }
+            else {
+                // Copy-paste all higher watermarks up one to make room
+                watermark_volumes[std::slice(i_first_active_wmk + 1, n_active_watermarks, 1)] =
+                    (std::valarray<double>)
+                        watermark_volumes[std::slice(i_first_active_wmk, n_active_watermarks, 1)];
+                watermark_fills[std::slice(
+                    (i_first_active_wmk + 1) * n_traps, n_active_watermarks * n_traps, 1)] =
+                    (std::valarray<double>)
+                        watermark_fills[std::slice(
+                            i_first_active_wmk * n_traps, n_active_watermarks * n_traps, 1)];
+            }
 
             // Update count of active watermarks
             n_active_watermarks++;

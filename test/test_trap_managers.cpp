@@ -914,9 +914,9 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
     
         REQUIRE(n_electrons_captured == Approx((0.3 * 0.2) * 10.0 + (0.3 * 0.3) * 8.0));
         REQUIRE(trap_manager.n_active_watermarks == 4);
-        REQUIRE(trap_manager.i_first_active_wmk == 2);
+        REQUIRE(trap_manager.i_first_active_wmk == 1);
     
-        answer = {0.3, 0.2, 0.3, 0.2, 0.2, 0.1};
+        answer = {0.3, 0.3, 0.2, 0.2, 0.1, 0.0};
         test.assign(
             std::begin(trap_manager.watermark_volumes),
             std::end(trap_manager.watermark_volumes));
@@ -924,11 +924,11 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
         answer = {
             // clang-format off
             0.8, 0.7,
-            0.4, 0.3,
             1.0, 1.0,
             0.8, 0.7,
             0.4, 0.3,
-            0.3, 0.2
+            0.3, 0.2,
+            0.0, 0.0
             // clang-format on
         };
         test.assign(
