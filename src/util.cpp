@@ -1,9 +1,9 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include <valarray>
 #include <vector>
-#include <sys/time.h>
 
 /*
     Restrict a value to between two limits.
