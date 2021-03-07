@@ -18,8 +18,6 @@ class TrapManager {
 
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
-    std::valarray<double> tmp_watermark_volumes;
-    std::valarray<double> tmp_watermark_fills;
     std::valarray<double> stored_watermark_volumes;
     std::valarray<double> stored_watermark_fills;
 
@@ -33,6 +31,7 @@ class TrapManager {
     int stored_i_first_active_wmk;
     double empty_watermark;
 
+    std::valarray<double> trap_densities;
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
     std::valarray<double> fill_probabilities_from_release;

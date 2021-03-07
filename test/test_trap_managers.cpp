@@ -24,6 +24,8 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager.n_traps == 2);
         REQUIRE(trap_manager.traps[0].density == trap_1.density);
         REQUIRE(trap_manager.traps[1].density == trap_2.density);
+        REQUIRE(trap_manager.trap_densities[0] == trap_1.density);
+        REQUIRE(trap_manager.trap_densities[1] == trap_2.density);
 
         // Instant-capture traps
         std::valarray<Trap> traps_ic{trap_3};
@@ -31,6 +33,7 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 
         REQUIRE(trap_manager_ic.n_traps == 1);
         REQUIRE(trap_manager_ic.traps[0].density == trap_3.density);
+        REQUIRE(trap_manager_ic.trap_densities[0] == trap_3.density);
     }
 
     SECTION("CCD") {

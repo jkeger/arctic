@@ -39,6 +39,9 @@
     ----------
     n_traps : int
         The number of trap species.
+        
+    trap_densities : std::valarray<double>
+        The density of each trap species.
             
     watermark_volumes : std::valarray<double>
         Array of watermark fractional volumes to describe the trap states, i.e.
@@ -90,6 +93,10 @@ TrapManager::TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCD ccd
     empty_watermark = 0.0;
     n_active_watermarks = 0;
     i_first_active_wmk = 0;
+    trap_densities = std::valarray<double>(n_traps);
+    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+        trap_densities[i_trap] = traps[i_trap].density;
+    }
 }
 
 /*
@@ -238,7 +245,7 @@ double TrapManager::n_trapped_electrons_from_watermarks(
         // Sum the number of electrons in each watermark level and multiply by
         // the trap density
         n_trapped_electrons +=
-            n_trapped_electrons_each_watermark.sum() * traps[i_trap].density;
+            n_trapped_electrons_each_watermark.sum() * trap_densities[i_trap];
     }
 
     return n_trapped_electrons;
@@ -327,7 +334,7 @@ double TrapManagerInstantCapture::n_electrons_released() {
                             empty_probabilities_from_release[i_trap];
 
             // Multiply by the trap density
-            n_released_this_trap += frac_released * traps[i_trap].density;
+            n_released_this_trap += frac_released * trap_densities[i_trap];
 
             // Update the watermark fill fraction
             watermark_fills[i_wmk * n_traps + i_trap] -= frac_released;
@@ -388,7 +395,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
         // Each trap species
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             n_captured_this_wmk += (1.0 - watermark_fills[i_wmk * n_traps + i_trap]) *
-                                   traps[i_trap].density;
+                                   trap_densities[i_trap];
         }
 
         // Capture from the bottom of the last watermark up to the cloud volume
