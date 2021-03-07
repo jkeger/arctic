@@ -28,12 +28,15 @@ class TrapManager {
     int n_watermarks_per_transfer;
     int n_watermarks;
     int n_active_watermarks;
+    int i_first_active_wmk;
     int stored_n_active_watermarks;
+    int stored_i_first_active_wmk;
     double empty_watermark;
 
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
     std::valarray<double> fill_probabilities_from_release;
+    std::valarray<double> empty_probabilities_from_release;
 
     void initialise_trap_states();
     void reset_trap_states();
@@ -53,6 +56,7 @@ class TrapManagerInstantCapture : public TrapManager {
     ~TrapManagerInstantCapture(){};
 
     double n_electrons_released();
+    double n_electrons_captured_old(double n_free_electrons);
     double n_electrons_captured(double n_free_electrons);
     double n_electrons_released_and_captured(double n_free_electrons);
 };

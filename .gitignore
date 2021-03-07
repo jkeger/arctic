@@ -2,3 +2,8 @@ arctic
 test_arctic
 
 build/
+
+*.fits
+
+gmon.out
+callgrind.out.*

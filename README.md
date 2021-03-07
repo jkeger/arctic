@@ -41,7 +41,7 @@ example-style tests, organised with Catch2.
 Compile the tests with `make test` (or `make all`) in the top directory, then 
 run with `./test_arctic`.
 
-Add tag arguments to select which tests to run, e.g:
+Add arguments to select which tests to run by their tags, e.g:
 + `thisTestOnly`        Matches the test case called, 'thisTestOnly'
 + `"this test only"`    Matches the test case called, 'this test only'
 + `these*`              Matches all cases starting with 'these'

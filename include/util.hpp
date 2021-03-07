@@ -17,4 +17,6 @@ void print_array_2D(std::valarray<std::valarray<double>>& array);
 
 std::valarray<double> arange(double start, double stop, double step = 1);
 
+double gettimelapsed(struct timeval start, struct timeval end);
+
 #endif  // ARCTIC_UTIL_HPP
