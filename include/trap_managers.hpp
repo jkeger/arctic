@@ -45,8 +45,7 @@ class TrapManager {
     void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
-    int watermark_index_above_cloud_from_volumes(
-        std::valarray<double> wmk_volumes, double cloud_fractional_volume);
+    int watermark_index_above_cloud(double cloud_fractional_volume);
 };
 
 class TrapManagerInstantCapture : public TrapManager {

@@ -239,8 +239,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 0;
         trap_manager.i_first_active_wmk = 0;
-        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud_from_volumes(
-            trap_manager.watermark_volumes, 0.6);
+        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud(0.6);
         REQUIRE(i_wmk_above_cloud == 0);
 
         // Cloud below watermarks
@@ -248,8 +247,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud_from_volumes(
-            trap_manager.watermark_volumes, 0.3);
+        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud(0.3);
         REQUIRE(i_wmk_above_cloud == 0);
 
         // Cloud above watermarks
@@ -257,8 +255,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud_from_volumes(
-            trap_manager.watermark_volumes, 0.9);
+        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud(0.9);
         REQUIRE(i_wmk_above_cloud == 3);
 
         // Cloud between watermarks
@@ -266,8 +263,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 0;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud_from_volumes(
-            trap_manager.watermark_volumes, 0.6);
+        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud(0.6);
         REQUIRE(i_wmk_above_cloud == 1);
 
         // Cloud between watermarks, i_first_active_wmk > 0
@@ -275,8 +271,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 2;
         trap_manager.watermark_volumes = {0.2, 0.1, 0.5, 0.2, 0.0};
-        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud_from_volumes(
-            trap_manager.watermark_volumes, 0.6);
+        i_wmk_above_cloud = trap_manager.watermark_index_above_cloud(0.6);
         REQUIRE(i_wmk_above_cloud == 3);
     }
 

@@ -213,6 +213,9 @@ void TrapManager::set_fill_probabilities_from_dwell_time(double dwell_time) {
 /*
     Sum the total number of electrons currently held in traps.
 
+    ##Make sure no copies of the arrays are made, either with pointers or 
+      just using the class attributes instead of arguments.
+
     Parameters
     ----------
     wmk_volumes, wmk_fills : std::valarray<double>
@@ -250,9 +253,6 @@ double TrapManager::n_trapped_electrons_from_watermarks(
 
     Parameters
     ----------
-    wmk_volumes : std::valarray<double>
-        Watermark volumes. See TrapManager().
-
     cloud_fractional_volume : double
         The fractional volume the electron cloud reaches in the pixel well.
 
@@ -261,9 +261,7 @@ double TrapManager::n_trapped_electrons_from_watermarks(
     i_wmk_above_cloud : int
         The index of the first active watermark that reaches above the cloud.
 */
-int TrapManager::watermark_index_above_cloud_from_volumes(
-    std::valarray<double> wmk_volumes, double cloud_fractional_volume) {
-
+int TrapManager::watermark_index_above_cloud(double cloud_fractional_volume) {
     double cumulative_volume = 0.0;
 
     // Sum up the fractional volumes until surpassing the cloud volume
@@ -617,9 +615,8 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     double n_captured_this_wmk = 0.0;
     double cumulative_volume = 0.0;
     double next_cumulative_volume = 0.0;
-
-    int i_wmk_above_cloud = watermark_index_above_cloud_from_volumes(
-        watermark_volumes, cloud_fractional_volume);
+    
+    int i_wmk_above_cloud = watermark_index_above_cloud(cloud_fractional_volume);
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk; i_wmk <= i_wmk_above_cloud; i_wmk++) {
