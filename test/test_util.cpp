@@ -18,7 +18,7 @@ TEST_CASE("Test flatten", "[util]") {
         // clang-format off
         {0.0, 1.0, 2.0, 3.0},
         {4.0, 5.0, 6.0, 7.0},
-        {8.0, 9.0, 10.0, 11.0}
+        {8.0, 9.0, 10.0, 11.0},
         // clang-format on
     };
     answer = {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0};
@@ -40,7 +40,49 @@ TEST_CASE("Test arange", "[util]") {
     REQUIRE_THAT(test, Catch::Approx(answer));
 }
 
-TEST_CASE("Demo 2D-style valarray slicing", "[util]") {
+TEST_CASE("Test transpose", "[util]") {
+    std::vector<double> test_row, answer_row;
+    std::valarray<std::valarray<double>> test;
+    std::valarray<std::valarray<double>> array{
+        // clang-format off
+        {0.0, 1.0, 2.0, 3.0},
+        {4.0, 5.0, 6.0, 7.0},
+        {8.0, 9.0, 10.0, 11.0},
+        // clang-format on
+    };
+    std::valarray<std::valarray<double>> array_T{
+        // clang-format off
+        {0.0, 4.0, 8.0},
+        {1.0, 5.0, 9.0},
+        {2.0, 6.0, 10.0},
+        {3.0, 7.0, 11.0},
+        // clang-format on
+    };
+    
+    SECTION("Transpose array to array_T") {
+        test = transpose(array);
+        REQUIRE(test.size() == array_T.size());
+        REQUIRE(test[0].size() == array_T[0].size());
+        for (int i_row = 0; i_row < test.size(); i_row++) {
+            test_row.assign(std::begin(test[i_row]), std::end(test[i_row]));
+            answer_row.assign(std::begin(array_T[i_row]), std::end(array_T[i_row]));
+            REQUIRE_THAT(test_row, Catch::Approx(answer_row));
+        }
+    }
+    
+    SECTION("Transpose array_T to array") {
+        test = transpose(array_T);
+        REQUIRE(test.size() == array.size());
+        REQUIRE(test[0].size() == array[0].size());
+        for (int i_row = 0; i_row < test.size(); i_row++) {
+            test_row.assign(std::begin(test[i_row]), std::end(test[i_row]));
+            answer_row.assign(std::begin(array[i_row]), std::end(array[i_row]));
+            REQUIRE_THAT(test_row, Catch::Approx(answer_row));
+        }
+    }
+}
+
+TEST_CASE("Demo 2D-style 1D valarray slicing", "[util]") {
     // More of an example reference than a test
     std::vector<double> answer, image_;
 
@@ -48,12 +90,12 @@ TEST_CASE("Demo 2D-style valarray slicing", "[util]") {
     int n_row = 4;
 
     // Initialise array, all zeros
-    std::valarray<double> image(0., n_col * n_row);
+    std::valarray<double> image(0.0, n_col * n_row);
     answer = {
         // clang-format off
-        0, 0, 0, 
         0, 0, 0,
-        0, 0, 0, 
+        0, 0, 0,
+        0, 0, 0,
         0, 0, 0,
         // clang-format on
     };

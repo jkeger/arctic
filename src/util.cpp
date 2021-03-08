@@ -8,33 +8,10 @@
 
 #include "util.hpp"
 
-/*
-    Restrict a value to between two limits.
-*/
-double clamp(double value, double minimum, double maximum) {
-    if (value < minimum)
-        return minimum;
-    else if (value > maximum)
-        return maximum;
-    else
-        return value;
-}
 
-/*
-    Flatten a 2D valarray into a 1D vector. Useful for Catch2 test comparisons.
-*/
-std::vector<double> flatten(std::valarray<std::valarray<double>>& array) {
-    std::vector<double> vector;
-
-    for (int i_row = 0; i_row < array.size(); i_row++) {
-        for (int i_col = 0; i_col < array[i_row].size(); i_col++) {
-            vector.push_back(array[i_row][i_col]);
-        }
-    }
-
-    return vector;
-}
-
+// ========
+// Printing
+// ========
 /*
     Neatly print a 1D array.
 */
@@ -108,6 +85,24 @@ void print_array_2D(std::valarray<std::valarray<double>>& array) {
     return;
 }
 
+// ========
+// Arrays
+// ========
+/*
+    Flatten a 2D valarray into a 1D vector. Useful for Catch2 test comparisons.
+*/
+std::vector<double> flatten(std::valarray<std::valarray<double>>& array) {
+    std::vector<double> vector;
+
+    for (int i_row = 0; i_row < array.size(); i_row++) {
+        for (int i_col = 0; i_col < array[i_row].size(); i_col++) {
+            vector.push_back(array[i_row][i_col]);
+        }
+    }
+
+    return vector;
+}
+
 /*
     Basic equivalent of numpy.arange().
 */
@@ -122,25 +117,30 @@ std::valarray<double> arange(double start, double stop, double step) {
 }
 
 /*
-    Calculate the number of elapsed seconds between two times.
+    Transpose a 2D valarray.
 */
-double gettimelapsed(struct timeval start, struct timeval end) {
-    double seconds;
-    double microseconds;
+std::valarray<std::valarray<double>> transpose(
+    std::valarray<std::valarray<double>>& array) {
+    
+    // Create the opposite-shape array
+    int n_rows = array.size();
+    int n_columns = array[0].size();
+    std::valarray<std::valarray<double>> array_T(
+        std::valarray<double>(0.0, n_rows), n_columns);
 
-    seconds = end.tv_sec - start.tv_sec;
-    microseconds = end.tv_usec - start.tv_usec;
-
-    if (microseconds < 0.0) {
-        seconds -= 1.0;
-        microseconds = 1e6 - microseconds;
+    // Copy the values
+    for (int i_row = 0; i_row < n_rows; i_row++) {
+        for (int i_col = 0; i_col < n_columns; i_col++) {
+            array_T[i_col][i_row] = array[i_row][i_col];
+        }
     }
 
-    microseconds /= 1e6;
-
-    return seconds + microseconds;
+    return array_T;
 }
 
+// ========
+// I/O
+// ========
 /*
     Load a 2D image from a text file.
     
@@ -225,4 +225,39 @@ void save_image_to_txt(char* filename, std::valarray<std::valarray<double>> imag
     fclose(f);
 
     return;
+}
+
+// ========
+// Misc
+// ========
+/*
+    Restrict a value to between two limits.
+*/
+double clamp(double value, double minimum, double maximum) {
+    if (value < minimum)
+        return minimum;
+    else if (value > maximum)
+        return maximum;
+    else
+        return value;
+}
+
+/*
+    Calculate the number of elapsed seconds between two times.
+*/
+double gettimelapsed(struct timeval start, struct timeval end) {
+    double seconds;
+    double microseconds;
+
+    seconds = end.tv_sec - start.tv_sec;
+    microseconds = end.tv_usec - start.tv_usec;
+
+    if (microseconds < 0.0) {
+        seconds -= 1.0;
+        microseconds = 1e6 - microseconds;
+    }
+
+    microseconds /= 1e6;
+
+    return seconds + microseconds;
 }
