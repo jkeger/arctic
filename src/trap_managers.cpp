@@ -434,6 +434,8 @@ void TrapManagerInstantCapture::update_watermarks_capture(
         watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] = 
             trap_densities;
     }
+
+    return;
 }
 
 /*
@@ -578,6 +580,8 @@ void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
         // Update count of active watermarks
         n_active_watermarks++;
     }
+
+    return;
 }
 
 /*
