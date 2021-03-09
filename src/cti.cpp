@@ -13,6 +13,8 @@
 /*
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns.
+    
+    See add_cti() for more detail and e.g. parallel vs serial clocking.
 
     Parameters
     ----------
@@ -20,60 +22,22 @@
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
-        index. By default (for parallel clocking), charge is transferred "up"
-        from row n to row 0 along each independent column. i.e. the readout
-        register is above row 0. (For serial clocking, the image is rotated
-        beforehand, outside of this function, see add_cti().)
+        index. Charge is transferred "up" from row n to row 0 along each
+        independent column.
 
-        e.g. (with arbitrary trap parameters)
-        Initial image with one bright pixel in the first three columns:
-            [[0.0,     0.0,     0.0,     0.0  ],
-             [200.0,   0.0,     0.0,     0.0  ],
-             [0.0,     200.0,   0.0,     0.0  ],
-             [0.0,     0.0,     200.0,   0.0  ],
-             [0.0,     0.0,     0.0,     0.0  ],
-             [0.0,     0.0,     0.0,     0.0  ]]
-        Final image with CTI trails behind each bright pixel:
-            [[0.0,     0.0,     0.0,     0.0  ],
-             [196.0,   0.0,     0.0,     0.0  ],
-             [3.0,     194.1,   0.0,     0.0  ],
-             [2.0,     3.9,     192.1,   0.0  ],
-             [1.3,     2.5,     4.8,     0.0  ],
-             [0.8,     1.5,     2.9,     0.0  ]]
-        
     roe : ROE
-        An object describing the timing and direction(s) in which electrons are
-        moved during readout.
-        
     ccd : CCD
-        An object to describe how electrons fill the volume inside (each phase
-        of) a pixel in a CCD detector.
-        
     traps : std::valarray<Trap>
-        A list of one or more trap species.
-        
     express : int (opt.)
-        The number of times the pixel-to-pixel transfers are computed,
-        determining the balance between accuracy (high values) and speed
-        (low values) (Massey et al. 2014, section 2.1.5).
-            n_rows  (slower, accurate) Compute every pixel-to-pixel
-                    transfer. The default, 0, is an alias for n_rows.
-            k       Recompute on k occasions the effect of each transfer.
-                    After a few transfers (and e.g. eroded leading edges),
-                    the incremental effect of subsequent transfers can change.
-            1       (faster, approximate) Compute the effect of each
-                    transfer only once.
-        Runtime scales approximately as O(express^0.5). ###WIP
-        
     offset : int (opt.)
-        The number of (e.g. prescan) pixels separating the supplied image from
-        the readout register. Defaults to 0.
-        
+        See add_cti(). Same as the corresponding parallel_* argument docstrings,
+        except here not as pointers since there's no need for nullptr defaults.
+
     row_start, row_stop : int (opt.)
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
-    
+
     column_start, column_stop : int (opt.)
         The subset of column pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_columns for the
@@ -120,7 +84,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     struct timeval wall_time_start;
     struct timeval wall_time_end;
     double wall_time_elapsed;
-    gettimeofday(&wall_time_start, NULL);
+    gettimeofday(&wall_time_start, nullptr);
 
     // ========
     // Clock each column of pixels through the column of traps
@@ -164,9 +128,144 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     }
 
     // Time taken
-    gettimeofday(&wall_time_end, NULL);
+    gettimeofday(&wall_time_end, nullptr);
     wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
     printf("Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
+
+    return image;
+}
+
+/*
+    Add CTI trails to an image by trapping, releasing, and moving electrons
+    along their independent columns, for parallel and/or serial clocking.
+
+    Parameters
+    ----------
+    image : std::valarray<std::valarray<double>>
+        The input array of pixel values, assumed to be in units of electrons.
+
+        The first dimension is the "row" index, the second is the "column"
+        index. By default (for parallel clocking), charge is transfered "up"
+        from row n to row 0 along each independent column. i.e. the readout
+        register is above row 0. (For serial clocking, the image is rotated
+        before modelling, such that charge moves from column n to column 0.)
+
+        e.g.
+        Initial image with one bright pixel in the first three columns:
+            [[0.0,     0.0,     0.0,     0.0  ],
+             [200.0,   0.0,     0.0,     0.0  ],
+             [0.0,     200.0,   0.0,     0.0  ],
+             [0.0,     0.0,     200.0,   0.0  ],
+             [0.0,     0.0,     0.0,     0.0  ],
+             [0.0,     0.0,     0.0,     0.0  ]]
+        Image with parallel CTI trails:
+            [[0.0,     0.0,     0.0,     0.0  ],
+             [196.0,   0.0,     0.0,     0.0  ],
+             [3.0,     194.1,   0.0,     0.0  ],
+             [2.0,     3.9,     192.1,   0.0  ],
+             [1.3,     2.5,     4.8,     0.0  ],
+             [0.8,     1.5,     2.9,     0.0  ]]
+        Final image with parallel and serial CTI trails:
+            [[0.0,     0.0,     0.0,     0.0  ],
+             [194.1,   1.9,     1.5,     0.9  ],
+             [2.9,     190.3,   2.9,     1.9  ],
+             [1.9,     3.8,     186.5,   3.7  ],
+             [1.2,     2.4,     4.7,     0.1  ],
+             [0.7,     1.4,     2.8,     0.06 ]]
+
+    parallel_roe : ROE* (opt.)
+        The object describing the clocking read-out electronics for parallel
+        clocking. Default nullptr to not do parallel clocking.
+
+    parallel_ccd : CCD* (opt.)
+        The object describing the CCD volume for parallel clocking. For
+        multi-phase clocking optionally use a list of different CCD volumes
+        for each phase, in the same size list as parallel_roe.dwell_times.
+
+    parallel_traps : std::valarray<Trap>* (opt.)
+        A list of one or more trap species objects for parallel clocking.
+
+    parallel_express : int (opt.)
+       The number of times the transfers are computed, determining the
+       balance between accuracy (high values) and speed (low values), for
+       parallel clocking (Massey et al. 2014, section 2.1.5).
+           n_rows  (slower, accurate) Compute every pixel-to-pixel
+                   transfer. The default, 0, is an alias for n_rows.
+           k       Recompute on k occasions the effect of each transfer.
+                   After a few transfers (and e.g. eroded leading edges),
+                   the incremental effect of subsequent transfers can change.
+           1       (faster, approximate) Compute the effect of each
+                   transfer only once.
+
+    parallel_offset : int (>= 0) (opt.)
+        The number of (e.g. prescan) pixels separating the supplied image from
+        the readout register. i.e. Treat the input image as a sub-image that is
+        offset this number of pixels from readout, increasing the number of
+        pixel-to-pixel transfers. Defaults to 0.
+
+    // parallel_window_range : range
+    //     For speed, calculate only the effect on this subset of pixels. Defaults
+    //     to range(0, n_pixels) for the full image.
+    //
+    //     Note that, because of edge effects, the range should be started several
+    //     pixels before the actual region of interest.
+    //
+    //     For a single pixel (e.g. for trap pumping), can enter just the single
+    //     integer index of the pumping traps to monitor, which will be converted
+    //     to range(index, index + 1).
+
+    serial_* : * (opt.)
+        The same as the parallel_* objects described above but for serial
+        clocking instead. Default nullptr to not do serial clocking.
+
+    // time_window_range : range
+    //     The subset of transfers to implement. Defaults to range(0, n_pixels) for
+    //     the full image. e.g. range(0, n_pixels/3) to do only the first third of
+    //     the pixel-to-pixel transfers.
+    //
+    //     The entire readout is still modelled, but only the results from this
+    //     subset of transfers are implemented in the final image.
+    //
+    //     This could be used to e.g. add cosmic rays during readout of simulated
+    //     images. Successive calls to complete the readout should start at
+    //     the same value that the previous one ended, e.g. range(0, 1000) then
+    //     range(1000, 2000). Be careful not to divide the readout too finely, as
+    //     there is only as much temporal resolution as there are rows (not rows *
+    //     phases) in the image. Also, for each time that readout is split between
+    //     successive calls to this function, the output in one row of pixels
+    //     will change slightly (unless express=0) because trap occupancy is
+    //     not stored between calls.
+*/
+std::valarray<std::valarray<double>> add_cti(
+    std::valarray<std::valarray<double>>& image_in, ROE* parallel_roe,
+    CCD* parallel_ccd, std::valarray<Trap>* parallel_traps, int parallel_express,
+    int parallel_offset, ROE* serial_roe, CCD* serial_ccd,
+    std::valarray<Trap>* serial_traps, int serial_express, int serial_offset) {
+
+    // Initialise the output image as a copy of the input image
+    std::valarray<std::valarray<double>> image = image_in;
+
+    // Image shape
+    int n_rows = image.size();
+    int n_columns = image[0].size();
+
+    // Parallel clocking along columns, transfer charge towards row 0
+    if (parallel_traps) {
+        image = clock_charge_in_one_direction(
+            image, *parallel_roe, *parallel_ccd, *parallel_traps, parallel_express,
+            parallel_offset);
+    }
+
+    // Serial clocking along rows, transfer charge towards column 0
+    if (serial_traps) {
+        image = transpose(image);
+
+        image = clock_charge_in_one_direction(
+            image, *serial_roe, *serial_ccd, *serial_traps, serial_express,
+            serial_offset);
+
+        image = transpose(image);
+    }
 
     return image;
 }
