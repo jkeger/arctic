@@ -18,8 +18,6 @@ class TrapManager {
 
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
-    std::valarray<double> tmp_watermark_volumes;
-    std::valarray<double> tmp_watermark_fills;
     std::valarray<double> stored_watermark_volumes;
     std::valarray<double> stored_watermark_fills;
 
@@ -33,6 +31,7 @@ class TrapManager {
     int stored_i_first_active_wmk;
     double empty_watermark;
 
+    std::valarray<double> trap_densities;
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
     std::valarray<double> fill_probabilities_from_release;
@@ -46,8 +45,7 @@ class TrapManager {
     void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
-    int watermark_index_above_cloud_from_volumes(
-        std::valarray<double> wmk_volumes, double cloud_fractional_volume);
+    int watermark_index_above_cloud(double cloud_fractional_volume);
 };
 
 class TrapManagerInstantCapture : public TrapManager {
@@ -56,7 +54,10 @@ class TrapManagerInstantCapture : public TrapManager {
     ~TrapManagerInstantCapture(){};
 
     double n_electrons_released();
-    double n_electrons_captured_old(double n_free_electrons);
+    void update_watermarks_capture(
+        double cloud_fractional_volume, int i_wmk_above_cloud);
+    void update_watermarks_capture_not_enough(
+        double cloud_fractional_volume, int i_wmk_above_cloud, double enough);
     double n_electrons_captured(double n_free_electrons);
     double n_electrons_released_and_captured(double n_free_electrons);
 };

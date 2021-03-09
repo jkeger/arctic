@@ -11,14 +11,14 @@
 #include "traps.hpp"
 #include "util.hpp"
 
-TEST_CASE("Test add CTI, compare with old arctic", "[cti]") {
+TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]") {
     // Compare with the python version (which was itself tested against the
     // previous IDL version)
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti, image_py;
     std::vector<double> test, answer;
     int express;
 
-    SECTION("Single single pixel, various express") {
+    SECTION("Single pixel, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
         ROE roe(1.0, true, false, true);
@@ -181,5 +181,88 @@ TEST_CASE("Test add CTI, compare with old arctic", "[cti]") {
                     {0.565273990}, {0.527571936}, {0.493533505},   {0.462736917},
                     {0.434813587}, {0.409441225}, {0.386337783},   {0.365256168}};
         REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(image_py)));
+    }
+}
+
+TEST_CASE("Test add CTI", "[cti]") {
+    SECTION("Parallel and serial, same result as calling clock charge directly") {
+        std::valarray<std::valarray<double>> image_pre_cti, image_add, image_clock;
+        int express;
+        TrapInstantCapture trap(10.0, -1.0 / log(0.5));
+        std::valarray<Trap> traps = {trap};
+        ROE roe(1.0, true, false, true);
+        CCD ccd(1e3, 0.0, 1.0);
+        image_pre_cti = {
+            // clang-format off
+            {0.0,   0.0,   0.0,   0.0},
+            {200.0, 0.0,   0.0,   0.0},
+            {0.0,   200.0, 0.0,   0.0},
+            {0.0,   0.0,   200.0, 0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   0.0,   0.0,   0.0}
+            // clang-format on
+        };
+        express = 0;
+
+        // Parallel
+        image_add = add_cti(image_pre_cti, &roe, &ccd, &traps, express);
+        image_clock =
+            clock_charge_in_one_direction(image_pre_cti, roe, ccd, traps, express);
+        REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
+
+        // Add serial
+        image_add = add_cti(
+            image_add, nullptr, nullptr, nullptr, 0, 0, &roe, &ccd, &traps, express);
+        image_clock = transpose(image_clock);
+        image_clock =
+            clock_charge_in_one_direction(image_clock, roe, ccd, traps, express);
+        image_clock = transpose(image_clock);
+        REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
+
+        // Both at once
+        image_add = add_cti(
+            image_pre_cti, &roe, &ccd, &traps, express, 0, &roe, &ccd, &traps, express);
+        REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
+    }
+}
+
+TEST_CASE("Test remove CTI", "[cti]") {
+    SECTION("Parallel and serial, better removal with more iterations") {
+        // Start with the same image as "Test add CTI"
+        std::valarray<std::valarray<double>> image_pre_cti, image_add_cti,
+            image_remove_cti;
+        int express;
+        TrapInstantCapture trap(10.0, -1.0 / log(0.5));
+        std::valarray<Trap> traps = {trap};
+        ROE roe(1.0, true, false, true);
+        CCD ccd(1e3, 0.0, 1.0);
+        image_pre_cti = {
+            // clang-format off
+            {0.0,   0.0,   0.0,   0.0},
+            {200.0, 0.0,   0.0,   0.0},
+            {0.0,   200.0, 0.0,   0.0},
+            {0.0,   0.0,   200.0, 0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   0.0,   0.0,   0.0}
+            // clang-format on
+        };
+        express = 0;
+
+        // Add CTI
+        image_add_cti = add_cti(
+            image_pre_cti, &roe, &ccd, &traps, express, 0, &roe, &ccd, &traps, express);
+
+        // Remove CTI
+        for (int iterations = 2; iterations <= 6; iterations++) {
+            image_remove_cti = remove_cti(
+                image_add_cti, iterations, &roe, &ccd, &traps, express, 0, &roe, &ccd,
+                &traps, express);
+
+            // Expect better results with more iterations
+            double tolerance = pow(10.0, 1 - iterations);
+            REQUIRE_THAT(
+                flatten(image_remove_cti),
+                Catch::Approx(flatten(image_pre_cti)).margin(tolerance));
+        }
     }
 }
