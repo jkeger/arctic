@@ -250,10 +250,6 @@ std::valarray<std::valarray<double>> add_cti(
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
 
-    // Image shape
-    int n_rows = image.size();
-    int n_columns = image[0].size();
-
     // Parallel clocking along columns, transfer charge towards row 0
     if (parallel_traps) {
         image = clock_charge_in_one_direction(

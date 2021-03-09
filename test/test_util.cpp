@@ -63,7 +63,7 @@ TEST_CASE("Test transpose", "[util]") {
         test = transpose(array);
         REQUIRE(test.size() == array_T.size());
         REQUIRE(test[0].size() == array_T[0].size());
-        for (int i_row = 0; i_row < test.size(); i_row++) {
+        for (unsigned int i_row = 0; i_row < test.size(); i_row++) {
             test_row.assign(std::begin(test[i_row]), std::end(test[i_row]));
             answer_row.assign(std::begin(array_T[i_row]), std::end(array_T[i_row]));
             REQUIRE_THAT(test_row, Catch::Approx(answer_row));
@@ -74,7 +74,7 @@ TEST_CASE("Test transpose", "[util]") {
         test = transpose(array_T);
         REQUIRE(test.size() == array.size());
         REQUIRE(test[0].size() == array[0].size());
-        for (int i_row = 0; i_row < test.size(); i_row++) {
+        for (unsigned int i_row = 0; i_row < test.size(); i_row++) {
             test_row.assign(std::begin(test[i_row]), std::end(test[i_row]));
             answer_row.assign(std::begin(array[i_row]), std::end(array[i_row]));
             REQUIRE_THAT(test_row, Catch::Approx(answer_row));

@@ -109,7 +109,6 @@ void ROE::set_express_matrix_from_pixels_and_express(
     int n_pixels, int express, int offset) {
 
     int n_transfers = n_pixels + offset;
-    int n_rows;
 
     // Set default express to all transfers, and check no larger
     if (express == 0)

@@ -93,9 +93,13 @@ void print_array_2D(std::valarray<std::valarray<double>>& array) {
 */
 std::vector<double> flatten(std::valarray<std::valarray<double>>& array) {
     std::vector<double> vector;
+    int n_row = array.size();
+    int n_col;
 
-    for (int i_row = 0; i_row < array.size(); i_row++) {
-        for (int i_col = 0; i_col < array[i_row].size(); i_col++) {
+    for (int i_row = 0; i_row < n_row; i_row++) {
+        n_col = array[i_row].size();
+        
+        for (int i_col = 0; i_col < n_col; i_col++) {
             vector.push_back(array[i_row][i_col]);
         }
     }
@@ -163,7 +167,7 @@ std::valarray<std::valarray<double>> transpose(
 */
 std::valarray<std::valarray<double>> load_image_from_txt(char* filename) {
     FILE* f = fopen(filename, "r");
-    if (f == NULL) error("Failed to open image file '%s'", filename);
+    if (!f) error("Failed to open image file '%s'", filename);
 
     // Load image dimensions
     int n_rows;
@@ -207,7 +211,7 @@ std::valarray<std::valarray<double>> load_image_from_txt(char* filename) {
 */
 void save_image_to_txt(char* filename, std::valarray<std::valarray<double>> image) {
     FILE* f = fopen(filename, "w");
-    if (f == NULL) error("Failed to open file '%s'", filename);
+    if (!f) error("Failed to open file '%s'", filename);
 
     // Save image dimensions
     int n_rows = image.size();

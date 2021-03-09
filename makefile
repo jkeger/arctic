@@ -1,9 +1,9 @@
 
 # Compiler
 CXX := g++
-CXXFLAGS := -std=c++11 -O3 #-Wall
-# CXXFLAGS := -std=c++11 -pg -no-pie -fno-builtin		# Profiling with gprof
-# CXXFLAGS := -std=c++11 -g 							# Profiling with valgrind
+CXXFLAGS := -std=c++11 -O3 -Wall -Wno-reorder
+# CXXFLAGS := -std=c++11 -pg -no-pie -fno-builtin       # for gprof
+# CXXFLAGS := -std=c++11 -g                             # for valgrind
 
 # Executables
 TARGET := arctic
