@@ -13,12 +13,12 @@
 /*
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns.
-    
+    
     See add_cti() for more detail and e.g. parallel vs serial clocking.
 
     Parameters
     ----------
-    image : std::valarray<std::valarray<double>>
+    image_in : std::valarray<std::valarray<double>>
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
@@ -141,7 +141,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     Parameters
     ----------
-    image : std::valarray<std::valarray<double>>
+    image_in : std::valarray<std::valarray<double>>
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
@@ -235,6 +235,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     //     successive calls to this function, the output in one row of pixels
     //     will change slightly (unless express=0) because trap occupancy is
     //     not stored between calls.
+
+    Returns
+    -------
+    image : std::valarray<std::valarray<double>>
+        The output array of pixel values with CTI added.
 */
 std::valarray<std::valarray<double>> add_cti(
     std::valarray<std::valarray<double>>& image_in, ROE* parallel_roe,
@@ -268,4 +273,50 @@ std::valarray<std::valarray<double>> add_cti(
     }
 
     return image;
+}
+
+/*
+    Remove CTI trails from an image by first modelling the addition of CTI.
+
+    See add_cti()'s documentation for the forward modelling. This function
+    iteratively models the addition of more CTI trails to the input image to
+    then extract the corrected image without the original trails.
+
+    Parameters
+    ----------
+    All parameters are identical to those of add_cti() as described in its
+    documentation, with the exception of:
+
+    iterations : int
+        The number of times CTI-adding clocking is run to perform the correction
+        via forward modelling.
+
+    Returns
+    -------
+    image : std::valarray<std::valarray<double>>
+        The output array of pixel values with CTI removed.
+*/
+std::valarray<std::valarray<double>> remove_cti(
+    std::valarray<std::valarray<double>>& image_in, int iterations, ROE* parallel_roe,
+    CCD* parallel_ccd, std::valarray<Trap>* parallel_traps, int parallel_express,
+    int parallel_offset, ROE* serial_roe, CCD* serial_ccd,
+    std::valarray<Trap>* serial_traps, int serial_express, int serial_offset) {
+
+    // Initialise the output image as a copy of the input image
+    std::valarray<std::valarray<double>> image_remove_cti = image_in;
+    std::valarray<std::valarray<double>> image_add_cti;
+
+    // Estimate the image with removed CTI more accurately each iteration
+    for (int iteration = 1; iteration <= iterations; iteration++) {
+        // Model the effect of adding CTI trails
+        image_add_cti = add_cti(
+            image_remove_cti, parallel_roe, parallel_ccd, parallel_traps,
+            parallel_express, parallel_offset, serial_roe, serial_ccd, serial_traps,
+            serial_express, serial_offset);
+
+        // Improve the estimate of the image with CTI trails removed
+        image_remove_cti += image_in - image_add_cti;
+    }
+
+    return image_remove_cti;
 }

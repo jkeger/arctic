@@ -206,21 +206,63 @@ TEST_CASE("Test add CTI", "[cti]") {
 
         // Parallel
         image_add = add_cti(image_pre_cti, &roe, &ccd, &traps, express);
-        image_clock = clock_charge_in_one_direction(
-            image_pre_cti, roe, ccd, traps, express);
+        image_clock =
+            clock_charge_in_one_direction(image_pre_cti, roe, ccd, traps, express);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
 
         // Add serial
         image_add = add_cti(
             image_add, nullptr, nullptr, nullptr, 0, 0, &roe, &ccd, &traps, express);
         image_clock = transpose(image_clock);
-        image_clock = clock_charge_in_one_direction(image_clock, roe, ccd, traps, express);
+        image_clock =
+            clock_charge_in_one_direction(image_clock, roe, ccd, traps, express);
         image_clock = transpose(image_clock);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
-        
+
         // Both at once
         image_add = add_cti(
             image_pre_cti, &roe, &ccd, &traps, express, 0, &roe, &ccd, &traps, express);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
+    }
+}
+
+TEST_CASE("Test remove CTI", "[cti]") {
+    SECTION("Parallel and serial, better removal with more iterations") {
+        // Start with the same image as "Test add CTI"
+        std::valarray<std::valarray<double>> image_pre_cti, image_add_cti,
+            image_remove_cti;
+        int express;
+        TrapInstantCapture trap(10.0, -1.0 / log(0.5));
+        std::valarray<Trap> traps = {trap};
+        ROE roe(1.0, true, false, true);
+        CCD ccd(1e3, 0.0, 1.0);
+        image_pre_cti = {
+            // clang-format off
+            {0.0,   0.0,   0.0,   0.0},
+            {200.0, 0.0,   0.0,   0.0},
+            {0.0,   200.0, 0.0,   0.0},
+            {0.0,   0.0,   200.0, 0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   0.0,   0.0,   0.0}
+            // clang-format on
+        };
+        express = 0;
+
+        // Add CTI
+        image_add_cti = add_cti(
+            image_pre_cti, &roe, &ccd, &traps, express, 0, &roe, &ccd, &traps, express);
+
+        // Remove CTI
+        for (int iterations = 2; iterations <= 6; iterations++) {
+            image_remove_cti = remove_cti(
+                image_add_cti, iterations, &roe, &ccd, &traps, express, 0, &roe, &ccd,
+                &traps, express);
+
+            // Expect better results with more iterations
+            double tolerance = pow(10.0, 1 - iterations);
+            REQUIRE_THAT(
+                flatten(image_remove_cti),
+                Catch::Approx(flatten(image_pre_cti)).margin(tolerance));
+        }
     }
 }
