@@ -130,7 +130,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Time taken
     gettimeofday(&wall_time_end, nullptr);
     wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
-    printf("Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
+    print_v(1, "Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
 
     return image;
 }

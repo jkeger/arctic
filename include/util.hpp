@@ -10,7 +10,30 @@
 // Printing
 // ========
 /*
-    Print an error message and exit.
+    Global verbosity parameter to control the amount of printed information:
+    
+    0       No printing (except errors etc).
+    1       Standard.
+    2       Extra details.
+*/
+extern int verbosity;
+void set_verbosity(int v);
+
+/*
+    Print if the global verbosity parameter is >= verbosity_min.
+    
+    If verbosity >= 2, also print the origin of the message.
+*/
+#define print_v(verbosity_min, message, ...)                              \
+    ({                                                                    \
+        if (verbosity >= 2)                                               \
+            printf("%s:%i: " message, __FILE__, __LINE__, ##__VA_ARGS__); \
+        else if (verbosity >= verbosity_min)                              \
+            printf(message, ##__VA_ARGS__);                               \
+    })
+
+/*
+    Print an error message, including its origin, and exit.
 */
 #define error(message, ...)                                                        \
     ({                                                                             \

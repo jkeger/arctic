@@ -12,6 +12,8 @@
 #include "util.hpp"
 
 TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]") {
+    set_verbosity(0);
+
     // Compare with the python version (which was itself tested against the
     // previous IDL version)
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti, image_py;
@@ -185,6 +187,8 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
 }
 
 TEST_CASE("Test add CTI", "[cti]") {
+    set_verbosity(0);
+    
     SECTION("Parallel and serial, same result as calling clock charge directly") {
         std::valarray<std::valarray<double>> image_pre_cti, image_add, image_clock;
         int express;
@@ -227,6 +231,8 @@ TEST_CASE("Test add CTI", "[cti]") {
 }
 
 TEST_CASE("Test remove CTI", "[cti]") {
+    set_verbosity(0);
+    
     SECTION("Parallel and serial, better removal with more iterations") {
         // Start with the same image as "Test add CTI"
         std::valarray<std::valarray<double>> image_pre_cti, image_add_cti,
@@ -268,6 +274,8 @@ TEST_CASE("Test remove CTI", "[cti]") {
 }
 
 TEST_CASE("Test offset", "[cti]") {
+    set_verbosity(0);
+    
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
     int express, offset;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
