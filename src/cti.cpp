@@ -13,7 +13,7 @@
 /*
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns.
-    
+    
     See add_cti() for more detail and e.g. parallel vs serial clocking.
 
     Parameters
@@ -22,7 +22,7 @@
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
-        index. Charge is transferred "up" from row n to row 0 along each
+        index. Charge is transferred "up" from row N to row 0 along each
         independent column.
 
     roe : ROE
@@ -61,22 +61,19 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     int n_columns = image[0].size();
 
     // Defaults
-    if (row_stop == 0) row_stop = n_rows;
-    if (column_stop == 0) column_stop = n_columns;
-
-    // Number of rows and columns to process
-    n_rows = row_stop - row_start;
-    n_columns = column_stop - column_start;
+    if (row_stop == -1) row_stop = n_rows;
+    if (column_stop == -1) column_stop = n_columns;
 
     roe.set_express_matrix_from_pixels_and_express(n_rows, express, offset);
     roe.set_store_trap_states_matrix();
 
+    int roe_index;
     double n_free_electrons;
     double n_electrons_released_and_captured;
     double express_multiplier;
 
     // Set up the trap manager
-    TrapManagerInstantCapture trap_manager(traps, n_rows, ccd);
+    TrapManagerInstantCapture trap_manager(traps, row_stop - row_start, ccd);
     trap_manager.initialise_trap_states();
     trap_manager.set_fill_probabilities_from_dwell_time(roe.dwell_time);
 
@@ -90,13 +87,13 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Clock each column of pixels through the column of traps
     // ========
     for (int column_index = column_start; column_index < column_stop; column_index++) {
-        print_v(2, "# column_index %d \n", column_index);
+        print_v(2, "////// column_index %d \n", column_index);
 
         // Monitor the traps in every pixel (express=n_rows), or just one
         // (express=1) or a few (express=a few) then replicate their effect
         for (int express_index = 0; express_index < roe.n_express_passes;
              express_index++) {
-            print_v(2, "express_index %d \n", express_index);
+            print_v(2, "//// express_index %d \n", express_index);
 
             // Restore the trap occupancy levels, either to empty or to a saved
             // state from a previous express pass
@@ -104,10 +101,9 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
             // Each pixel
             for (int row_index = row_start; row_index < row_stop; row_index++) {
-                print_v(2, "# row_index %d \n", row_index);
+                print_v(2, "// row_index %d \n", row_index);
 
-                express_multiplier =
-                    roe.express_matrix[express_index * n_rows + row_index];
+                express_multiplier = roe.express_matrix[express_index * n_rows + row_index];
                 if (express_multiplier == 0) continue;
 
                 n_free_electrons = image[row_index][column_index];
@@ -121,17 +117,19 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
                 image[row_index][column_index] +=
                     n_electrons_released_and_captured * express_multiplier;
-
-                // Store the trap states if needed for the next express pass
-                if (roe.store_trap_states_matrix[express_index * n_rows + row_index])
-                    trap_manager.store_trap_states();
-
+    
                 print_v(
                     2, "n_electrons_released_and_captured %g \n",
                     n_electrons_released_and_captured);
                 print_v(
                     2, "image[%d][%d] %g \n", row_index, column_index,
                     image[row_index][column_index]);
+
+                // Store the trap states if needed for the next express pass
+                if (roe.store_trap_states_matrix[express_index * n_rows + row_index]) {
+                    trap_manager.store_trap_states();
+                    print_v(2, "store_trap_states \n");
+                }
             }
         }
 
@@ -159,32 +157,32 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
         The first dimension is the "row" index, the second is the "column"
         index. By default (for parallel clocking), charge is transfered "up"
-        from row n to row 0 along each independent column. i.e. the readout
-        register is above row 0. (For serial clocking, the image is rotated
-        before modelling, such that charge moves from column n to column 0.)
+        from row N to row 0 along each independent column. i.e. the readout
+        register is above row 0. For serial clocking, the image is rotated
+        before modelling, such that charge moves from column M to column 0.
 
         e.g.
         Initial image with one bright pixel in the first three columns:
-            [[0.0,     0.0,     0.0,     0.0  ],
-             [200.0,   0.0,     0.0,     0.0  ],
-             [0.0,     200.0,   0.0,     0.0  ],
-             [0.0,     0.0,     200.0,   0.0  ],
-             [0.0,     0.0,     0.0,     0.0  ],
-             [0.0,     0.0,     0.0,     0.0  ]]
+            {{  0.0,     0.0,     0.0,     0.0  },
+             {  200.0,   0.0,     0.0,     0.0  },
+             {  0.0,     200.0,   0.0,     0.0  },
+             {  0.0,     0.0,     200.0,   0.0  },
+             {  0.0,     0.0,     0.0,     0.0  },
+             {  0.0,     0.0,     0.0,     0.0  }}
         Image with parallel CTI trails:
-            [[0.0,     0.0,     0.0,     0.0  ],
-             [196.0,   0.0,     0.0,     0.0  ],
-             [3.0,     194.1,   0.0,     0.0  ],
-             [2.0,     3.9,     192.1,   0.0  ],
-             [1.3,     2.5,     4.8,     0.0  ],
-             [0.8,     1.5,     2.9,     0.0  ]]
+            {{  0.0,     0.0,     0.0,     0.0  },
+             {  196.0,   0.0,     0.0,     0.0  },
+             {  3.0,     194.1,   0.0,     0.0  },
+             {  2.0,     3.9,     192.1,   0.0  },
+             {  1.3,     2.5,     4.8,     0.0  },
+             {  0.8,     1.5,     2.9,     0.0  }}
         Final image with parallel and serial CTI trails:
-            [[0.0,     0.0,     0.0,     0.0  ],
-             [194.1,   1.9,     1.5,     0.9  ],
-             [2.9,     190.3,   2.9,     1.9  ],
-             [1.9,     3.8,     186.5,   3.7  ],
-             [1.2,     2.4,     4.7,     0.1  ],
-             [0.7,     1.4,     2.8,     0.06 ]]
+            {{  0.0,     0.0,     0.0,     0.0  },
+             {  194.1,   1.9,     1.5,     0.9  },
+             {  2.9,     190.3,   2.9,     1.9  },
+             {  1.9,     3.8,     186.5,   3.7  },
+             {  1.2,     2.4,     4.7,     0.1  },
+             {  0.7,     1.4,     2.8,     0.06 }}
 
     parallel_roe : ROE* (opt.)
         The object describing the clocking read-out electronics for parallel
@@ -216,28 +214,25 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         offset this number of pixels from readout, increasing the number of
         pixel-to-pixel transfers. Defaults to 0.
 
-    // parallel_window_range : range
-    //     For speed, calculate only the effect on this subset of pixels. Defaults
-    //     to range(0, n_pixels) for the full image.
-    //
-    //     Note that, because of edge effects, the range should be started several
-    //     pixels before the actual region of interest.
-    //
-    //     For a single pixel (e.g. for trap pumping), can enter just the single
-    //     integer index of the pumping traps to monitor, which will be converted
-    //     to range(index, index + 1).
+    parallel_window_start, parallel_window_stop : int (opt.)
+        Calculate only the effect on this subset of pixels. Defaults to 0,
+        n_rows for the full image.
+    
+        Note that, because of edge effects, the range should be started several
+        pixels before the actual region of interest.
 
     serial_* : * (opt.)
         The same as the parallel_* objects described above but for serial
         clocking instead. Default nullptr to not do serial clocking.
 
     // time_window_range : range
-    //     The subset of transfers to implement. Defaults to range(0, n_pixels) for
+    //     The subset of transfers to implement. The entire readout is still
+    //     modelled, but only the results from this subset of transfers are
+    //     implemented in the final image.
+    //
+    //     Defaults to range(0, n_pixels) for
     //     the full image. e.g. range(0, n_pixels/3) to do only the first third of
     //     the pixel-to-pixel transfers.
-    //
-    //     The entire readout is still modelled, but only the results from this
-    //     subset of transfers are implemented in the final image.
     //
     //     This could be used to e.g. add cosmic rays during readout of simulated
     //     images. Successive calls to complete the readout should start at
@@ -257,8 +252,10 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 std::valarray<std::valarray<double>> add_cti(
     std::valarray<std::valarray<double>>& image_in, ROE* parallel_roe,
     CCD* parallel_ccd, std::valarray<Trap>* parallel_traps, int parallel_express,
-    int parallel_offset, ROE* serial_roe, CCD* serial_ccd,
-    std::valarray<Trap>* serial_traps, int serial_express, int serial_offset) {
+    int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<Trap>* serial_traps,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -267,7 +264,7 @@ std::valarray<std::valarray<double>> add_cti(
     if (parallel_traps) {
         image = clock_charge_in_one_direction(
             image, *parallel_roe, *parallel_ccd, *parallel_traps, parallel_express,
-            parallel_offset);
+            parallel_offset, parallel_window_start, parallel_window_stop);
     }
 
     // Serial clocking along rows, transfer charge towards column 0
@@ -276,7 +273,7 @@ std::valarray<std::valarray<double>> add_cti(
 
         image = clock_charge_in_one_direction(
             image, *serial_roe, *serial_ccd, *serial_traps, serial_express,
-            serial_offset);
+            serial_offset, serial_window_start, serial_window_stop);
 
         image = transpose(image);
     }
@@ -308,8 +305,10 @@ std::valarray<std::valarray<double>> add_cti(
 std::valarray<std::valarray<double>> remove_cti(
     std::valarray<std::valarray<double>>& image_in, int iterations, ROE* parallel_roe,
     CCD* parallel_ccd, std::valarray<Trap>* parallel_traps, int parallel_express,
-    int parallel_offset, ROE* serial_roe, CCD* serial_ccd,
-    std::valarray<Trap>* serial_traps, int serial_express, int serial_offset) {
+    int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<Trap>* serial_traps,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image_remove_cti = image_in;
@@ -320,8 +319,9 @@ std::valarray<std::valarray<double>> remove_cti(
         // Model the effect of adding CTI trails
         image_add_cti = add_cti(
             image_remove_cti, parallel_roe, parallel_ccd, parallel_traps,
-            parallel_express, parallel_offset, serial_roe, serial_ccd, serial_traps,
-            serial_express, serial_offset);
+            parallel_express, parallel_offset, parallel_window_start,
+            parallel_window_stop, serial_roe, serial_ccd, serial_traps, serial_express,
+            serial_offset, serial_window_start, serial_window_stop);
 
         // Improve the estimate of the image with CTI trails removed
         image_remove_cti += image_in - image_add_cti;
