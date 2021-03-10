@@ -13,7 +13,7 @@
 /*
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns.
-    
+    
     See add_cti() for more detail and e.g. parallel vs serial clocking.
 
     Parameters
@@ -90,11 +90,13 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Clock each column of pixels through the column of traps
     // ========
     for (int column_index = column_start; column_index < column_stop; column_index++) {
+        print_v(2, "# column_index %d \n", column_index);
 
         // Monitor the traps in every pixel (express=n_rows), or just one
         // (express=1) or a few (express=a few) then replicate their effect
         for (int express_index = 0; express_index < roe.n_express_passes;
              express_index++) {
+            print_v(2, "express_index %d \n", express_index);
 
             // Restore the trap occupancy levels, either to empty or to a saved
             // state from a previous express pass
@@ -102,12 +104,16 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
             // Each pixel
             for (int row_index = row_start; row_index < row_stop; row_index++) {
+                print_v(2, "# row_index %d \n", row_index);
 
                 express_multiplier =
                     roe.express_matrix[express_index * n_rows + row_index];
                 if (express_multiplier == 0) continue;
 
                 n_free_electrons = image[row_index][column_index];
+
+                print_v(2, "express_multiplier %g \n", express_multiplier);
+                print_v(2, "n_free_electrons %g \n", n_free_electrons);
 
                 // Release and capture electrons with the traps in this pixel
                 n_electrons_released_and_captured =
@@ -119,6 +125,13 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 // Store the trap states if needed for the next express pass
                 if (roe.store_trap_states_matrix[express_index * n_rows + row_index])
                     trap_manager.store_trap_states();
+
+                print_v(
+                    2, "n_electrons_released_and_captured %g \n",
+                    n_electrons_released_and_captured);
+                print_v(
+                    2, "image[%d][%d] %g \n", row_index, column_index,
+                    image[row_index][column_index]);
             }
         }
 
