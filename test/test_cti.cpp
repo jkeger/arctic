@@ -266,3 +266,48 @@ TEST_CASE("Test remove CTI", "[cti]") {
         }
     }
 }
+
+TEST_CASE("Test offset", "[cti]") {
+    std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
+    int express, offset;
+    TrapInstantCapture trap(10.0, -1.0 / log(0.5));
+    std::valarray<Trap> traps = {trap};
+    ROE roe(1.0, true, false, true);
+    CCD ccd(1e3, 0.0, 1.0);
+
+    SECTION("Add CTI, single pixel, vary offset") {
+        std::valarray<std::valarray<double>> image_pre_cti_manual_offset,
+            image_post_cti_manual_offset, extract;
+        image_pre_cti =
+            std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 12);
+        image_pre_cti[2][0] = 800.0;
+
+        int offset_tests[3] = {1, 5, 11};
+        int express_tests[3] = {1, 3, 12};
+        
+        for (int i_offset = 0; i_offset < 3; i_offset++) {
+            offset = offset_tests[i_offset];
+
+            // Manually add offset to input image
+            image_pre_cti_manual_offset = std::valarray<std::valarray<double>>(
+                std::valarray<double>(0.0, 1), 12 + offset);
+            image_pre_cti_manual_offset[2 + offset][0] = 800.0;
+
+            // Unaffected by express
+            for (int i_express = 0; i_express < 3; i_express++) {
+                express = express_tests[i_express];
+
+                image_post_cti =
+                    add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset);
+
+                image_post_cti_manual_offset = add_cti(
+                    image_pre_cti_manual_offset, &roe, &ccd, &traps, express, 0);
+
+                // Strip the offset
+                extract = (std::valarray<std::valarray<double>>)
+                    image_post_cti_manual_offset[std::slice(offset, 12, 1)];
+                REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(extract)));
+            }
+        }
+    }
+}
