@@ -27,9 +27,9 @@ void print_help() {
         "\n"
         "Parameters \n"
         "---------- \n"
-        "-h \n"
+        "-h, --help \n"
         "    Print help information and exit. \n"
-        "-v <int> \n"
+        "-v <int>, --verbosity=<int> \n"
         "    The verbosity parameter to control the amount of printed information: \n"
         "        0       No printing (except errors etc). \n"
         "        1       Standard. \n"
@@ -39,11 +39,22 @@ void print_help() {
 }
 
 /*
-    Parse input parameters.
+    Parse input parameters. See main()'s documentation.
 */
 void parse_parameters(int argc, char** argv) {
-    int opt;
-    while ((opt = getopt(argc, argv, ":hv:")) != -1) {
+    // Short options
+    const char* const short_opts = ":hv:";
+    // Full options
+    const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
+                                {"verbosity", required_argument, nullptr, 'v'},
+                                {0, 0, 0, 0}};
+
+    // Parse options
+    while (true) {
+        const auto opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
+
+        if (opt == -1) break;
+
         switch (opt) {
             case 'h':
                 print_help();
@@ -52,24 +63,33 @@ void parse_parameters(int argc, char** argv) {
                 set_verbosity(atoi(optarg));
                 break;
             case ':':
-                printf("Error: -%c requires a value. Run with -h for help. \n", optopt);
+                printf(
+                    "Error: %s requires a value. Run with -h for help. \n",
+                    argv[optind - 1]);
                 exit(1);
             case '?':
-                printf("Error: -%c not recognised. Run with -h for help. \n", optopt);
+                printf(
+                    "Error: %s not recognised. Run with -h for help. \n",
+                    argv[optind - 1]);
                 exit(1);
         }
+    }
+
+    // Other parameters (currently unused)
+    for (; optind < argc; optind++) {
+        printf("Unparsed parameter: %s \n", argv[optind]);
     }
 }
 
 /*
     ...
-    
+    
     Parameters
     ----------
-    -h
+    -h, --help
         Print help information and exit.
-    
-    -v <int>
+    
+    -v <int>, --verbosity=<int>
         The verbosity parameter to control the amount of printed information:
             0       No printing (except errors etc).
             1       Standard.
@@ -78,11 +98,6 @@ void parse_parameters(int argc, char** argv) {
 int main(int argc, char** argv) {
 
     parse_parameters(argc, argv);
-
-    // Other parameters (currently unused)
-    for (; optind < argc; optind++) {
-        printf("Unparsed parameter: %s \n", argv[optind]);
-    }
 
     // Test image
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti,
