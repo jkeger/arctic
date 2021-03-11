@@ -22,6 +22,7 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
++ Usage
 + Unit Tests
 + Documentation
     + Files
@@ -43,6 +44,26 @@ Run with `./arctic`.
 
 
 
+Usage
+=====
+ArCTIC will normally be used via a wrapper, but the code can be executed 
+directly with the following command-line options:
+
++ `-h`, `--help`  
+    Print help information and exit.
++ `-v <int>`, `--verbosity=<int>`  
+    The verbosity parameter to control the amount of printed information:
+    + `0`   No printing (except errors etc).
+    + `1`   Standard.
+    + `2`   Extra details.
++ `-c`, `--custom`  
+    Execute the custom code in the `run_custom_code()` function at the very
+    top of `src/main.cpp`. A good place to run your own quick tests or use 
+    arctic without any wrappers. The demo version adds then removes CTI from a 
+    test image.
+
+
+
 Unit Tests
 ==========
 Tests are included for most individual parts of the code, organised with Catch2.
@@ -55,16 +76,10 @@ the more user-focused documentation.
 Compile the tests with `make test` (or `make all`) in the top directory, then 
 run with `./test_arctic`.
 
-Add arguments to select which tests to run by their tags, e.g:
-+ `thisTestOnly`        Matches the test case called, 'thisTestOnly'
-+ `"this test only"`    Matches the test case called, 'this test only'
-+ `these*`              Matches all cases starting with 'these'
-+ `exclude:notThis`     Matches all tests except, 'notThis'
-+ `~notThis`            Matches all tests except, 'notThis'
-+ `~*notThese*`         Matches all tests except those that contain 'notThese'
-+ `a* ~ab* abc`         Matches all tests that start with 'a', except those that
-                        start with 'ab', except 'abc', which is included
-+ `-# [#somefile]`      Matches all tests from the file 'somefile.cpp'
+Add arguments to select which tests to run by their names, e.g:
++ `*'these ones'*`  All tests that contain 'these ones'.
++ `~*'not these'*`  All tests except those that contain 'not these'.
++ `-# [#filename]`  All tests from the file 'somefile.cpp'.
 
 
 
@@ -85,7 +100,9 @@ A quick summary of the code files and their contents:
 + `makefile`                The makefile for compiling the code.
 + `src/`                    Source code files.
     + `main.cpp`  
-        Main program.
+        Main program. See above and its documentation for the command-line 
+        options, and see `run_custom_code()` for an example of running manually 
+        editable code directly.
     + `cti.cpp`  
         Contains the primary user-facing functions `add_cti()` and 
         `remove_cti()`. These are wrappers for `clock_charge_in_one_direction()`, which contains the primary nested for loops over an image to add CTI to
@@ -133,26 +150,26 @@ separate columns, as in this example of an image before and after calling
 
 ```C++
 // Initial image with one bright pixel in the first three columns:
-{{0.0,     0.0,     0.0,     0.0  }, 
- {200.0,   0.0,     0.0,     0.0  }, 
- {0.0,     200.0,   0.0,     0.0  }, 
- {0.0,     0.0,     200.0,   0.0  }, 
- {0.0,     0.0,     0.0,     0.0  }, 
- {0.0,     0.0,     0.0,     0.0  }}
+{{  0.0,     0.0,     0.0,     0.0  }, 
+ {  200.0,   0.0,     0.0,     0.0  }, 
+ {  0.0,     200.0,   0.0,     0.0  }, 
+ {  0.0,     0.0,     200.0,   0.0  }, 
+ {  0.0,     0.0,     0.0,     0.0  }, 
+ {  0.0,     0.0,     0.0,     0.0  }}
 // Image with parallel CTI trails:
-{{0.0,     0.0,     0.0,     0.0  }, 
- {196.0,   0.0,     0.0,     0.0  }, 
- {3.0,     194.1,   0.0,     0.0  }, 
- {2.0,     3.9,     192.1,   0.0  }, 
- {1.3,     2.5,     4.8,     0.0  }, 
- {0.8,     1.5,     2.9,     0.0  }}
+{{  0.0,     0.0,     0.0,     0.0  }, 
+ {  196.0,   0.0,     0.0,     0.0  }, 
+ {  3.0,     194.1,   0.0,     0.0  }, 
+ {  2.0,     3.9,     192.1,   0.0  }, 
+ {  1.3,     2.5,     4.8,     0.0  }, 
+ {  0.8,     1.5,     2.9,     0.0  }}
 // Final image with parallel and serial CTI trails:
-{{0.0,     0.0,     0.0,     0.0  }, 
- {194.1,   1.9,     1.5,     0.9  }, 
- {2.9,     190.3,   2.9,     1.9  }, 
- {1.9,     3.8,     186.5,   3.7  }, 
- {1.2,     2.4,     4.7,     0.1  }, 
- {0.7,     1.4,     2.8,     0.06 }}
+{{  0.0,     0.0,     0.0,     0.0  }, 
+ {  194.1,   1.9,     1.5,     0.9  }, 
+ {  2.9,     190.3,   2.9,     1.9  }, 
+ {  1.9,     3.8,     186.5,   3.7  }, 
+ {  1.2,     2.4,     4.7,     0.1  }, 
+ {  0.7,     1.4,     2.8,     0.06 }}
 ```
 
 As this illustrates, by default, charge is transferred "up" from row N to row 0 
@@ -220,10 +237,8 @@ See the `ROE` and child class docstrings in `roe.cpp` for the full documentation
 
 
 ### Express matrix  
-The `ROE` class also contains the
-`express_matrix_and_monitor_traps_matrix_from_pixels_and_express()` 
-function used to generate both the express matrix and a related array used to 
-control when traps are monitored.
+The `ROE` class also contains the `set_express_matrix_from_pixels_and_express()` 
+function used to generate the array of express multipliers.
 
 
 
@@ -287,3 +302,5 @@ and capture, contain simple-number examples to demonstrate how it all works.
 
 Examples
 ========
+See `run_custom_code()` in `src/main.cpp` for a short and simple example of 
+using the core features of arctic to add and then remove CTI from a test image.
