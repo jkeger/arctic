@@ -13,10 +13,10 @@ static bool custom_mode = false;
 
 /*
     Run arctic with --custom or -c to execute this manually-editable code.
-    
+
     A good place to run your own quick tests or use arctic without any wrappers.
     Remember to call make to recompile after editing.
-    
+
     Demo version:
         + Make a test image and save it to a txt file.
         + Load the image from txt.
@@ -38,30 +38,31 @@ int run_custom_code() {
             {0.0,   0.0,   0.0,   0.0},
         }  // clang-format on
     );
-
+    
     // Load the image
     std::valarray<std::valarray<double>> image_pre_cti =
         load_image_from_txt((char*)"image_test_pre_cti.txt");
     print_v(1, "Loaded test image from image_test_pre_cti.txt: \n");
     print_array_2D(image_pre_cti);
-
+    
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<Trap> traps = {trap};
-    ROE roe(1.0, true, false, true);
+    std::valarray<double> dwell_times = {1.0};
+    ROE roe(dwell_times, true, false, true);
     CCD ccd(1e4, 0.0, 1.0);
     int express = 5;
     int offset = 0;
     int start = 0;
     int stop = -1;
-
+    
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
         &traps, express, offset, start, stop);
     print_v(1, "Image with CTI added: \n");
     print_array_2D(image_post_cti);
-
+    
     // Remove CTI
     int iterations = 3;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
@@ -69,7 +70,7 @@ int run_custom_code() {
         &roe, &ccd, &traps, express, offset, start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
-
+    
     // Save the final image
     save_image_to_txt((char*)"image_test_cti_removed.txt", image_remove_cti);
     print_v(1, "Saved final image to image_test_cti_removed.txt \n");
@@ -159,18 +160,18 @@ void parse_parameters(int argc, char** argv) {
 
 /*
     Main program.
-    
+
     Parameters
     ----------
     -h, --help
         Print help information and exit.
-    
+
     -v <int>, --verbosity=<int>
         The verbosity parameter to control the amount of printed information:
             0       No printing (except errors etc).
             1       Standard.
             2       Extra details.
-    
+
     -c, --custom
         Execute the custom code in the run_custom_code() function at the very
         top of this file. For manual editing to test or run arctic without using
@@ -184,6 +185,6 @@ int main(int argc, char** argv) {
         print_v(1, "# ArCTIC: Running custom code! \n\n");
         return run_custom_code();
     }
-
+    
     return 0;
 }

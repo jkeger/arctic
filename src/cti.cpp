@@ -75,7 +75,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Set up the trap manager
     TrapManagerInstantCapture trap_manager(traps, row_stop - row_start, ccd);
     trap_manager.initialise_trap_states();
-    trap_manager.set_fill_probabilities_from_dwell_time(roe.dwell_time);
+    trap_manager.set_fill_probabilities_from_dwell_time(roe.dwell_times[0]);
 
     // Measure wall-clock time taken for the primary loop
     struct timeval wall_time_start;

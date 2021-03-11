@@ -19,11 +19,12 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti, image_py;
     std::vector<double> test, answer;
     int express;
+    std::valarray<double> dwell_times = {1.0};
 
     SECTION("Single pixel, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        ROE roe(1.0, true, false, true);
+        ROE roe(dwell_times, true, false, true);
         CCD ccd(1e3, 0.0, 1.0);
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 20);
@@ -83,7 +84,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, far from readout, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        ROE roe(1.0, true, false, true);
+        ROE roe(dwell_times, true, false, true);
         CCD ccd(1e3, 0.0, 0.5);
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 120);
@@ -163,7 +164,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, longer release time") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, 5);
-        ROE roe(1.0, true, false, true);
+        ROE roe(dwell_times, true, false, true);
         CCD ccd(1e3, 0.0, 0.5);
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 40);
@@ -189,6 +190,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
 TEST_CASE("Test add CTI", "[cti]") {
     set_verbosity(0);
 
+    std::valarray<double> dwell_times = {1.0};
     int offset = 0;
     int start = 0;
     int stop = -1;
@@ -198,7 +200,7 @@ TEST_CASE("Test add CTI", "[cti]") {
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
         std::valarray<Trap> traps = {trap};
-        ROE roe(1.0, true, false, true);
+        ROE roe(dwell_times, true, false, true);
         CCD ccd(1e3, 0.0, 1.0);
         image_pre_cti = {
             // clang-format off
@@ -239,6 +241,7 @@ TEST_CASE("Test add CTI", "[cti]") {
 TEST_CASE("Test remove CTI", "[cti]") {
     set_verbosity(0);
 
+    std::valarray<double> dwell_times = {1.0};
     int offset = 0;
     int start = 0;
     int stop = -1;
@@ -250,7 +253,7 @@ TEST_CASE("Test remove CTI", "[cti]") {
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
         std::valarray<Trap> traps = {trap};
-        ROE roe(1.0, true, false, true);
+        ROE roe(dwell_times, true, false, true);
         CCD ccd(1e3, 0.0, 1.0);
         image_pre_cti = {
             // clang-format off
@@ -291,7 +294,8 @@ TEST_CASE("Test offset and windows", "[cti]") {
     int express, offset;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<Trap> traps = {trap};
-    ROE roe(1.0, true, false, true);
+    std::valarray<double> dwell_times = {1.0};
+    ROE roe(dwell_times, true, false, true);
     CCD ccd(1e3, 0.0, 1.0);
 
     SECTION("Add CTI, single pixel, vary offset") {

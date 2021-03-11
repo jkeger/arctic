@@ -10,6 +10,7 @@ class Trap {
     double density;
     double release_timescale;
     double capture_timescale;
+    
     double capture_rate;
     double emission_rate;
 

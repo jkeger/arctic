@@ -14,6 +14,7 @@ class TrapManager {
     ~TrapManager(){};
 
     std::valarray<Trap> traps;
+    int max_n_transfers;
     CCD ccd;
 
     std::valarray<double> watermark_volumes;
@@ -22,7 +23,6 @@ class TrapManager {
     std::valarray<double> stored_watermark_fills;
 
     int n_traps;
-    int max_n_transfers;
     int n_watermarks_per_transfer;
     int n_watermarks;
     int n_active_watermarks;
