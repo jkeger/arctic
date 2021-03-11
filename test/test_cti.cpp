@@ -207,7 +207,7 @@ TEST_CASE("Test add CTI", "[cti]") {
             {0.0,   200.0, 0.0,   0.0},
             {0.0,   0.0,   200.0, 0.0},
             {0.0,   0.0,   0.0,   0.0},
-            {0.0,   0.0,   0.0,   0.0}
+            {0.0,   0.0,   0.0,   0.0},
             // clang-format on
         };
         express = 0;
@@ -259,7 +259,7 @@ TEST_CASE("Test remove CTI", "[cti]") {
             {0.0,   200.0, 0.0,   0.0},
             {0.0,   0.0,   200.0, 0.0},
             {0.0,   0.0,   0.0,   0.0},
-            {0.0,   0.0,   0.0,   0.0}
+            {0.0,   0.0,   0.0,   0.0},
             // clang-format on
         };
         express = 0;
@@ -345,8 +345,8 @@ TEST_CASE("Test offset and windows", "[cti]") {
             {1, 12},  // Full trail
             {0, 12},  // Full image
         };
-
         int express_tests[3] = {1, 3, 12};
+
         // Unaffected by express
         for (int i_express = 0; i_express < 3; i_express++) {
             express = express_tests[i_express];
@@ -377,6 +377,67 @@ TEST_CASE("Test offset and windows", "[cti]") {
                             window_start, window_stop - window_start, 1)];
                     REQUIRE_THAT(flatten(test), Catch::Approx(flatten(answer)));
                 }
+            }
+        }
+    }
+
+    SECTION("Add CTI, parallel and serial window") {
+        std::valarray<std::valarray<double>> image_post_cti_full;
+        std::valarray<double> answer_row, test_row;
+        std::vector<double> test, answer;
+        image_pre_cti = {
+            // clang-format off
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   200.0, 0.0,   0.0},
+            {0.0,   0.0,   200.0, 0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {1.0,   2.0,   3.0,   4.0},
+            // clang-format on
+        };
+        offset = 0;
+        int express_tests[3] = {1, 3, 12};
+
+        // Set a window on the middle region
+        int parallel_start = 1;
+        int parallel_stop = 5;
+        int serial_start = 1;
+        int serial_stop = 3;
+
+        // Unaffected by express
+        for (int i_express = 0; i_express < 3; i_express++) {
+            express = express_tests[i_express];
+
+            // Full image
+            image_post_cti_full = add_cti(
+                image_pre_cti, &roe, &ccd, &traps, express, offset, 0, -1, &roe, &ccd,
+                &traps, express, offset, 0, -1);
+
+            // Window
+            image_post_cti = add_cti(
+                image_pre_cti, &roe, &ccd, &traps, express, offset, parallel_start,
+                parallel_stop, &roe, &ccd, &traps, express, offset, serial_start,
+                serial_stop);
+
+            for (unsigned int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
+                // Extract each row to compare
+                test_row = (std::valarray<double>)image_post_cti[i_row][std::slice(
+                    serial_start, serial_stop - serial_start, 1)];
+
+                // Iutside the window region: unchanged from the input image
+                if ((i_row < parallel_start) || (i_row >= parallel_stop))
+                    answer_row = (std::valarray<double>)image_pre_cti[i_row][std::slice(
+                        serial_start, serial_stop - serial_start, 1)];
+
+                // Inside the window region: same as full result
+                else
+                    answer_row =
+                        (std::valarray<double>)image_post_cti_full[i_row][std::slice(
+                            serial_start, serial_stop - serial_start, 1)];
+
+                test.assign(std::begin(test_row), std::end(test_row));
+                answer.assign(std::begin(answer_row), std::end(answer_row));
+                REQUIRE_THAT(test, Catch::Approx(answer));
             }
         }
     }

@@ -13,7 +13,7 @@
 /*
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns.
-    
+    
     See add_cti() for more detail and e.g. parallel vs serial clocking.
 
     Parameters
@@ -103,7 +103,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
             for (int row_index = row_start; row_index < row_stop; row_index++) {
                 print_v(2, "// row_index %d \n", row_index);
 
-                express_multiplier = roe.express_matrix[express_index * n_rows + row_index];
+                express_multiplier =
+                    roe.express_matrix[express_index * n_rows + row_index];
                 if (express_multiplier == 0) continue;
 
                 n_free_electrons = image[row_index][column_index];
@@ -117,7 +118,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
                 image[row_index][column_index] +=
                     n_electrons_released_and_captured * express_multiplier;
-    
+
                 print_v(
                     2, "n_electrons_released_and_captured %g \n",
                     n_electrons_released_and_captured);
@@ -211,38 +212,20 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     parallel_offset : int (>= 0) (opt.)
         The number of (e.g. prescan) pixels separating the supplied image from
         the readout register. i.e. Treat the input image as a sub-image that is
-        offset this number of pixels from readout, increasing the number of
+        offset by this number of pixels from readout, increasing the number of
         pixel-to-pixel transfers. Defaults to 0.
 
     parallel_window_start, parallel_window_stop : int (opt.)
-        Calculate only the effect on this subset of pixels. Defaults to 0,
+        Calculate only the effect on this subset of pixels, to save time when 
+        only a specific region of the image is of interest. Defaults to 0, 
         n_rows for the full image.
-    
+    
         Note that, because of edge effects, the range should be started several
         pixels before the actual region of interest.
 
     serial_* : * (opt.)
         The same as the parallel_* objects described above but for serial
         clocking instead. Default nullptr to not do serial clocking.
-
-    // time_window_range : range
-    //     The subset of transfers to implement. The entire readout is still
-    //     modelled, but only the results from this subset of transfers are
-    //     implemented in the final image.
-    //
-    //     Defaults to range(0, n_pixels) for
-    //     the full image. e.g. range(0, n_pixels/3) to do only the first third of
-    //     the pixel-to-pixel transfers.
-    //
-    //     This could be used to e.g. add cosmic rays during readout of simulated
-    //     images. Successive calls to complete the readout should start at
-    //     the same value that the previous one ended, e.g. range(0, 1000) then
-    //     range(1000, 2000). Be careful not to divide the readout too finely, as
-    //     there is only as much temporal resolution as there are rows (not rows *
-    //     phases) in the image. Also, for each time that readout is split between
-    //     successive calls to this function, the output in one row of pixels
-    //     will change slightly (unless express=0) because trap occupancy is
-    //     not stored between calls.
 
     Returns
     -------
@@ -264,7 +247,8 @@ std::valarray<std::valarray<double>> add_cti(
     if (parallel_traps) {
         image = clock_charge_in_one_direction(
             image, *parallel_roe, *parallel_ccd, *parallel_traps, parallel_express,
-            parallel_offset, parallel_window_start, parallel_window_stop);
+            parallel_offset, parallel_window_start, parallel_window_stop,
+            serial_window_start, serial_window_stop);
     }
 
     // Serial clocking along rows, transfer charge towards column 0
@@ -273,7 +257,8 @@ std::valarray<std::valarray<double>> add_cti(
 
         image = clock_charge_in_one_direction(
             image, *serial_roe, *serial_ccd, *serial_traps, serial_express,
-            serial_offset, serial_window_start, serial_window_stop);
+            serial_offset, serial_window_start, serial_window_stop,
+            parallel_window_start, parallel_window_stop);
 
         image = transpose(image);
     }
