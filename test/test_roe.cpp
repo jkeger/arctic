@@ -343,15 +343,15 @@ TEST_CASE("Test express matrix", "[roe]") {
         int n_rows;
         ROE roe;
 
-        for (int i_pixels = 0; i_pixels < pixels.size(); i_pixels++) {
+        for (unsigned int i_pixels = 0; i_pixels < pixels.size(); i_pixels++) {
             n_pixels = pixels[i_pixels];
-            for (int i_express = 0; i_express < expresses.size(); i_express++) {
+            for (unsigned int i_express = 0; i_express < expresses.size(); i_express++) {
                 express = expresses[i_express];
-                for (int i_offset = 0; i_offset < offsets.size(); i_offset++) {
+                for (unsigned int i_offset = 0; i_offset < offsets.size(); i_offset++) {
                     offset = offsets[i_offset];
-                    for (int i_integer = 0; i_integer < integers.size(); i_integer++) {
+                    for (unsigned int i_integer = 0; i_integer < integers.size(); i_integer++) {
                         roe.use_integer_express_matrix = integers[i_integer];
-                        for (int i_empty = 0; i_empty < emptys.size(); i_empty++) {
+                        for (unsigned int i_empty = 0; i_empty < emptys.size(); i_empty++) {
                             roe.empty_traps_for_first_transfers = emptys[i_empty];
 
                             roe.set_express_matrix_from_pixels_and_express(

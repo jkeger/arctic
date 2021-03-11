@@ -12,6 +12,8 @@
 #include "util.hpp"
 
 TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]") {
+    set_verbosity(0);
+
     // Compare with the python version (which was itself tested against the
     // previous IDL version)
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti, image_py;
@@ -185,6 +187,12 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
 }
 
 TEST_CASE("Test add CTI", "[cti]") {
+    set_verbosity(0);
+
+    int offset = 0;
+    int start = 0;
+    int stop = -1;
+
     SECTION("Parallel and serial, same result as calling clock charge directly") {
         std::valarray<std::valarray<double>> image_pre_cti, image_add, image_clock;
         int express;
@@ -199,7 +207,7 @@ TEST_CASE("Test add CTI", "[cti]") {
             {0.0,   200.0, 0.0,   0.0},
             {0.0,   0.0,   200.0, 0.0},
             {0.0,   0.0,   0.0,   0.0},
-            {0.0,   0.0,   0.0,   0.0}
+            {0.0,   0.0,   0.0,   0.0},
             // clang-format on
         };
         express = 0;
@@ -212,7 +220,8 @@ TEST_CASE("Test add CTI", "[cti]") {
 
         // Add serial
         image_add = add_cti(
-            image_add, nullptr, nullptr, nullptr, 0, 0, &roe, &ccd, &traps, express);
+            image_add, nullptr, nullptr, nullptr, express, offset, start, stop, &roe,
+            &ccd, &traps, express, offset, start, stop);
         image_clock = transpose(image_clock);
         image_clock =
             clock_charge_in_one_direction(image_clock, roe, ccd, traps, express);
@@ -221,12 +230,19 @@ TEST_CASE("Test add CTI", "[cti]") {
 
         // Both at once
         image_add = add_cti(
-            image_pre_cti, &roe, &ccd, &traps, express, 0, &roe, &ccd, &traps, express);
+            image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
+            &traps, express, offset, start, stop);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
     }
 }
 
 TEST_CASE("Test remove CTI", "[cti]") {
+    set_verbosity(0);
+
+    int offset = 0;
+    int start = 0;
+    int stop = -1;
+
     SECTION("Parallel and serial, better removal with more iterations") {
         // Start with the same image as "Test add CTI"
         std::valarray<std::valarray<double>> image_pre_cti, image_add_cti,
@@ -243,26 +259,186 @@ TEST_CASE("Test remove CTI", "[cti]") {
             {0.0,   200.0, 0.0,   0.0},
             {0.0,   0.0,   200.0, 0.0},
             {0.0,   0.0,   0.0,   0.0},
-            {0.0,   0.0,   0.0,   0.0}
+            {0.0,   0.0,   0.0,   0.0},
             // clang-format on
         };
         express = 0;
 
         // Add CTI
         image_add_cti = add_cti(
-            image_pre_cti, &roe, &ccd, &traps, express, 0, &roe, &ccd, &traps, express);
+            image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
+            &traps, express, offset, start, stop);
 
         // Remove CTI
         for (int iterations = 2; iterations <= 6; iterations++) {
             image_remove_cti = remove_cti(
-                image_add_cti, iterations, &roe, &ccd, &traps, express, 0, &roe, &ccd,
-                &traps, express);
+                image_add_cti, iterations, &roe, &ccd, &traps, express, offset, start,
+                stop, &roe, &ccd, &traps, express, offset, start, stop);
 
             // Expect better results with more iterations
             double tolerance = pow(10.0, 1 - iterations);
             REQUIRE_THAT(
                 flatten(image_remove_cti),
                 Catch::Approx(flatten(image_pre_cti)).margin(tolerance));
+        }
+    }
+}
+
+TEST_CASE("Test offset and windows", "[cti]") {
+    set_verbosity(0);
+
+    std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
+    int express, offset;
+    TrapInstantCapture trap(10.0, -1.0 / log(0.5));
+    std::valarray<Trap> traps = {trap};
+    ROE roe(1.0, true, false, true);
+    CCD ccd(1e3, 0.0, 1.0);
+
+    SECTION("Add CTI, single pixel, vary offset") {
+        std::valarray<std::valarray<double>> image_pre_cti_manual_offset,
+            image_post_cti_manual_offset, extract;
+        image_pre_cti =
+            std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 12);
+        image_pre_cti[2][0] = 800.0;
+
+        int offset_tests[3] = {1, 5, 11};
+        int express_tests[3] = {1, 3, 12};
+
+        for (int i_offset = 0; i_offset < 3; i_offset++) {
+            offset = offset_tests[i_offset];
+
+            // Manually add offset to input image
+            image_pre_cti_manual_offset = std::valarray<std::valarray<double>>(
+                std::valarray<double>(0.0, 1), 12 + offset);
+            image_pre_cti_manual_offset[2 + offset][0] = 800.0;
+
+            // Unaffected by express
+            for (int i_express = 0; i_express < 3; i_express++) {
+                express = express_tests[i_express];
+
+                image_post_cti =
+                    add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset);
+
+                image_post_cti_manual_offset = add_cti(
+                    image_pre_cti_manual_offset, &roe, &ccd, &traps, express, 0);
+
+                // Strip the offset
+                extract = (std::valarray<std::valarray<double>>)
+                    image_post_cti_manual_offset[std::slice(offset, 12, 1)];
+                REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(extract)));
+            }
+        }
+    }
+
+    SECTION("Add CTI, single pixel, vary parallel window") {
+        std::valarray<std::valarray<double>> image_post_cti_full, test, answer;
+        image_pre_cti =
+            std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 12);
+        image_pre_cti[2][0] = 800.0;
+        offset = 0;
+
+        int window_start, window_stop;
+        int window_tests[5][2] = {
+            {3, 12},  // After bright pixel so no trail
+            {1, 5},   // Start of trail
+            {1, 9},   // Most of trail
+            {1, 12},  // Full trail
+            {0, 12},  // Full image
+        };
+        int express_tests[3] = {1, 3, 12};
+
+        // Unaffected by express
+        for (int i_express = 0; i_express < 3; i_express++) {
+            express = express_tests[i_express];
+
+            // Full image
+            image_post_cti_full = add_cti(image_pre_cti, &roe, &ccd, &traps, express);
+
+            // Windows
+            for (int i = 0; i < 5; i++) {
+                window_start = window_tests[i][0];
+                window_stop = window_tests[i][1];
+
+                image_post_cti = add_cti(
+                    image_pre_cti, &roe, &ccd, &traps, express, offset, window_start,
+                    window_stop);
+
+                if (i == 0) {
+                    // Window misses the bright pixel so no trail
+                    REQUIRE_THAT(
+                        flatten(image_post_cti), Catch::Approx(flatten(image_pre_cti)));
+                } else {
+                    // Same result within the window region
+                    test =
+                        (std::valarray<std::valarray<double>>)image_post_cti[std::slice(
+                            window_start, window_stop - window_start, 1)];
+                    answer = (std::valarray<std::valarray<double>>)
+                        image_post_cti_full[std::slice(
+                            window_start, window_stop - window_start, 1)];
+                    REQUIRE_THAT(flatten(test), Catch::Approx(flatten(answer)));
+                }
+            }
+        }
+    }
+
+    SECTION("Add CTI, parallel and serial window") {
+        std::valarray<std::valarray<double>> image_post_cti_full;
+        std::valarray<double> answer_row, test_row;
+        std::vector<double> test, answer;
+        image_pre_cti = {
+            // clang-format off
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {0.0,   200.0, 0.0,   0.0},
+            {0.0,   0.0,   200.0, 0.0},
+            {0.0,   0.0,   0.0,   0.0},
+            {1.0,   2.0,   3.0,   4.0},
+            // clang-format on
+        };
+        offset = 0;
+        int express_tests[3] = {1, 3, 12};
+
+        // Set a window on the middle region
+        int parallel_start = 1;
+        int parallel_stop = 5;
+        int serial_start = 1;
+        int serial_stop = 3;
+
+        // Unaffected by express
+        for (int i_express = 0; i_express < 3; i_express++) {
+            express = express_tests[i_express];
+
+            // Full image
+            image_post_cti_full = add_cti(
+                image_pre_cti, &roe, &ccd, &traps, express, offset, 0, -1, &roe, &ccd,
+                &traps, express, offset, 0, -1);
+
+            // Window
+            image_post_cti = add_cti(
+                image_pre_cti, &roe, &ccd, &traps, express, offset, parallel_start,
+                parallel_stop, &roe, &ccd, &traps, express, offset, serial_start,
+                serial_stop);
+
+            for (unsigned int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
+                // Extract each row to compare
+                test_row = (std::valarray<double>)image_post_cti[i_row][std::slice(
+                    serial_start, serial_stop - serial_start, 1)];
+
+                // Iutside the window region: unchanged from the input image
+                if ((i_row < parallel_start) || (i_row >= parallel_stop))
+                    answer_row = (std::valarray<double>)image_pre_cti[i_row][std::slice(
+                        serial_start, serial_stop - serial_start, 1)];
+
+                // Inside the window region: same as full result
+                else
+                    answer_row =
+                        (std::valarray<double>)image_post_cti_full[i_row][std::slice(
+                            serial_start, serial_stop - serial_start, 1)];
+
+                test.assign(std::begin(test_row), std::end(test_row));
+                answer.assign(std::begin(answer_row), std::end(answer_row));
+                REQUIRE_THAT(test, Catch::Approx(answer));
+            }
         }
     }
 }

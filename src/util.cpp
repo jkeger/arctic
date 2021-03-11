@@ -8,10 +8,19 @@
 
 #include "util.hpp"
 
-
 // ========
 // Printing
 // ========
+/*
+    Set the global verbosity parameter to control the amount of printed info:
+    
+    0       No printing (except errors etc).
+    1       Standard.
+    2       Extra details.
+*/
+int verbosity = 1;
+void set_verbosity(int v) { verbosity = v; }
+
 /*
     Neatly print a 1D array.
 */
@@ -93,9 +102,13 @@ void print_array_2D(std::valarray<std::valarray<double>>& array) {
 */
 std::vector<double> flatten(std::valarray<std::valarray<double>>& array) {
     std::vector<double> vector;
+    int n_row = array.size();
+    int n_col;
 
-    for (int i_row = 0; i_row < array.size(); i_row++) {
-        for (int i_col = 0; i_col < array[i_row].size(); i_col++) {
+    for (int i_row = 0; i_row < n_row; i_row++) {
+        n_col = array[i_row].size();
+
+        for (int i_col = 0; i_col < n_col; i_col++) {
             vector.push_back(array[i_row][i_col]);
         }
     }
@@ -121,7 +134,7 @@ std::valarray<double> arange(double start, double stop, double step) {
 */
 std::valarray<std::valarray<double>> transpose(
     std::valarray<std::valarray<double>>& array) {
-    
+
     // Create the opposite-shape array
     int n_rows = array.size();
     int n_columns = array[0].size();
@@ -143,19 +156,19 @@ std::valarray<std::valarray<double>> transpose(
 // ========
 /*
     Load a 2D image from a text file.
-    
+    
     File contents:
         n_rows  n_columns
         row_0_column_0  row_0_column_1  ...  row_0_column_n
         row_1_column_0  ...             ...  ...
         ...             ...             ...  ...
         row_n_column 0  ...             ...
-    
+    
     Parameters
     ----------
     filename : str
         The path to the file to load.
-        
+        
     Returns
     -------
     image : std::valarray<std::valarray<double>>
@@ -163,7 +176,7 @@ std::valarray<std::valarray<double>> transpose(
 */
 std::valarray<std::valarray<double>> load_image_from_txt(char* filename) {
     FILE* f = fopen(filename, "r");
-    if (f == NULL) error("Failed to open image file '%s'", filename);
+    if (!f) error("Failed to open image file '%s'", filename);
 
     // Load image dimensions
     int n_rows;
@@ -189,25 +202,25 @@ std::valarray<std::valarray<double>> load_image_from_txt(char* filename) {
 
 /*
     Save a 2D image to a text file.
-    
+    
     File contents:
         n_rows  n_columns
         row_0_column_0  row_0_column_1  ...  row_0_column_n
         row_1_column_0  ...             ...  ...
         ...             ...             ...  ...
         row_n_column 0  ...             ...
-    
+    
     Parameters
     ----------
     filename : str
         The path to the file to load.
-        
+        
     image : std::valarray<std::valarray<double>>
         The 2D image array to save.
 */
 void save_image_to_txt(char* filename, std::valarray<std::valarray<double>> image) {
     FILE* f = fopen(filename, "w");
-    if (f == NULL) error("Failed to open file '%s'", filename);
+    if (!f) error("Failed to open file '%s'", filename);
 
     // Save image dimensions
     int n_rows = image.size();
