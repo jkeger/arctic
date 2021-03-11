@@ -5,6 +5,6 @@ build/
 dev/
 
 *.fits
-test*.*
+*test*.*
 gmon.out
 callgrind.out.*
