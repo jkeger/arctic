@@ -23,8 +23,10 @@ TEST_CASE("Test CCDPhase", "[ccd]") {
         CCDPhase ccd_phase_2(1e4, 0.0, 0.8);
 
         REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(0.0) == 0.0);
-        REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(1e2) == pow(0.01, 0.8));
-        REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(1e3) == pow(0.1, 0.8));
+        REQUIRE(
+            ccd_phase_2.cloud_fractional_volume_from_electrons(1e2) == pow(0.01, 0.8));
+        REQUIRE(
+            ccd_phase_2.cloud_fractional_volume_from_electrons(1e3) == pow(0.1, 0.8));
         REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(1e4) == 1.0);
         REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(1e5) == 1.0);
 
@@ -44,7 +46,7 @@ TEST_CASE("Test CCD", "[ccd]") {
     std::vector<double> test, answer;
 
     SECTION("Initialisation, single-phase and multiphase") {
-        // Single phase, single style
+        // Single phase, single-style initialisation
         CCDPhase phase(1e4, 0.0, 1.0);
         CCD ccd(phase);
 
@@ -54,25 +56,25 @@ TEST_CASE("Test CCD", "[ccd]") {
         REQUIRE(ccd.phases[0].well_fill_power == 1.0);
         REQUIRE(ccd.fraction_of_traps_per_phase.size() == 1);
         REQUIRE(ccd.fraction_of_traps_per_phase[0] == 1.0);
-        
-        // Single phase, multi style
+
+        // Single phase, multi-style initialisation
         std::valarray<double> fractions = {1.0};
         std::valarray<CCDPhase> phases = {phase};
         CCD ccd_2(phases, fractions);
-        
+
         REQUIRE(ccd_2.n_phases == 1);
         REQUIRE(ccd_2.phases[0].full_well_depth == 1e4);
         REQUIRE(ccd_2.phases[0].well_notch_depth == 0.0);
         REQUIRE(ccd_2.phases[0].well_fill_power == 1.0);
         REQUIRE(ccd_2.fraction_of_traps_per_phase.size() == 1);
         REQUIRE(ccd_2.fraction_of_traps_per_phase[0] == 1.0);
-        
+
         // Multiphase
         CCDPhase phase_2(2e4, 0.0, 0.8);
         std::valarray<CCDPhase> phases_2 = {phase, phase_2, phase_2};
         std::valarray<double> fractions_2 = {0.5, 0.25, 0.25};
         CCD ccd_3(phases_2, fractions_2);
-        
+
         REQUIRE(ccd_3.n_phases == 3);
         REQUIRE(ccd_3.phases[0].full_well_depth == 1e4);
         REQUIRE(ccd_3.phases[0].well_notch_depth == 0.0);

@@ -14,8 +14,6 @@
 
     Information about the read-out electronics.
 
-    ##todo: reimplement multiple phases
-
     Parameters
     ----------
     dwell_times : std::valarray<double> (opt.)

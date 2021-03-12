@@ -50,7 +50,9 @@ class TrapManager {
 
 class TrapManagerInstantCapture : public TrapManager {
    public:
-    TrapManagerInstantCapture(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
+    TrapManagerInstantCapture(){};
+    TrapManagerInstantCapture(
+        std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
     ~TrapManagerInstantCapture(){};
 
     double n_electrons_released();
@@ -60,6 +62,24 @@ class TrapManagerInstantCapture : public TrapManager {
         double cloud_fractional_volume, int i_wmk_above_cloud, double enough);
     double n_electrons_captured(double n_free_electrons);
     double n_electrons_released_and_captured(double n_free_electrons);
+};
+
+class TrapManagerManager {
+   public:
+    TrapManagerManager(){};
+    TrapManagerManager(
+        std::valarray<std::valarray<Trap>>& all_traps, int max_n_transfers, CCD ccd,
+        std::valarray<double>& dwell_times);
+    ~TrapManagerManager(){};
+
+    std::valarray<std::valarray<Trap>> all_traps;
+    int max_n_transfers;
+    CCD ccd;
+
+    bool do_standard_traps;
+    bool do_instant_capture_traps;
+    std::valarray<TrapManager> trap_managers;
+    std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP
