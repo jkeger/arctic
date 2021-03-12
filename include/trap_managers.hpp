@@ -46,6 +46,8 @@ class TrapManager {
     double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
     int watermark_index_above_cloud(double cloud_fractional_volume);
+    
+    double n_electrons_released_and_captured(double n_free_electrons);
 };
 
 class TrapManagerInstantCapture : public TrapManager {
@@ -76,10 +78,14 @@ class TrapManagerManager {
     int max_n_transfers;
     CCD ccd;
 
-    bool do_standard_traps;
-    bool do_instant_capture_traps;
-    std::valarray<TrapManager> trap_managers;
+    int n_standard_traps;
+    int n_instant_capture_traps;
+    std::valarray<TrapManager> trap_managers_standard;
     std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
+    
+    void reset_trap_states();
+    void store_trap_states();
+    void restore_trap_states();
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP
