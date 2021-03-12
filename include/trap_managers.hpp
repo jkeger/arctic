@@ -10,12 +10,12 @@
 class TrapManager {
    public:
     TrapManager(){};
-    TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCD ccd);
+    TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
     ~TrapManager(){};
 
     std::valarray<Trap> traps;
     int max_n_transfers;
-    CCD ccd;
+    CCDPhase ccd_phase;
 
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
@@ -50,7 +50,7 @@ class TrapManager {
 
 class TrapManagerInstantCapture : public TrapManager {
    public:
-    TrapManagerInstantCapture(std::valarray<Trap> traps, int max_n_transfers, CCD ccd);
+    TrapManagerInstantCapture(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
     ~TrapManagerInstantCapture(){};
 
     double n_electrons_released();

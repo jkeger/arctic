@@ -31,8 +31,8 @@
         capture/release events that could create new watermark levels, and is
         used to initialise the watermark array to be only as large as needed.
 
-    ccd : CCD
-        Parameters to describe how electrons fill the volume inside (each phase
+    ccd_phase : CCDPhase
+        Parameters to describe how electrons fill the volume inside (one phase
         of) a pixel in a CCD detector.
 
     Attributes
@@ -85,8 +85,8 @@
     empty_watermark : double
         The watermark value corresponding to empty traps.
 */
-TrapManager::TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCD ccd)
-    : traps(traps), max_n_transfers(max_n_transfers), ccd(ccd) {
+TrapManager::TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase)
+    : traps(traps), max_n_transfers(max_n_transfers), ccd_phase(ccd_phase) {
 
     n_traps = traps.size();
     n_watermarks_per_transfer = 2;
@@ -287,8 +287,8 @@ int TrapManager::watermark_index_above_cloud(double cloud_fractional_volume) {
     For the old release-then-instant-capture algorithm.
 */
 TrapManagerInstantCapture::TrapManagerInstantCapture(
-    std::valarray<Trap> traps, int max_n_transfers, CCD ccd)
-    : TrapManager(traps, max_n_transfers, ccd) {
+    std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase)
+    : TrapManager(traps, max_n_transfers, ccd_phase) {
 
     // Overwrite default parameter values
     n_watermarks_per_transfer = 1;
@@ -603,7 +603,7 @@ void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
 double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) {
     // The fractional volume the electron cloud reaches in the pixel well
     double cloud_fractional_volume =
-        ccd.cloud_fractional_volume_from_electrons(n_free_electrons);
+        ccd_phase.cloud_fractional_volume_from_electrons(n_free_electrons);
 
     // No capture
     if (cloud_fractional_volume == 0.0) return 0.0;
