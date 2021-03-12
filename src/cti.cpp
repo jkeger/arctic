@@ -13,7 +13,7 @@
 /*
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns.
-    
+
     See add_cti() for more detail and e.g. parallel vs serial clocking.
 
     Parameters
@@ -27,7 +27,7 @@
 
     roe : ROE
     ccd : CCD
-    traps : std::valarray<Trap>
+    traps : std::valarray<std::valarray<Trap>>
     express : int (opt.)
     offset : int (opt.)
         See add_cti(). Same as the corresponding parallel_* argument docstrings,
@@ -50,8 +50,8 @@
 */
 std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     std::valarray<std::valarray<double>>& image_in, ROE roe, CCD ccd,
-    std::valarray<Trap> traps, int express, int offset, int row_start, int row_stop,
-    int column_start, int column_stop) {
+    std::valarray<std::valarray<Trap>> traps, int express, int offset, int row_start,
+    int row_stop, int column_start, int column_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -73,9 +73,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     double express_multiplier;
 
     // Set up the trap manager
-    TrapManagerInstantCapture trap_manager(traps, row_stop - row_start, ccd);
-    trap_manager.initialise_trap_states();
-    trap_manager.set_fill_probabilities_from_dwell_time(roe.dwell_times[0]);
+    TrapManagerManager trap_manager_manager(
+        traps, row_stop - row_start, ccd, roe.dwell_times);
 
     // Measure wall-clock time taken for the primary loop
     struct timeval wall_time_start;
@@ -97,7 +96,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
             // Restore the trap occupancy levels, either to empty or to a saved
             // state from a previous express pass
-            trap_manager.restore_trap_states();
+            trap_manager_manager.restore_trap_states();
 
             // Each pixel
             for (int row_index = row_start; row_index < row_stop; row_index++) {
@@ -106,37 +105,51 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 express_multiplier =
                     roe.express_matrix[express_index * n_rows + row_index];
                 if (express_multiplier == 0) continue;
-
-                n_free_electrons = image[row_index][column_index];
-
                 print_v(2, "express_multiplier %g \n", express_multiplier);
-                print_v(2, "n_free_electrons %g \n", n_free_electrons);
 
-                // Release and capture electrons with the traps in this pixel
-                n_electrons_released_and_captured =
-                    trap_manager.n_electrons_released_and_captured(n_free_electrons);
+                // Each phase
+                for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
+                    n_free_electrons = image[row_index][column_index];
 
-                image[row_index][column_index] +=
-                    n_electrons_released_and_captured * express_multiplier;
+                    if (ccd.n_phases > 1)
+                        print_v(2, "// phase_index %d \n", phase_index);
+                    print_v(2, "n_free_electrons %g \n", n_free_electrons);
 
-                print_v(
-                    2, "n_electrons_released_and_captured %g \n",
-                    n_electrons_released_and_captured);
-                print_v(
-                    2, "image[%d][%d] %g \n", row_index, column_index,
-                    image[row_index][column_index]);
+                    // Release and capture electrons with the traps in this
+                    // pixel/phase, for each type of traps
+                    n_electrons_released_and_captured = 0;
+                    if (trap_manager_manager.n_standard_traps > 0)
+                        n_electrons_released_and_captured +=
+                            trap_manager_manager.trap_managers_standard[phase_index]
+                                .n_electrons_released_and_captured(n_free_electrons);
+                    if (trap_manager_manager.n_instant_capture_traps > 0)
+                        n_electrons_released_and_captured +=
+                            trap_manager_manager
+                                .trap_managers_instant_capture[phase_index]
+                                .n_electrons_released_and_captured(n_free_electrons);
+
+                    image[row_index][column_index] +=
+                        n_electrons_released_and_captured * express_multiplier;
+
+                    print_v(
+                        2, "n_electrons_released_and_captured %g \n",
+                        n_electrons_released_and_captured);
+                    print_v(
+                        2, "image[%d][%d] %g \n", row_index, column_index,
+                        image[row_index][column_index]);
+                }
 
                 // Store the trap states if needed for the next express pass
                 if (roe.store_trap_states_matrix[express_index * n_rows + row_index]) {
-                    trap_manager.store_trap_states();
+                    trap_manager_manager.store_trap_states();
                     print_v(2, "store_trap_states \n");
                 }
             }
         }
 
         // Reset the trap states to empty and/or store them for the next column
-        if (roe.empty_traps_between_columns) trap_manager.reset_trap_states();
-        trap_manager.store_trap_states();
+        if (roe.empty_traps_between_columns) trap_manager_manager.reset_trap_states();
+        trap_manager_manager.store_trap_states();
     }
 
     // Time taken
@@ -186,16 +199,21 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
              {  0.7,     1.4,     2.8,     0.06 }}
 
     parallel_roe : ROE* (opt.)
-        The object describing the clocking read-out electronics for parallel
+        The object describing the clocking read-out electronics, for parallel
         clocking. Default nullptr to not do parallel clocking.
 
     parallel_ccd : CCD* (opt.)
-        The object describing the CCD volume for parallel clocking. For
-        multi-phase clocking optionally use a list of different CCD volumes
-        for each phase, in the same size list as parallel_roe.dwell_times.
+        The object describing the CCD volume, for parallel clocking.
 
-    parallel_traps : std::valarray<Trap>* (opt.)
-        A list of one or more trap species objects for parallel clocking.
+    parallel_traps : std::valarray<std::valarray<Trap>>* (opt.)
+        A 2D array of one or more trap species objects, for parallel clocking.
+
+        The first dimension must be n_watermark_types long, with one array of
+        traps (which can be empty) for each type.
+
+        e.g. {{trap_1, trap_2}, {trap_3}} for two standard traps and one
+        instant-capture trap. Or {{}, {trap_1, trap_2}} for no standard traps
+        and two instant-capture traps.
 
     parallel_express : int (opt.)
        The number of times the transfers are computed, determining the
@@ -216,10 +234,10 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         pixel-to-pixel transfers. Defaults to 0.
 
     parallel_window_start, parallel_window_stop : int (opt.)
-        Calculate only the effect on this subset of pixels, to save time when 
-        only a specific region of the image is of interest. Defaults to 0, 
+        Calculate only the effect on this subset of pixels, to save time when
+        only a specific region of the image is of interest. Defaults to 0,
         n_rows for the full image.
-    
+
         Note that, because of edge effects, the range should be started several
         pixels before the actual region of interest.
 
@@ -234,9 +252,10 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 */
 std::valarray<std::valarray<double>> add_cti(
     std::valarray<std::valarray<double>>& image_in, ROE* parallel_roe,
-    CCD* parallel_ccd, std::valarray<Trap>* parallel_traps, int parallel_express,
+    CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps, 
+    int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
-    ROE* serial_roe, CCD* serial_ccd, std::valarray<Trap>* serial_traps,
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop) {
 
@@ -289,9 +308,10 @@ std::valarray<std::valarray<double>> add_cti(
 */
 std::valarray<std::valarray<double>> remove_cti(
     std::valarray<std::valarray<double>>& image_in, int iterations, ROE* parallel_roe,
-    CCD* parallel_ccd, std::valarray<Trap>* parallel_traps, int parallel_express,
+    CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps, 
+    int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
-    ROE* serial_roe, CCD* serial_ccd, std::valarray<Trap>* serial_traps,
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop) {
 

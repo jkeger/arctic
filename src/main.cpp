@@ -47,11 +47,11 @@ int run_custom_code() {
     
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<Trap> traps = {trap};
+    std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times, true, false, true);
-    CCD ccd(1e4, 0.0, 1.0);
-    int express = 5;
+    CCD ccd(CCDPhase(1e3, 0.0, 1.0));
+    int express = 3;
     int offset = 0;
     int start = 0;
     int stop = -1;
@@ -64,7 +64,7 @@ int run_custom_code() {
     print_array_2D(image_post_cti);
     
     // Remove CTI
-    int iterations = 3;
+    int iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, iterations, &roe, &ccd, &traps, express, offset, start, stop,
         &roe, &ccd, &traps, express, offset, start, stop);
@@ -185,6 +185,6 @@ int main(int argc, char** argv) {
         print_v(1, "# ArCTIC: Running custom code! \n\n");
         return run_custom_code();
     }
-    
+
     return 0;
 }
