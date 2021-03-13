@@ -18,7 +18,7 @@ class Trap {
     double emission_rate;
     double capture_rate;
 
-    double fill_fraction_from_time_elapsed(double time_elapsed);
+    virtual double fill_fraction_from_time_elapsed(double time_elapsed);
 };
 
 class TrapInstantCapture : public Trap {

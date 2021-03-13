@@ -14,20 +14,20 @@ class CCDPhase {
     double well_notch_depth;
     double well_fill_power;
 
-    double cloud_fractional_volume_from_electrons(double n_electrons);
+    virtual double cloud_fractional_volume_from_electrons(double n_electrons);
 };
 
 class CCD {
    public:
     CCD(){};
-    CCD(std::valarray<CCDPhase>& phases, 
+    CCD(std::valarray<CCDPhase>& phases,
         std::valarray<double>& fraction_of_traps_per_phase);
     CCD(CCDPhase phase);
     ~CCD(){};
 
     std::valarray<CCDPhase> phases;
     std::valarray<double> fraction_of_traps_per_phase;
-    
+
     int n_phases;
 };
 
