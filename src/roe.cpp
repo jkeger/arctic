@@ -13,41 +13,42 @@
     Class ROEStepPhase.
 
     Information about the readout electronics at one step in a clocking sequence
-    at one phase in the pixel. Used to determine the pixels and phases in 
-    which electrons can be held, captured from, and released to, at this point 
+    at one phase in the pixel. Used to determine the pixels and phases in
+    which electrons can be held, captured from, and released to, at this point
     in the sequence.
-    
+    
     Parameters
     ----------
     is_high : bool
-        Whether or not the potential is currently held "high", i.e. able to 
+        Whether or not the potential is currently held "high", i.e. able to
         contain free electrons.
-    
+    
     capture_from_which_pixels : std::valarray<int>
         The relative row number of the pixel to capture from.
-    
+    
     release_to_which_pixels : std::valarray<int>
         The relative row number of the pixel to release to.
-    
+    
     release_fraction_to_pixels : std::valarray<double>
         The fraction of the electrons to be released into this pixel.
-        
+        
     Attributes
     ----------
     n_capture_pixels, n_release_pixels : int
         The lengths of the *_which_pixels arrays.
 */
-ROEStepPhase::ROEStepPhase(bool is_high, std::valarray<int> capture_from_which_pixels,
-    std::valarray<int> release_to_which_pixels, 
+ROEStepPhase::ROEStepPhase(
+    bool is_high, std::valarray<int> capture_from_which_pixels,
+    std::valarray<int> release_to_which_pixels,
     std::valarray<double> release_fraction_to_pixels)
-    : is_high(is_high), capture_from_which_pixels(capture_from_which_pixels),
-      release_to_which_pixels(release_to_which_pixels), 
+    : is_high(is_high),
+      capture_from_which_pixels(capture_from_which_pixels),
+      release_to_which_pixels(release_to_which_pixels),
       release_fraction_to_pixels(release_fraction_to_pixels) {
-    
+
     n_capture_pixels = capture_from_which_pixels.size();
     n_release_pixels = release_to_which_pixels.size();
 }
-
 
 // ========
 // ROE::
@@ -84,9 +85,9 @@ ROEStepPhase::ROEStepPhase(bool is_high, std::valarray<int> capture_from_which_p
                preserve occupancy, allowing trails to extend onto the next
                column (appropriate for serial clocking, if all prescan and
                overscan pixels are included in the image array). Default true.
-        
+        
     force_release_away_from_readout : bool (opt.)
-        If true then force electrons to be released in a pixel not closer to 
+        If true then force electrons to be released in a pixel not closer to
         the readout. See set_clock_sequence() for more context. Default true.
 
     use_integer_express_matrix : bool (opt.)
@@ -99,19 +100,19 @@ ROEStepPhase::ROEStepPhase(bool is_high, std::valarray<int> capture_from_which_p
     ----------
     n_steps : int
         The number of steps in the clocking sequence.
-        
+        
     n_phases : int
-        The number of phases in each pixel. Defaults to n_steps, but may be 
+        The number of phases in each pixel. Defaults to n_steps, but may be
         different for a non-standard type of clock sequence, e.g. trap pumping.
-    
+    
     clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
-        The array of ROEStepPhase objects to describe the state of the readout 
+        The array of ROEStepPhase objects to describe the state of the readout
         electronics at each step in the clocking sequence and each phase of the
         pixel.
 */
 ROE::ROE(
     std::valarray<double>& dwell_times, bool empty_traps_between_columns,
-    bool empty_traps_for_first_transfers, bool force_release_away_from_readout, 
+    bool empty_traps_for_first_transfers, bool force_release_away_from_readout,
     bool use_integer_express_matrix)
     : dwell_times(dwell_times),
       empty_traps_for_first_transfers(empty_traps_for_first_transfers),
@@ -142,8 +143,8 @@ ROE::ROE(
         readout register (if there is no offset).
 
     express : int
-        The number of times the pixel-to-pixel transfers are computed,
-        determining the balance between accuracy (high values) and speed
+        The number of times the pixel-to-pixel transfers are computed for each
+        pixel, determining the balance between accuracy (high values) and speed
         (low values).
             n_pixels    (slower, accurate) Compute every pixel-to-pixel
                         transfer. The default 0 is an alias for n_pixels.
@@ -226,7 +227,6 @@ void ROE::set_express_matrix_from_pixels_and_express(
         }
 
         // Insert the original transfers into the new matrix at appropriate places
-        // print_array_2D(express_matrix_full, n_transfers);
         int new_index;
         for (int old_index = 0; old_index < express; old_index++) {
             // Count the number of non-zero transfers in each original row
@@ -248,6 +248,12 @@ void ROE::set_express_matrix_from_pixels_and_express(
         n_express_passes = express;
     }
 
+    // Finished if no offset
+    if (offset == 0) {
+        express_matrix = tmp_express_matrix;
+        return;
+    }
+
     // Remove the offset (which is not represented in the image pixels)
     std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_pixels);
 
@@ -259,6 +265,8 @@ void ROE::set_express_matrix_from_pixels_and_express(
     }
 
     express_matrix = express_matrix_trim;
+
+    return;
 }
 
 /*
@@ -302,30 +310,30 @@ void ROE::set_store_trap_states_matrix() {
 }
 
 /*
-    Set the clock sequence 2D array of ROEStepPhase objects for each clocking 
+    Set the clock sequence 2D array of ROEStepPhase objects for each clocking
     step and phase.
-    
+    
     Sets
     ----
     clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
-        The array of ROEStepPhase objects to describe the state of the readout 
-        electronics in each phase of the pixel at each step in the clocking 
+        The array of ROEStepPhase objects to describe the state of the readout
+        electronics in each phase of the pixel at each step in the clocking
         sequence.
-    
-    The first diagram below illustrates the steps in the standard sequence for 
-    three phases, where a single phase each step has its potential held high to 
-    hold the charge cloud. The cloud is shifted phase by phase towards the 
+    
+    The first diagram below illustrates the steps in the standard sequence for
+    three phases, where a single phase each step has its potential held high to
+    hold the charge cloud. The cloud is shifted phase by phase towards the
     previous pixel and the readout register.
-    
+    
     The trap species in each phase of pixel p can capture electrons when that
-    phase's potential is high and a charge cloud is present. The "Capture from" 
-    lines refer to the original pixel that the cloud was in. In this mode, this 
+    phase's potential is high and a charge cloud is present. The "Capture from"
+    lines refer to the original pixel that the cloud was in. In this mode, this
     is always the current pixel, but can be different for e.g. trap pumping.
-    
+    
     When the traps release charge, it is assumed to move directly to the nearest
-    high potential, which may be in a different pixel. The "Release to" lines 
+    high potential, which may be in a different pixel. The "Release to" lines
     show the pixel to which electrons released by that phase's traps will move.
-    
+    
     Three phases
     ============
                 #     Pixel p-1      #       Pixel p      #     Pixel p+1      #
@@ -342,12 +350,12 @@ void ROE::set_store_trap_states_matrix() {
     Capture from|      |             |   p  |             |      |             |
     Release to  |      |             |   p  |   p     p+1 |      |             |
                 +      +-------------+      +-------------+      +-------------+
-    
-    Below are corresponding illustrations for one, two, and four phases. For an 
-    even number of phases, one phase in each step will be equidistant from two 
-    high potentials. So any released charge is assumed to split equally between 
+    
+    Below are corresponding illustrations for one, two, and four phases. For an
+    even number of phases, one phase in each step will be equidistant from two
+    high potentials. So any released charge is assumed to split equally between
     the two pixels, as indicated by the "Release to" lines.
-    
+    
     One phase
     =========
                   Pixel p-1  Pixel p  Pixel p+1
@@ -356,7 +364,7 @@ void ROE::set_store_trap_states_matrix() {
     Capture from   |      | |   p  | |      |
     Release to     |      | |   p  | |      |
                   -+      +-+      +-+      +-
-    
+    
     Two phases
     ==========
                   #  Pixel p-1  #   Pixel p   #  Pixel p+1  #
@@ -369,7 +377,7 @@ void ROE::set_store_trap_states_matrix() {
     Capture from  |      |      |   p  |      |      |      |
     Release to    |      |      |   p  | p&p+1|      |      |
                   +      +------+      +------+      +------+
-    
+    
     Four phases
     ===========
                Pixel p-1      #          Pixel p          #         Pixel p+1
@@ -390,11 +398,11 @@ void ROE::set_store_trap_states_matrix() {
     Capture from              |   p  |                    |      |
     Release to                |   p  |   p    p&p+1  p+1  |      |
                 --------------+      +--------------------+      +--------------
-    
+    
     ## Document force_release_away_from_readout = true
 */
 void ROE::set_clock_sequence() {
-    
+
     bool is_high;
     std::valarray<int> capture_from_which_pixels;
     std::valarray<int> release_to_which_pixels;
@@ -403,71 +411,173 @@ void ROE::set_clock_sequence() {
     int i_step_loop;
     int i_phase_high;
     int i_phase_split_release;
-    
+
     clock_sequence.resize(n_steps);
-    
+
     // Set the ROEStepPhase objects for each step in the sequence
     for (int i_step = 0; i_step < n_steps; i_step++) {
         clock_sequence[i_step].resize(n_phases);
-        
+
         // Convert e.g. 0,1,2,3,4,5 to 0,1,2,3,2,1 used for trap pumping, has
         // no effect with standard n_phases = n_steps
         i_step_loop = abs((i_step + n_phases) % (2 * n_phases) - n_phases);
-        
+
         // Index of the high phase in this step
         i_phase_high = i_step_loop % n_phases;
-        
-        // Index of the phase (if any) in this step for which released charge 
-        // will split and move into two pixels because the nearest high phases 
+
+        // Index of the phase (if any) in this step for which released charge
+        // will split and move into two pixels because the nearest high phases
         // are equidistant in both directions
         if (n_phases % 2 == 0)
             i_phase_split_release = (i_phase_high + n_phases / 2) % n_phases;
-        else i_phase_split_release = -1;
-        
+        else
+            i_phase_split_release = -1;
+
         // Each phase in this step
         for (int i_phase = 0; i_phase < n_phases; i_phase++) {
             // Is this phase high?
-            if (i_phase == i_phase_high) is_high = true;
-            else is_high = false;
-            
+            if (i_phase == i_phase_high)
+                is_high = true;
+            else
+                is_high = false;
+
             // The pixel to capture from, if any
-            if (is_high) capture_from_which_pixels = {0};
-            else capture_from_which_pixels = {};
-            
+            if (is_high)
+                capture_from_which_pixels = {0};
+            else
+                capture_from_which_pixels = {};
+
             // The pixel(s) to release to
             if (i_phase == i_phase_split_release) {
                 // Split the release between this and the pixel with the joint-
                 // nearest high phase
                 if (i_phase < i_phase_high)
                     release_to_which_pixels = zero_one;
-                else 
+                else
                     release_to_which_pixels = zero_one - 1;
                 release_fraction_to_pixels = {0.5, 0.5};
-            }
-            else {
+            } else {
                 // Release to the single pixel with the nearest high phase
                 if (i_phase - i_phase_high < -n_phases / 2)
                     release_to_which_pixels = {1};
                 else if (i_phase - i_phase_high > n_phases / 2)
                     release_to_which_pixels = {-1};
-                else 
+                else
                     release_to_which_pixels = {0};
                 release_fraction_to_pixels = {1.0};
             }
-            
+
             // Replace capture/release operations that include a closer-to-
             // readout pixel to instead act on the further-from-readout pixel
             // (i.e. the same operation but on the next pixel in the loop)
             //## should this instead just find and change {-1}s to {0}s?
-            if ((force_release_away_from_readout) && (i_phase > i_phase_high)){
+            if ((force_release_away_from_readout) && (i_phase > i_phase_high)) {
                 capture_from_which_pixels += 1;
                 release_to_which_pixels += 1;
             }
-            
+
             // Set the info for this step and phase
             clock_sequence[i_step][i_phase] = ROEStepPhase(
-                is_high, capture_from_which_pixels, release_to_which_pixels, 
+                is_high, capture_from_which_pixels, release_to_which_pixels,
                 release_fraction_to_pixels);
         }
     }
+}
+
+// ========
+// ROEChargeInjection::
+// ========
+/*
+    Class ROEChargeInjection.
+
+    Modified ROE for charge injection modes.
+    
+    Instead of charge starting in each pixel and moving different distances to
+    the readout register, for charge injection the electrons are directly
+    created at the far end of the CCD, then all clocked the same number of times
+    through the full number of pixels to the readout register.
+    
+    Requires different express and store-trap-states matrices.
+    
+    Parameters
+    ----------
+    Same as ROE, but empty_traps_for_first_transfers is automatically false,
+    since only the single leading pixel of the charge injection in each column
+    will see the untouched traps.
+*/
+ROEChargeInjection::ROEChargeInjection(
+    std::valarray<double>& dwell_times, bool empty_traps_between_columns,
+    bool force_release_away_from_readout, bool use_integer_express_matrix)
+    : ROE(dwell_times, empty_traps_between_columns, false,
+          force_release_away_from_readout, use_integer_express_matrix) {}
+
+/*
+    See ROE::set_express_matrix_from_pixels_and_express().
+    
+    For charge injection, all charges are clocked the same number of times
+    through all the pixels to the readout register.
+*/
+void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
+    int n_pixels, int express, int offset) {
+
+    int n_transfers = n_pixels + offset;
+
+    // Set default express to all transfers, and check no larger
+    if (express == 0)
+        express = n_transfers;
+    else
+        express = std::min(express, n_transfers);
+
+    // Compute the multiplier factors
+    double max_multiplier = (double)n_transfers / express;
+    if (use_integer_express_matrix) max_multiplier = ceil(max_multiplier);
+
+    // Initialise an array with enough pixels to contain the supposed image,
+    // including offset
+    std::valarray<double> tmp_express_matrix(max_multiplier, express * n_transfers);
+
+    // Adjust integer multipliers to correct the total number of transfers
+    if ((use_integer_express_matrix) && (n_transfers % express != 0)) {
+        // std::valarray<double> tmp_col(0.0, express);
+        double current_n_transfers;
+        double reduced_multiplier;
+
+        for (int express_index = express - 1; express_index >= 0; express_index--) {
+            // Count the current number of transfers for this pixel
+            current_n_transfers = 0.0;
+            for (int i = 0; i <= express_index; i++) {
+                current_n_transfers += tmp_express_matrix[i * n_transfers];
+            }
+
+            // Reduce the multipliers until no longer have too many transfers
+            if (current_n_transfers <= n_transfers) break;
+
+            reduced_multiplier =
+                std::max(0.0, max_multiplier + n_transfers - current_n_transfers);
+
+            tmp_express_matrix[std::slice(
+                express_index * n_transfers, n_transfers, 1)] = reduced_multiplier;
+        }
+    }
+
+    n_express_passes = express;
+
+    // Finished if no offset
+    if (offset == 0) {
+        express_matrix = tmp_express_matrix;
+        return;
+    }
+
+    // Remove the offset (which is not represented in the image pixels)
+    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_pixels);
+
+    // Copy the post-offset slices of each row
+    for (int express_index = 0; express_index < n_express_passes; express_index++) {
+        express_matrix_trim[std::slice(express_index * n_pixels, n_pixels, 1)] =
+            tmp_express_matrix[std::slice(express_index * n_transfers, n_pixels, 1)];
+    }
+
+    express_matrix = express_matrix_trim;
+
+    return;
 }

@@ -9,16 +9,17 @@ static std::valarray<double> dwell_times_default = {1.0};
 class ROEStepPhase {
    public:
     ROEStepPhase(){};
-    ROEStepPhase(bool is_high, std::valarray<int> capture_from_which_pixels,
-        std::valarray<int> release_to_which_pixels, 
+    ROEStepPhase(
+        bool is_high, std::valarray<int> capture_from_which_pixels,
+        std::valarray<int> release_to_which_pixels,
         std::valarray<double> release_fraction_to_pixels);
     ~ROEStepPhase(){};
-    
+
     bool is_high;
     std::valarray<int> capture_from_which_pixels;
     std::valarray<int> release_to_which_pixels;
     std::valarray<double> release_fraction_to_pixels;
-    
+
     int n_capture_pixels;
     int n_release_pixels;
 };
@@ -50,6 +51,20 @@ class ROE {
         int n_pixels, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
     void set_clock_sequence();
+};
+
+class ROEChargeInjection : public ROE {
+   public:
+    ROEChargeInjection(
+        std::valarray<double>& dwell_times_in = dwell_times_default,
+        bool empty_traps_between_columns = true,
+        bool force_release_away_from_readout = true,
+        bool use_integer_express_matrix = false);
+    ~ROEChargeInjection(){};
+
+    void set_express_matrix_from_pixels_and_express(
+        int n_pixels, int express = 0, int offset = 0);
+    void set_store_trap_states_matrix();
 };
 
 #endif  // ARCTIC_ROE_HPP

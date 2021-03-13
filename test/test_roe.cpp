@@ -98,6 +98,21 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 4);
 
+        express = 5;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            0, 0, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3,
+            0, 0, 0, 0, 0, 0, 1, 2, 3, 3, 3, 3,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+
         express = 12;
         roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
         answer = {
@@ -299,7 +314,7 @@ TEST_CASE("Test express matrix", "[roe]") {
             0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,
             0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,
             0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-            1,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11
+            1,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
             // clang-format on
         };
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
@@ -363,17 +378,20 @@ TEST_CASE("Test express matrix", "[roe]") {
 
         for (unsigned int i_pixels = 0; i_pixels < pixels.size(); i_pixels++) {
             n_pixels = pixels[i_pixels];
+
             for (unsigned int i_express = 0; i_express < expresses.size();
-            i_express++) {
+                 i_express++) {
                 express = expresses[i_express];
-                for (unsigned int i_offset = 0; i_offset < offsets.size();
-                i_offset++) {
+
+                for (unsigned int i_offset = 0; i_offset < offsets.size(); i_offset++) {
                     offset = offsets[i_offset];
+
                     for (unsigned int i_integer = 0; i_integer < integers.size();
-                    i_integer++) {
+                         i_integer++) {
                         roe.use_integer_express_matrix = integers[i_integer];
+
                         for (unsigned int i_empty = 0; i_empty < emptys.size();
-                        i_empty++) {
+                             i_empty++) {
                             roe.empty_traps_for_first_transfers = emptys[i_empty];
 
                             roe.set_express_matrix_from_pixels_and_express(
@@ -423,7 +441,7 @@ TEST_CASE("Test store trap states matrix", "[roe]") {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             // clang-format on
         };
         test.assign(
@@ -447,7 +465,7 @@ TEST_CASE("Test store trap states matrix", "[roe]") {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             // clang-format on
         };
         test.assign(
@@ -471,7 +489,7 @@ TEST_CASE("Test store trap states matrix", "[roe]") {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             // clang-format on
         };
         test.assign(
@@ -503,7 +521,7 @@ TEST_CASE("Test store trap states matrix", "[roe]") {
             0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             // clang-format on
         };
         test.assign(
@@ -527,7 +545,7 @@ TEST_CASE("Test store trap states matrix", "[roe]") {
             0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             // clang-format on
         };
         test.assign(
@@ -555,15 +573,15 @@ TEST_CASE("Test clock sequence", "[roe]") {
         */
         std::valarray<double> dwell_times = {1.0};
         ROE roe(
-            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers, 
+            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers,
             force_release_away_from_readout, use_integer_express_matrix);
         roe.set_clock_sequence();
-    
+
         REQUIRE(roe.n_steps == 1);
         REQUIRE(roe.n_phases == 1);
         REQUIRE(roe.clock_sequence.size() == roe.n_steps);
         REQUIRE(roe.clock_sequence[0].size() == roe.n_phases);
-        
+
         // Single high phase
         roe_step_phase = &roe.clock_sequence[0][0];
         REQUIRE(roe_step_phase->is_high == true);
@@ -589,15 +607,15 @@ TEST_CASE("Test clock sequence", "[roe]") {
         */
         std::valarray<double> dwell_times(1.0 / 2.0, 2);
         ROE roe(
-            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers, 
+            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers,
             force_release_away_from_readout, use_integer_express_matrix);
         roe.set_clock_sequence();
-    
+
         REQUIRE(roe.n_steps == 2);
         REQUIRE(roe.n_phases == 2);
         REQUIRE(roe.clock_sequence.size() == roe.n_steps);
         REQUIRE(roe.clock_sequence[0].size() == roe.n_phases);
-    
+
         for (int i_step = 0; i_step < roe.n_steps; i_step++) {
             for (int i_phase = 0; i_phase < roe.n_phases; i_phase++) {
                 roe_step_phase = &roe.clock_sequence[i_step][i_phase];
@@ -620,14 +638,14 @@ TEST_CASE("Test clock sequence", "[roe]") {
                 }
             }
         }
-    
+
         // Low phases release to pixels with closest high phase
         REQUIRE(roe.clock_sequence[0][1].n_release_pixels == 2);
         REQUIRE(roe.clock_sequence[0][1].release_to_which_pixels[0] == -1);
         REQUIRE(roe.clock_sequence[0][1].release_to_which_pixels[1] == 0);
         REQUIRE(roe.clock_sequence[0][1].release_fraction_to_pixels[0] == 0.5);
         REQUIRE(roe.clock_sequence[0][1].release_fraction_to_pixels[1] == 0.5);
-    
+
         REQUIRE(roe.clock_sequence[1][0].n_release_pixels == 2);
         REQUIRE(roe.clock_sequence[1][0].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[1][0].release_to_which_pixels[1] == 1);
@@ -652,26 +670,26 @@ TEST_CASE("Test clock sequence", "[roe]") {
         Release to     |             |   p  |   p     p+1 |      |
                        +-------------+      +-------------+      +--------------
         */
-    
+
         std::valarray<double> dwell_times(1.0 / 3.0, 3);
         ROE roe(
-            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers, 
+            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers,
             force_release_away_from_readout, use_integer_express_matrix);
         roe.set_clock_sequence();
-    
+
         REQUIRE(roe.n_steps == 3);
         REQUIRE(roe.n_phases == 3);
         REQUIRE(roe.clock_sequence.size() == roe.n_steps);
         REQUIRE(roe.clock_sequence[0].size() == roe.n_phases);
-    
+
         for (int i_step = 0; i_step < roe.n_steps; i_step++) {
             for (int i_phase = 0; i_phase < roe.n_phases; i_phase++) {
                 roe_step_phase = &roe.clock_sequence[i_step][i_phase];
-    
+
                 // One high phase on each step
                 if (i_step == i_phase) {
                     REQUIRE(roe_step_phase->is_high == true);
-    
+
                     // Capture from and release to this pixel
                     REQUIRE(roe_step_phase->n_capture_pixels == 1);
                     REQUIRE(roe_step_phase->capture_from_which_pixels[0] == 0);
@@ -686,7 +704,7 @@ TEST_CASE("Test clock sequence", "[roe]") {
                 }
             }
         }
-    
+
         // Low phases release to pixel with closest high phase
         REQUIRE(roe.clock_sequence[0][1].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[0][1].release_to_which_pixels[0] == 0);
@@ -694,14 +712,14 @@ TEST_CASE("Test clock sequence", "[roe]") {
         REQUIRE(roe.clock_sequence[0][2].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[0][2].release_to_which_pixels[0] == -1);
         REQUIRE(roe.clock_sequence[0][2].release_fraction_to_pixels[0] == 1.0);
-    
+
         REQUIRE(roe.clock_sequence[1][0].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[1][0].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[1][0].release_fraction_to_pixels[0] == 1.0);
         REQUIRE(roe.clock_sequence[1][2].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[1][2].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[1][2].release_fraction_to_pixels[0] == 1.0);
-    
+
         REQUIRE(roe.clock_sequence[2][0].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[2][0].release_to_which_pixels[0] == 1);
         REQUIRE(roe.clock_sequence[2][0].release_fraction_to_pixels[0] == 1.0);
@@ -731,26 +749,26 @@ TEST_CASE("Test clock sequence", "[roe]") {
         Release to            |   p  |   p    p&p+1  p+1  |      |
                 --------------+      +--------------------+      +--------------
         */
-    
+
         std::valarray<double> dwell_times(1.0 / 4.0, 4);
         ROE roe(
-            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers, 
+            dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers,
             force_release_away_from_readout, use_integer_express_matrix);
         roe.set_clock_sequence();
-    
+
         REQUIRE(roe.n_steps == 4);
         REQUIRE(roe.n_phases == 4);
         REQUIRE(roe.clock_sequence.size() == roe.n_steps);
         REQUIRE(roe.clock_sequence[0].size() == roe.n_phases);
-    
+
         for (int i_step = 0; i_step < roe.n_steps; i_step++) {
             for (int i_phase = 0; i_phase < roe.n_phases; i_phase++) {
                 roe_step_phase = &roe.clock_sequence[i_step][i_phase];
-    
+
                 // One high phase on each step
                 if (i_step == i_phase) {
                     REQUIRE(roe_step_phase->is_high == true);
-    
+
                     // Capture from and release to this pixel
                     REQUIRE(roe_step_phase->n_capture_pixels == 1);
                     REQUIRE(roe_step_phase->capture_from_which_pixels[0] == 0);
@@ -765,7 +783,7 @@ TEST_CASE("Test clock sequence", "[roe]") {
                 }
             }
         }
-    
+
         // Low phases release to pixel(s) with closest high phase
         REQUIRE(roe.clock_sequence[0][1].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[0][1].release_to_which_pixels[0] == 0);
@@ -778,7 +796,7 @@ TEST_CASE("Test clock sequence", "[roe]") {
         REQUIRE(roe.clock_sequence[0][3].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[0][3].release_to_which_pixels[0] == -1);
         REQUIRE(roe.clock_sequence[0][3].release_fraction_to_pixels[0] == 1.0);
-    
+
         REQUIRE(roe.clock_sequence[1][0].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[1][0].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[1][0].release_fraction_to_pixels[0] == 1.0);
@@ -790,7 +808,7 @@ TEST_CASE("Test clock sequence", "[roe]") {
         REQUIRE(roe.clock_sequence[1][3].release_to_which_pixels[1] == 0);
         REQUIRE(roe.clock_sequence[1][3].release_fraction_to_pixels[0] == 0.5);
         REQUIRE(roe.clock_sequence[1][3].release_fraction_to_pixels[1] == 0.5);
-    
+
         REQUIRE(roe.clock_sequence[2][0].n_release_pixels == 2);
         REQUIRE(roe.clock_sequence[2][0].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[2][0].release_to_which_pixels[1] == 1);
@@ -802,7 +820,7 @@ TEST_CASE("Test clock sequence", "[roe]") {
         REQUIRE(roe.clock_sequence[2][3].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[2][3].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[2][3].release_fraction_to_pixels[0] == 1.0);
-    
+
         REQUIRE(roe.clock_sequence[3][0].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[3][0].release_to_which_pixels[0] == 1);
         REQUIRE(roe.clock_sequence[3][0].release_fraction_to_pixels[0] == 1.0);
@@ -814,5 +832,257 @@ TEST_CASE("Test clock sequence", "[roe]") {
         REQUIRE(roe.clock_sequence[3][2].n_release_pixels == 1);
         REQUIRE(roe.clock_sequence[3][2].release_to_which_pixels[0] == 0);
         REQUIRE(roe.clock_sequence[3][2].release_fraction_to_pixels[0] == 1.0);
+    }
+}
+
+TEST_CASE("Test charge injection ROE", "[roe]") {
+    std::vector<double> test, answer;
+    int n_pixels = 12;
+    int express = 0;
+    int offset = 0;
+    bool empty_traps_between_columns = true;
+    bool force_release_away_from_readout = false;
+    bool use_integer_express_matrix = true;
+    std::valarray<double> dwell_times = {1.0};
+
+    SECTION("Integer express matrix") {
+        ROEChargeInjection roe(
+            dwell_times, empty_traps_between_columns, force_release_away_from_readout,
+            use_integer_express_matrix);
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 1);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 4);
+
+        express = 5;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+    }
+
+    SECTION("Integer express matrix, with offset") {
+        ROEChargeInjection roe(
+            dwell_times, empty_traps_between_columns, force_release_away_from_readout,
+            use_integer_express_matrix);
+        offset = 5;
+
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+
+        express = 3;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+            5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 3);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+
+        express = 0;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 17);
+    }
+
+    SECTION("Not integer express matrix, with and without offset") {
+        double x;
+        use_integer_express_matrix = false;
+        ROEChargeInjection roe(
+            dwell_times, empty_traps_between_columns, force_release_away_from_readout,
+            use_integer_express_matrix);
+
+        offset = 0;
+        express = 5;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {
+            // clang-format off
+            2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4,
+            2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4,
+            2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4,
+            2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4,
+            2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4, 2.4,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+
+        offset = 5;
+        express = 3;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        x = 17.0 / 3.0;
+        answer = {
+            // clang-format off
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 3);
+
+        offset = 5;
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        x = 17.0 / 12.0;
+        answer = {
+            // clang-format off
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            x, x, x, x, x, x, x, x, x, x, x, x,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+    }
+
+    SECTION("Check always sums to n_transfers") {
+        std::valarray<int> pixels = {5, 7, 17};
+        std::valarray<int> expresses = {0, 1, 2, 7};
+        std::valarray<int> offsets = {0, 1, 13};
+        std::valarray<bool> integers = {true, false};
+        int n_rows;
+        ROEChargeInjection roe;
+
+        for (unsigned int i_pixels = 0; i_pixels < pixels.size(); i_pixels++) {
+            n_pixels = pixels[i_pixels];
+
+            for (unsigned int i_express = 0; i_express < expresses.size();
+                 i_express++) {
+                express = expresses[i_express];
+
+                for (unsigned int i_offset = 0; i_offset < offsets.size(); i_offset++) {
+                    offset = offsets[i_offset];
+
+                    for (unsigned int i_integer = 0; i_integer < integers.size();
+                         i_integer++) {
+                        roe.use_integer_express_matrix = integers[i_integer];
+
+                        roe.set_express_matrix_from_pixels_and_express(
+                            n_pixels, express, offset);
+
+                        n_rows = roe.express_matrix.size() / n_pixels;
+
+                        // Check each pixel is moved the correct number of times
+                        for (int i_col = 0; i_col < n_pixels; i_col++) {
+                            std::valarray<double> tmp_col =
+                                roe.express_matrix[std::slice(i_col, n_rows, n_pixels)];
+
+                            REQUIRE(round(tmp_col.sum()) == n_pixels + offset);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
