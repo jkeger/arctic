@@ -581,3 +581,14 @@ void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
 
     return;
 }
+
+/*
+    See ROE::set_store_trap_states_matrix().
+    
+    For charge injection, the first charge cloud in each column will always 
+    encounter empty traps in every new pixel. So no need to store trap states 
+    between transfers.
+*/
+void ROEChargeInjection::set_store_trap_states_matrix() {
+    store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
+}

@@ -1085,4 +1085,59 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
             }
         }
     }
+
+    SECTION("Store trap states matrix") {
+        ROEChargeInjection roe(
+            dwell_times, empty_traps_between_columns, force_release_away_from_readout,
+            use_integer_express_matrix);
+            
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {
+            // clang-format off
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            // clang-format on
+        };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+    }
 }

@@ -47,10 +47,10 @@ class ROE {
     int n_phases;
     int n_express_passes;
 
-    void set_express_matrix_from_pixels_and_express(
+    virtual void set_express_matrix_from_pixels_and_express(
         int n_pixels, int express = 0, int offset = 0);
-    void set_store_trap_states_matrix();
-    void set_clock_sequence();
+    virtual void set_store_trap_states_matrix();
+    virtual void set_clock_sequence();
 };
 
 class ROEChargeInjection : public ROE {
