@@ -64,17 +64,24 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     if (row_stop == -1) row_stop = n_rows;
     if (column_stop == -1) column_stop = n_columns;
 
+    // Set up the readout electronics and express arrays
+    roe.set_clock_sequence();
     roe.set_express_matrix_from_pixels_and_express(n_rows, express, offset);
     roe.set_store_trap_states_matrix();
-
-    int roe_index;
-    double n_free_electrons;
-    double n_electrons_released_and_captured;
-    double express_multiplier;
+    if (ccd.n_phases != roe.n_phases) error(
+        "Number of CCD phases (%d) and ROE phases (%d) don't match.", 
+        ccd.n_phases, roe.n_phases);
 
     // Set up the trap manager
     TrapManagerManager trap_manager_manager(
         traps, row_stop - row_start, ccd, roe.dwell_times);
+
+    int row_read;
+    int row_write;
+    double n_free_electrons;
+    double n_electrons_released_and_captured;
+    double express_multiplier;
+    ROEStepPhase* roe_step_phase;
 
     // Measure wall-clock time taken for the primary loop
     struct timeval wall_time_start;
@@ -85,6 +92,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // ========
     // Clock each column of pixels through the column of traps
     // ========
+    // Loop over:
+    // Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
     for (int column_index = column_start; column_index < column_stop; column_index++) {
         print_v(2, "////// column_index %d \n", column_index);
 
@@ -107,36 +116,63 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 if (express_multiplier == 0) continue;
                 print_v(2, "express_multiplier %g \n", express_multiplier);
 
-                // Each phase
-                for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-                    n_free_electrons = image[row_index][column_index];
+                // Each step in the clock sequence
+                for (int i_step = 0; i_step < roe.n_steps; i_step++) {
 
-                    if (ccd.n_phases > 1)
-                        print_v(2, "// phase_index %d \n", phase_index);
-                    print_v(2, "n_free_electrons %g \n", n_free_electrons);
+                    if (roe.n_steps > 1) print_v(2, "// i_step %d \n", i_step);
 
-                    // Release and capture electrons with the traps in this
-                    // pixel/phase, for each type of traps
-                    n_electrons_released_and_captured = 0;
-                    if (trap_manager_manager.n_standard_traps > 0)
-                        n_electrons_released_and_captured +=
-                            trap_manager_manager.trap_managers_standard[phase_index]
-                                .n_electrons_released_and_captured(n_free_electrons);
-                    if (trap_manager_manager.n_instant_capture_traps > 0)
-                        n_electrons_released_and_captured +=
-                            trap_manager_manager
-                                .trap_managers_instant_capture[phase_index]
-                                .n_electrons_released_and_captured(n_free_electrons);
+                    // Each phase in the pixel
+                    for (int i_phase = 0; i_phase < ccd.n_phases; i_phase++) {
+                        
+                        // State of the ROE in this step and phase of the sequence
+                        roe_step_phase = &roe.clock_sequence[i_step][i_phase];
+                        
+                        // Get the initial charge from the relevant pixel(s)
+                        n_free_electrons = 0;
+                        for (int i = 0; i < roe_step_phase->n_capture_pixels; i++) {
+                            row_read = row_index 
+                                + roe_step_phase->capture_from_which_pixels[i];
+                            
+                            n_free_electrons += image[row_read][column_index];
+                        }
 
-                    image[row_index][column_index] +=
-                        n_electrons_released_and_captured * express_multiplier;
+                        if (ccd.n_phases > 1) {
+                            print_v(2, "// i_phase %d \n", i_phase);
+                            print_v(2, "row_read %d \n", row_read);
+                        }
+                        print_v(2, "n_free_electrons %g \n", n_free_electrons);
 
-                    print_v(
-                        2, "n_electrons_released_and_captured %g \n",
-                        n_electrons_released_and_captured);
-                    print_v(
-                        2, "image[%d][%d] %g \n", row_index, column_index,
-                        image[row_index][column_index]);
+                        // Release and capture electrons with the traps in this
+                        // pixel/phase, for each type of traps
+                        n_electrons_released_and_captured = 0;
+                        if (trap_manager_manager.n_standard_traps > 0)
+                            n_electrons_released_and_captured +=
+                                trap_manager_manager.trap_managers_standard[i_phase]
+                                    .n_electrons_released_and_captured(n_free_electrons);
+                        if (trap_manager_manager.n_instant_capture_traps > 0)
+                            n_electrons_released_and_captured +=
+                                trap_manager_manager
+                                    .trap_managers_instant_capture[i_phase]
+                                    .n_electrons_released_and_captured(n_free_electrons);
+            
+                        print_v(
+                            2, "n_electrons_released_and_captured %g \n",
+                            n_electrons_released_and_captured);
+
+                        // Return the charge to the relevant pixel(s)
+                        for (int i = 0; i < roe_step_phase->n_release_pixels; i++) {
+                            row_write = row_index 
+                                + roe_step_phase->release_to_which_pixels[i];
+                            
+                            image[row_write][column_index] 
+                                += n_electrons_released_and_captured * express_multiplier
+                                * roe_step_phase->release_fraction_to_pixels[i];
+                            
+                            print_v(
+                                2, "image[%d][%d] %g \n", row_write, column_index,
+                                image[row_write][column_index]);
+                        }
+                    }
                 }
 
                 // Store the trap states if needed for the next express pass

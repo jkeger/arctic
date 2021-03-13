@@ -49,7 +49,7 @@ int run_custom_code() {
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
     std::valarray<double> dwell_times = {1.0};
-    ROE roe(dwell_times, true, false, true);
+    ROE roe(dwell_times);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
     int express = 3;
     int offset = 0;
