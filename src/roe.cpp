@@ -320,10 +320,16 @@ void ROE::set_store_trap_states_matrix() {
         electronics in each phase of the pixel at each step in the clocking
         sequence.
     
-    The first diagram below illustrates the steps in the standard sequence for
-    three phases, where a single phase each step has its potential held high to
-    hold the charge cloud. The cloud is shifted phase by phase towards the
-    previous pixel and the readout register.
+    
+    The first diagram below illustrates the steps in the standard sequence 
+    (where the number of steps equals the number of phases) for three phases, 
+    where a single phase each step has its potential held high to hold the 
+    charge cloud. The cloud is shifted phase by phase towards the previous pixel
+    and the readout register.
+
+    See ROETrapPumping::ROETrapPumping()'s docstring for the behaviour produced 
+    by this function when the number of steps is double the number of phases,
+    to make an oscillating sequence for trap pumping.
     
     The trap species in each phase of pixel p can capture electrons when that
     phase's potential is high and a charge cloud is present. The "Capture from"
@@ -350,7 +356,7 @@ void ROE::set_store_trap_states_matrix() {
     Capture from|      |             |   p  |             |      |             |
     Release to  |      |             |   p  |   p     p+1 |      |             |
                 +      +-------------+      +-------------+      +-------------+
-    
+    
     Below are corresponding illustrations for one, two, and four phases. For an
     even number of phases, one phase in each step will be equidistant from two
     high potentials. So any released charge is assumed to split equally between
@@ -443,7 +449,12 @@ void ROE::set_clock_sequence() {
 
             // The pixel to capture from, if any
             if (is_high)
-                capture_from_which_pixels = {0};
+                // Capture from this pixel's charge cloud unless the previous 
+                // pixel's charge cloud has been shifted into this pixel
+                if (i_step_loop > n_phases - 1)
+                    capture_from_which_pixels = {1};
+                else
+                    capture_from_which_pixels = {0};
             else
                 capture_from_which_pixels = {};
 
@@ -457,15 +468,24 @@ void ROE::set_clock_sequence() {
                     release_to_which_pixels = zero_one - 1;
                 release_fraction_to_pixels = {0.5, 0.5};
             } else {
-                // Release to the single pixel with the nearest high phase
-                if (i_phase - i_phase_high < -n_phases / 2)
-                    release_to_which_pixels = {1};
-                else if (i_phase - i_phase_high > n_phases / 2)
-                    release_to_which_pixels = {-1};
-                else
-                    release_to_which_pixels = {0};
+                // For high phases, release to same pixel as capture
+                if (is_high)
+                    release_to_which_pixels = capture_from_which_pixels;
+                else {
+                    // Release to the single pixel with the nearest high phase
+                    if (i_phase - i_phase_high < -n_phases / 2)
+                        release_to_which_pixels = {1};
+                    else if (i_phase - i_phase_high > n_phases / 2)
+                        release_to_which_pixels = {-1};
+                    else
+                        release_to_which_pixels = {0};
+                }
                 release_fraction_to_pixels = {1.0};
             }
+            // Release from low phases to the previous pixel's charge cloud if 
+            // it's been shifted into this pixel
+            if ((!is_high) && (i_step_loop > n_phases - 1))
+                release_to_which_pixels += 1;
 
             // Replace capture/release operations that include a closer-to-
             // readout pixel to instead act on the further-from-readout pixel
@@ -591,4 +611,141 @@ void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
 */
 void ROEChargeInjection::set_store_trap_states_matrix() {
     store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
+}
+
+// ========
+// ROETrapPumping::
+// ========
+/*
+    Class ROETrapPumping.
+
+    Modified ROE for trap pumping (AKA pocket pumping) modes.
+    
+    ...
+    
+    The number of phases is assumed to be half the number of steps in the clock
+    sequence, which must be even.
+
+    Parameters
+    ----------
+    Same as ROE, but empty_traps_between_columns is automatically true, and 
+    force_release_away_from_readout is automatically false.
+
+    n_pumps : int
+        The number of times the charge is pumped back and forth. 
+    
+    
+    The diagram below illustrates the steps in the clocking sequence produced 
+    by ROE::set_clock_sequence() in this mode, for three phases. The first three
+    steps are the same as the standard case. However, now there are three 
+    additional steps in which the charge cloud is shifted one step further into 
+    the next pixel, but then back to where it began in the original pixel, 
+    instead of continuing on towards the readout register.
+    
+    This means that, unlike in the standard case, the traps in this pixel can 
+    capture charge that originated in a different pixel, as shown in step 3, 
+    where the high phase in pixel p contains the charge cloud that started in 
+    pixel p+1.
+    
+    Three phases
+    ============
+                #     Pixel p-1      #       Pixel p      #     Pixel p+1      #
+    Step         Phase2 Phase1 Phase0 Phase2 Phase1 Phase0 Phase2 Phase1 Phase0
+    0           +             +------+             +------+             +------+
+    Capture from|             |      |             |   p  |             |      |
+    Release to  |             |      |  p-1     p  |   p  |             |      |
+                +-------------+      +-------------+      +-------------+      +
+    1                  +------+             +------+             +------+
+    Capture from       |      |             |   p  |             |      |
+    Release to         |      |          p  |   p  |   p         |      |
+                -------+      +-------------+      +-------------+      +-------
+    2           +------+             +------+             +------+             +
+    Capture from|      |             |   p  |             |      |             |
+    Release to  |      |             |   p  |   p     p+1 |      |             |
+                +      +-------------+      +-------------+      +-------------+
+    3           +             +------+             +------+             +------+
+    Capture from|             |      |             |  p+1 |             |      |
+    Release to  |             |      |   p     p+1 |  p+1 |             |      |
+                +-------------+      +-------------+      +-------------+      |
+    4           +------+             +------+             +------+             +
+    Capture from|      |             |   p  |             |      |             |
+    Release to  |      |             |   p  |   p     p+1 |      |             |
+                +      +-------------+      +-------------+      +-------------+
+    5                  +------+             +------+             +------+
+    Capture from       |      |             |   p  |             |      |
+    Release to         |      |          p  |   p  |   p         |      |
+                -------+      +-------------+      +-------------+      +-------
+  
+    Below are corresponding illustrations for two and four phases. As in the 
+    standard case, an even number of phases leads to released charge being split
+    in one phase each step between twp pixels.
+    
+    Two phases
+    ==========
+                  #  Pixel p-1  #   Pixel p   #  Pixel p+1  #
+    Step           Phase1 Phase0 Phase1 Phase0 Phase1 Phase0
+    0             +      +------+      +------+      +------+
+    Capture from  |      |      |      |   p  |      |      |
+    Release to    |      |      | p-1&p|   p  |      |      |
+                  +------+      +------+      +------+      +
+    1             +------+      +------+      +------+      +
+    Capture from  |      |      |   p  |      |      |      |
+    Release to    |      |      |   p  | p&p+1|      |      |
+                  +      +------+      +------+      +------+
+    2             +      +------+      +------+      +------+
+    Capture from  |      |      |      |  p+1 |      |      |
+    Release to    |      |      | p&p+1|  p+1 |      |      |
+                  +------+      +------+      +------+      +
+    3             +------+      +------+      +------+      +
+    Capture from  |      |      |   p  |      |      |      |
+    Release to    |      |      |   p  | p&p+1|      |      |
+                  +      +------+      +------+      +------+
+
+    Four phases
+    ===========
+               Pixel p-1      #          Pixel p          #         Pixel p+1
+    Step         Phase1 Phase0 Phase3 Phase2 Phase1 Phase0 Phase3 Phase2 Phase1 
+    0                  +------+                    +------+                    +
+    Capture from       |      |                    |   p  |                    |
+    Release to         |      |  p-1   p-1&p    p  |   p  |                    |
+                -------+      +--------------------+      +--------------------+
+    1           +------+                    +------+                    +------+
+    Capture from|      |                    |   p  |                    |      |
+    Release to  |      |        p-1&p    p  |   p  |   p                |      |
+                +      +--------------------+      +--------------------+      +
+    2           +                    +------+                    +------+
+    Capture from|                    |   p  |                    |      |
+    Release to  |                p   |   p  |   p    p&p+1       |      |
+                +--------------------+      +--------------------+      +-------
+    3                         +------+                    +------+
+    Capture from              |   p  |                    |      |
+    Release to                |   p  |   p    p&p+1  p+1  |      |
+                --------------+      +--------------------+      +--------------
+    4                  +------+                    +------+                    +
+    Capture from       |      |                    |  p+1 |                    |
+    Release to         |      |   p    p&p+1   p+1 |  p+1 |                    |
+                -------+      +--------------------+      +--------------------+
+    5                         +------+                    +------+
+    Capture from              |   p  |                    |      |
+    Release to                |   p  |   p    p&p+1  p+1  |      |
+                --------------+      +--------------------+      +--------------
+    6           +                    +------+                    +------+
+    Capture from|                    |   p  |                    |      |
+    Release to  |                p   |   p  |   p    p&p+1       |      |
+                +--------------------+      +--------------------+      +-------
+    7           +------+                    +------+                    +------+
+    Capture from|      |                    |   p  |                    |      |
+    Release to  |      |        p-1&p    p  |   p  |   p                |      |
+                +      +--------------------+      +--------------------+      +
+*/
+ROETrapPumping::ROETrapPumping(
+    std::valarray<double>& dwell_times, int n_pumps, 
+    bool empty_traps_for_first_transfers, bool use_integer_express_matrix)
+    : ROE(dwell_times, true, empty_traps_for_first_transfers,
+          false, use_integer_express_matrix),
+      n_pumps(n_pumps) {
+
+    if (n_steps % 2 != 0)
+        error("The number of steps for trap pumping (%d) must be even", n_steps);
+    n_phases = n_steps / 2;
 }

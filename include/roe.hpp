@@ -5,6 +5,7 @@
 #include <valarray>
 
 static std::valarray<double> dwell_times_default = {1.0};
+static std::valarray<double> dwell_times_trap_pumping_default = {0.5, 0.5};
 
 class ROEStepPhase {
    public:
@@ -26,7 +27,7 @@ class ROEStepPhase {
 
 class ROE {
    public:
-    ROE(std::valarray<double>& dwell_times_in = dwell_times_default,
+    ROE(std::valarray<double>& dwell_times = dwell_times_default,
         bool empty_traps_between_columns = true,
         bool empty_traps_for_first_transfers = true,
         bool force_release_away_from_readout = true,
@@ -56,7 +57,7 @@ class ROE {
 class ROEChargeInjection : public ROE {
    public:
     ROEChargeInjection(
-        std::valarray<double>& dwell_times_in = dwell_times_default,
+        std::valarray<double>& dwell_times = dwell_times_default,
         bool empty_traps_between_columns = true,
         bool force_release_away_from_readout = true,
         bool use_integer_express_matrix = false);
@@ -65,6 +66,22 @@ class ROEChargeInjection : public ROE {
     void set_express_matrix_from_pixels_and_express(
         int n_pixels, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
+};
+
+class ROETrapPumping : public ROE {
+   public:
+    ROETrapPumping(
+        std::valarray<double>& dwell_times = dwell_times_trap_pumping_default,
+        int n_pumps = 1,
+        bool empty_traps_for_first_transfers = true,
+        bool use_integer_express_matrix = false);
+    ~ROETrapPumping(){};
+    
+    int n_pumps;
+
+    // void set_express_matrix_from_pixels_and_express(
+    //     int n_pixels, int express = 0, int offset = 0);
+    // void set_store_trap_states_matrix();
 };
 
 #endif  // ARCTIC_ROE_HPP
