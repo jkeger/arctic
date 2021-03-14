@@ -136,7 +136,7 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(roe.n_express_passes == 12);
     }
 
-    SECTION("Offset") {
+    SECTION("Offset express matrix") {
         ROE roe(dwell_times, true, false, true, true);
         offset = 5;
 
@@ -237,7 +237,7 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(roe.n_express_passes == 17);
     }
 
-    SECTION("Not integers, not empty for first transfers") {
+    SECTION("Non-integer express matrix, not empty for first transfers") {
         ROE roe(dwell_times, true, true, true, false);
 
         express = 4;
@@ -343,7 +343,6 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 12);
 
-        // Unchanged for no express
         express = 12;
         roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
         answer = {
@@ -983,7 +982,7 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
         REQUIRE(roe.n_express_passes == 17);
     }
 
-    SECTION("Not integer express matrix, with and without offset") {
+    SECTION("Non-integer express matrix, with and without offset") {
         double x;
         use_integer_express_matrix = false;
         ROEChargeInjection roe(
@@ -1135,6 +1134,222 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             // clang-format on
         };
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+    }
+}
+
+TEST_CASE("Test trap pumping ROE", "[roe]") {
+    std::vector<double> test, answer;
+    int n_pixels = 1;
+    int n_pumps = 12;
+    int express = 0;
+    int offset = 0;
+    bool empty_traps_for_first_transfers = false;
+    bool use_integer_express_matrix = true;
+    std::valarray<double> dwell_times(1.0 / 6.0, 6);
+    
+    SECTION("Integer express matrix") {
+        ROETrapPumping roe(
+            dwell_times, n_pumps, empty_traps_for_first_transfers,
+            use_integer_express_matrix);
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {12};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 1);
+    
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {3, 3, 3, 3};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 4);
+    
+        express = 5;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {3, 3, 3, 3, 0};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+    
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+    }
+
+    SECTION("Non-integer express matrix") {
+        double x;
+        use_integer_express_matrix = false;
+        ROETrapPumping roe(
+            dwell_times, n_pumps, empty_traps_for_first_transfers,
+            use_integer_express_matrix);
+    
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {12};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 1);
+    
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {3, 3, 3, 3};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 4);
+    
+        express = 5;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        x = 12.0 / 5.0;
+        answer = {x, x, x, x, x};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+    
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+    }
+
+    SECTION("Integer express matrix, empty traps for first transfers") {
+        double x;
+        empty_traps_for_first_transfers = true;
+        use_integer_express_matrix = true;
+        ROETrapPumping roe(
+            dwell_times, n_pumps, empty_traps_for_first_transfers,
+            use_integer_express_matrix);
+
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 11};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 2);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 2, 3, 3, 3};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+
+        express = 5;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 2, 3, 3, 3, 0};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 6);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+    }
+    
+    SECTION("Non-integer express matrix, empty traps for first transfers") {
+        double x;
+        empty_traps_for_first_transfers = true;
+        use_integer_express_matrix = false;
+        ROETrapPumping roe(
+            dwell_times, n_pumps, empty_traps_for_first_transfers,
+            use_integer_express_matrix);
+
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 11};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 2);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        x = 11.0 / 4.0;
+        answer = {1, x, x, x, x};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 5);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        answer = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 12);
+    }
+    
+    SECTION("Store trap states matrix") {
+        ROETrapPumping roe(
+            dwell_times, n_pumps, empty_traps_for_first_transfers,
+            use_integer_express_matrix);
+        
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {1, 1, 1, 0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+    }
+    
+    SECTION("Store trap states matrix, empty traps for first transfers") {
+        empty_traps_for_first_transfers = true;
+        ROETrapPumping roe(
+            dwell_times, n_pumps, empty_traps_for_first_transfers,
+            use_integer_express_matrix);
+        
+        express = 1;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {1, 0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 4;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {1, 1, 1, 1, 0};
+        test.assign(
+            std::begin(roe.store_trap_states_matrix),
+            std::end(roe.store_trap_states_matrix));
+        REQUIRE(test == answer);
+
+        express = 12;
+        roe.set_express_matrix_from_pixels_and_express(n_pixels, express, offset);
+        roe.set_store_trap_states_matrix();
+        answer = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
         test.assign(
             std::begin(roe.store_trap_states_matrix),
             std::end(roe.store_trap_states_matrix));

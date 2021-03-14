@@ -16,22 +16,22 @@
     at one phase in the pixel. Used to determine the pixels and phases in
     which electrons can be held, captured from, and released to, at this point
     in the sequence.
-    
+
     Parameters
     ----------
     is_high : bool
         Whether or not the potential is currently held "high", i.e. able to
         contain free electrons.
-    
+
     capture_from_which_pixels : std::valarray<int>
         The relative row number of the pixel to capture from.
-    
+
     release_to_which_pixels : std::valarray<int>
         The relative row number of the pixel to release to.
-    
+
     release_fraction_to_pixels : std::valarray<double>
         The fraction of the electrons to be released into this pixel.
-        
+
     Attributes
     ----------
     n_capture_pixels, n_release_pixels : int
@@ -85,7 +85,7 @@ ROEStepPhase::ROEStepPhase(
                preserve occupancy, allowing trails to extend onto the next
                column (appropriate for serial clocking, if all prescan and
                overscan pixels are included in the image array). Default true.
-        
+
     force_release_away_from_readout : bool (opt.)
         If true then force electrons to be released in a pixel not closer to
         the readout. See set_clock_sequence() for more context. Default true.
@@ -100,11 +100,11 @@ ROEStepPhase::ROEStepPhase(
     ----------
     n_steps : int
         The number of steps in the clocking sequence.
-        
+
     n_phases : int
         The number of phases in each pixel. Defaults to n_steps, but may be
         different for a non-standard type of clock sequence, e.g. trap pumping.
-    
+
     clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
         The array of ROEStepPhase objects to describe the state of the readout
         electronics at each step in the clocking sequence and each phase of the
@@ -265,8 +265,6 @@ void ROE::set_express_matrix_from_pixels_and_express(
     }
 
     express_matrix = express_matrix_trim;
-
-    return;
 }
 
 /*
@@ -312,15 +310,15 @@ void ROE::set_store_trap_states_matrix() {
 /*
     Set the clock sequence 2D array of ROEStepPhase objects for each clocking
     step and phase.
-    
+
     Sets
     ----
     clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
         The array of ROEStepPhase objects to describe the state of the readout
         electronics in each phase of the pixel at each step in the clocking
         sequence.
-    
-    
+
+
     The first diagram below illustrates the steps in the standard sequence 
     (where the number of steps equals the number of phases) for three phases, 
     where a single phase each step has its potential held high to hold the 
@@ -330,16 +328,16 @@ void ROE::set_store_trap_states_matrix() {
     See ROETrapPumping::ROETrapPumping()'s docstring for the behaviour produced 
     by this function when the number of steps is double the number of phases,
     to make an oscillating sequence for trap pumping.
-    
+
     The trap species in each phase of pixel p can capture electrons when that
     phase's potential is high and a charge cloud is present. The "Capture from"
     lines refer to the original pixel that the cloud was in. In this mode, this
     is always the current pixel, but can be different for e.g. trap pumping.
-    
+
     When the traps release charge, it is assumed to move directly to the nearest
     high potential, which may be in a different pixel. The "Release to" lines
     show the pixel to which electrons released by that phase's traps will move.
-    
+
     Three phases
     ============
                 #     Pixel p-1      #       Pixel p      #     Pixel p+1      #
@@ -356,12 +354,12 @@ void ROE::set_store_trap_states_matrix() {
     Capture from|      |             |   p  |             |      |             |
     Release to  |      |             |   p  |   p     p+1 |      |             |
                 +      +-------------+      +-------------+      +-------------+
-    
+
     Below are corresponding illustrations for one, two, and four phases. For an
     even number of phases, one phase in each step will be equidistant from two
     high potentials. So any released charge is assumed to split equally between
     the two pixels, as indicated by the "Release to" lines.
-    
+
     One phase
     =========
                   Pixel p-1  Pixel p  Pixel p+1
@@ -370,7 +368,7 @@ void ROE::set_store_trap_states_matrix() {
     Capture from   |      | |   p  | |      |
     Release to     |      | |   p  | |      |
                   -+      +-+      +-+      +-
-    
+
     Two phases
     ==========
                   #  Pixel p-1  #   Pixel p   #  Pixel p+1  #
@@ -383,7 +381,7 @@ void ROE::set_store_trap_states_matrix() {
     Capture from  |      |      |   p  |      |      |      |
     Release to    |      |      |   p  | p&p+1|      |      |
                   +      +------+      +------+      +------+
-    
+
     Four phases
     ===========
                Pixel p-1      #          Pixel p          #         Pixel p+1
@@ -404,7 +402,7 @@ void ROE::set_store_trap_states_matrix() {
     Capture from              |   p  |                    |      |
     Release to                |   p  |   p    p&p+1  p+1  |      |
                 --------------+      +--------------------+      +--------------
-    
+
     ## Document force_release_away_from_readout = true
 */
 void ROE::set_clock_sequence() {
@@ -511,14 +509,14 @@ void ROE::set_clock_sequence() {
     Class ROEChargeInjection.
 
     Modified ROE for charge injection modes.
-    
+
     Instead of charge starting in each pixel and moving different distances to
     the readout register, for charge injection the electrons are directly
     created at the far end of the CCD, then all clocked the same number of times
     through the full number of pixels to the readout register.
-    
+
     Requires different express and store-trap-states matrices.
-    
+
     Parameters
     ----------
     Same as ROE, but empty_traps_for_first_transfers is automatically false,
@@ -533,7 +531,7 @@ ROEChargeInjection::ROEChargeInjection(
 
 /*
     See ROE::set_express_matrix_from_pixels_and_express().
-    
+
     For charge injection, all charges are clocked the same number of times
     through all the pixels to the readout register.
 */
@@ -558,7 +556,6 @@ void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
 
     // Adjust integer multipliers to correct the total number of transfers
     if ((use_integer_express_matrix) && (n_transfers % express != 0)) {
-        // std::valarray<double> tmp_col(0.0, express);
         double current_n_transfers;
         double reduced_multiplier;
 
@@ -598,13 +595,11 @@ void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
     }
 
     express_matrix = express_matrix_trim;
-
-    return;
 }
 
 /*
     See ROE::set_store_trap_states_matrix().
-    
+
     For charge injection, the first charge cloud in each column will always 
     encounter empty traps in every new pixel. So no need to store trap states 
     between transfers.
@@ -620,9 +615,9 @@ void ROEChargeInjection::set_store_trap_states_matrix() {
     Class ROETrapPumping.
 
     Modified ROE for trap pumping (AKA pocket pumping) modes.
-    
+
     ...
-    
+
     The number of phases is assumed to be half the number of steps in the clock
     sequence, which must be even.
 
@@ -633,20 +628,20 @@ void ROEChargeInjection::set_store_trap_states_matrix() {
 
     n_pumps : int
         The number of times the charge is pumped back and forth. 
-    
-    
+
+
     The diagram below illustrates the steps in the clocking sequence produced 
     by ROE::set_clock_sequence() in this mode, for three phases. The first three
     steps are the same as the standard case. However, now there are three 
     additional steps in which the charge cloud is shifted one step further into 
     the next pixel, but then back to where it began in the original pixel, 
     instead of continuing on towards the readout register.
-    
+
     This means that, unlike in the standard case, the traps in this pixel can 
     capture charge that originated in a different pixel, as shown in step 3, 
     where the high phase in pixel p contains the charge cloud that started in 
     pixel p+1.
-    
+
     Three phases
     ============
                 #     Pixel p-1      #       Pixel p      #     Pixel p+1      #
@@ -675,11 +670,11 @@ void ROEChargeInjection::set_store_trap_states_matrix() {
     Capture from       |      |             |   p  |             |      |
     Release to         |      |          p  |   p  |   p         |      |
                 -------+      +-------------+      +-------------+      +-------
-  
+
     Below are corresponding illustrations for two and four phases. As in the 
     standard case, an even number of phases leads to released charge being split
     in one phase each step between twp pixels.
-    
+
     Two phases
     ==========
                   #  Pixel p-1  #   Pixel p   #  Pixel p+1  #
@@ -748,4 +743,64 @@ ROETrapPumping::ROETrapPumping(
     if (n_steps % 2 != 0)
         error("The number of steps for trap pumping (%d) must be even", n_steps);
     n_phases = n_steps / 2;
+}
+
+/*
+    See ROE::set_express_matrix_from_pixels_and_express().
+
+    For trap pumping, instead of charge being transferred from pixel to pixel 
+    until readout, only the back-and-forth pumping clock sequence is repeated a
+    number of times for the active pixel(s) containing charge.
+
+    Currently, this algorithm assumes that only a single pixel contains charge.
+    So, rather than the number of pixels and offset (which must be 1 and 0) the 
+    number of express passes is controlled by the number of pumps.
+    
+    Conveniently, the required express multipliers are the same as the ones for 
+    the pixel furthest from readout with standard clocking.
+*/
+void ROETrapPumping::set_express_matrix_from_pixels_and_express(
+    int n_pixels, int express, int offset) {
+    
+    if (n_pixels != 1)
+        error("Trap pumping currently requires the number of active pixels (%d) to be 1",
+            n_pixels);
+    if (offset != 0)
+        error("Trap pumping requires the offset (%d) to be 0", offset);
+    
+    // Start with the standard express matrix for n_transfers = n_pumps
+    ROE::set_express_matrix_from_pixels_and_express(n_pumps, express, offset);
+    
+    // Extract the relevant express multipliers of the final pixel
+    std::valarray<double> tmp_col(0.0, n_express_passes);
+    for (int express_index = 0; express_index < n_express_passes; express_index++) {
+        tmp_col[express_index] = express_matrix[n_pumps - 1 + express_index * n_pumps];
+    }
+    
+    express_matrix = tmp_col;
+    
+    // Extract the non-zero elements if doing first transfers separately
+    if ((empty_traps_for_first_transfers) && (express < n_pumps)) {
+        n_express_passes = express + 1;
+        tmp_col.resize(n_express_passes);
+        tmp_col = express_matrix[express_matrix != 0.0];
+        express_matrix.resize(n_express_passes);
+        express_matrix = tmp_col;
+        
+        // Put back the final zero for mismatched integer multipliers
+        if ((use_integer_express_matrix) && (n_pumps % express != 0))
+            express_matrix[n_express_passes - 1] = 0.0;
+    }
+}
+
+/*
+    See ROE::set_store_trap_states_matrix().
+
+    For trap pumping, trap states must be stored after every pump sequence of 
+    the same trap, until the final pump.
+*/
+void ROETrapPumping::set_store_trap_states_matrix() {
+    store_trap_states_matrix = std::valarray<bool>(true, n_express_passes);
+    
+    store_trap_states_matrix[n_express_passes - 1] = false;
 }

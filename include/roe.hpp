@@ -79,9 +79,9 @@ class ROETrapPumping : public ROE {
     
     int n_pumps;
 
-    // void set_express_matrix_from_pixels_and_express(
-    //     int n_pixels, int express = 0, int offset = 0);
-    // void set_store_trap_states_matrix();
+    void set_express_matrix_from_pixels_and_express(
+        int n_pixels, int express = 0, int offset = 0);
+    void set_store_trap_states_matrix();
 };
 
 #endif  // ARCTIC_ROE_HPP
