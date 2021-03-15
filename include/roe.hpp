@@ -5,7 +5,9 @@
 #include <valarray>
 
 enum ROEType {
-    roe_type_standard = 0, roe_type_charge_injection = 1, roe_type_trap_pumping = 2
+    roe_type_standard = 0,
+    roe_type_charge_injection = 1,
+    roe_type_trap_pumping = 2
 };
 
 static std::valarray<double> dwell_times_default = {1.0};
@@ -77,11 +79,10 @@ class ROETrapPumping : public ROE {
    public:
     ROETrapPumping(
         std::valarray<double>& dwell_times = dwell_times_trap_pumping_default,
-        int n_pumps = 1,
-        bool empty_traps_for_first_transfers = true,
+        int n_pumps = 1, bool empty_traps_for_first_transfers = true,
         bool use_integer_express_matrix = false);
     ~ROETrapPumping(){};
-    
+
     int n_pumps;
 
     void set_express_matrix_from_rows_and_express(

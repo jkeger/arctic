@@ -1160,14 +1160,14 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
             dwell_times, n_pumps, empty_traps_for_first_transfers,
             use_integer_express_matrix);
         REQUIRE(roe.type == roe_type_trap_pumping);
-    
+
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {12, 12, 12, 12, 12};
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 1);
-    
+
         express = 4;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1181,7 +1181,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 4);
-    
+
         express = 5;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1196,7 +1196,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 5);
-    
+
         express = 12;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1226,14 +1226,14 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         ROETrapPumping roe(
             dwell_times, n_pumps, empty_traps_for_first_transfers,
             use_integer_express_matrix);
-    
+
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {12, 12, 12, 12, 12};
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 1);
-    
+
         express = 4;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1247,7 +1247,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 4);
-    
+
         express = 5;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         x = 12.0 / 5.0;
@@ -1263,7 +1263,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 5);
-    
+
         express = 12;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1294,7 +1294,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         ROETrapPumping roe(
             dwell_times, n_pumps, empty_traps_for_first_transfers,
             use_integer_express_matrix);
-    
+
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1306,7 +1306,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 2);
-    
+
         express = 4;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1321,7 +1321,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 5);
-    
+
         express = 5;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1337,7 +1337,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 6);
-    
+
         express = 12;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1368,7 +1368,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         ROETrapPumping roe(
             dwell_times, n_pumps, empty_traps_for_first_transfers,
             use_integer_express_matrix);
-    
+
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1380,7 +1380,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 2);
-    
+
         express = 4;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         x = 11.0 / 4.0;
@@ -1396,7 +1396,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 5);
-    
+
         express = 12;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         answer = {
@@ -1424,7 +1424,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         ROETrapPumping roe(
             dwell_times, n_pumps, empty_traps_for_first_transfers,
             use_integer_express_matrix);
-    
+
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         roe.set_store_trap_states_matrix();
@@ -1433,7 +1433,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
             std::begin(roe.store_trap_states_matrix),
             std::end(roe.store_trap_states_matrix));
         REQUIRE(test == answer);
-    
+
         express = 4;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         roe.set_store_trap_states_matrix();
@@ -1449,7 +1449,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
             std::begin(roe.store_trap_states_matrix),
             std::end(roe.store_trap_states_matrix));
         REQUIRE(test == answer);
-    
+
         express = 12;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         roe.set_store_trap_states_matrix();
@@ -1480,7 +1480,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
         ROETrapPumping roe(
             dwell_times, n_pumps, empty_traps_for_first_transfers,
             use_integer_express_matrix);
-    
+
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         roe.set_store_trap_states_matrix();
@@ -1494,7 +1494,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
             std::begin(roe.store_trap_states_matrix),
             std::end(roe.store_trap_states_matrix));
         REQUIRE(test == answer);
-    
+
         express = 4;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         roe.set_store_trap_states_matrix();
@@ -1511,7 +1511,7 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
             std::begin(roe.store_trap_states_matrix),
             std::end(roe.store_trap_states_matrix));
         REQUIRE(test == answer);
-    
+
         express = 12;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
         roe.set_store_trap_states_matrix();
