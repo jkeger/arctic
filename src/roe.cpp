@@ -778,7 +778,7 @@ ROETrapPumping::ROETrapPumping(
     contains traps. So, rather than the number of pixels and offset (which must
     be 1 and 0) the number of express passes is controlled by the number of
     pumps back and forth.
-    
+
     Conveniently, the required express multipliers are the same as the ones for
     the pixel furthest from readout with standard clocking.
 */
@@ -808,7 +808,12 @@ void ROETrapPumping::set_express_matrix_from_rows_and_express(
 
         n_express_passes = express + 1;
         tmp_col.resize(n_express_passes);
-        tmp_col = tmp_col_2[tmp_col_2 != 0.0];
+        // Set the non-zero elements, which won't include the final entry for 
+        // mismatched integer multipliers
+        if ((use_integer_express_matrix) && (n_pumps % express != 0))
+            tmp_col[std::slice(0, n_express_passes - 1, 1)] = tmp_col_2[tmp_col_2 != 0.0];
+        else
+            tmp_col = tmp_col_2[tmp_col_2 != 0.0];
 
         // Put back the final zero for mismatched integer multipliers
         if ((use_integer_express_matrix) && (n_pumps % express != 0))
