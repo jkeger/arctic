@@ -65,7 +65,7 @@ ROEStepPhase::ROEStepPhase(
         as the trap capture/release timescales. Default {1.0}.
 
     empty_traps_for_first_transfers : bool (opt.)
-        If true (and express != n_pixels), then tweak the express algorithm to
+        If true (and express != n_rows), then tweak the express algorithm to
         treat every first pixel-to-pixel transfer separately to the rest.
         Default true.
 
@@ -98,6 +98,9 @@ ROEStepPhase::ROEStepPhase(
 
     Attributes
     ----------
+    type : ROEType : enum int
+        The flag for the type of ROE. Used to tweak behaviour in CTI functions.
+
     n_steps : int
         The number of steps in the clocking sequence.
 
@@ -108,7 +111,7 @@ ROEStepPhase::ROEStepPhase(
     clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
         The array of ROEStepPhase objects to describe the state of the readout
         electronics at each step in the clocking sequence and each phase of the
-        pixel.
+        pixel.        
 */
 ROE::ROE(
     std::valarray<double>& dwell_times, bool empty_traps_between_columns,
@@ -122,6 +125,8 @@ ROE::ROE(
 
     n_steps = dwell_times.size();
     n_phases = n_steps;
+    
+    type = roe_type_standard;
 }
 
 /*
@@ -137,8 +142,8 @@ ROE::ROE(
 
     Parameters
     ----------
-    n_pixels : int
-        The number of pixels in one column of the image. i.e. the number of
+    n_rows : int
+        The number of rows in each column of the image. i.e. the number of
         pixel-to-pixel transfers to move charge from the furthest pixel to the
         readout register (if there is no offset).
 
@@ -146,8 +151,8 @@ ROE::ROE(
         The number of times the pixel-to-pixel transfers are computed for each
         pixel, determining the balance between accuracy (high values) and speed
         (low values).
-            n_pixels    (slower, accurate) Compute every pixel-to-pixel
-                        transfer. The default 0 is an alias for n_pixels.
+            n_rows      (slower, accurate) Compute every pixel-to-pixel
+                        transfer. The default 0 is an alias for n_rows.
             k           Recompute on k occasions the effect of each transfer.
                         After a few transfers (and e.g. eroded leading edges),
                         the incremental effect of subsequent transfers can
@@ -171,10 +176,10 @@ ROE::ROE(
         The number of express passes to run, i.e. the number of rows in the
         matrices.
 */
-void ROE::set_express_matrix_from_pixels_and_express(
-    int n_pixels, int express, int offset) {
+void ROE::set_express_matrix_from_rows_and_express(
+    int n_rows, int express, int offset) {
 
-    int n_transfers = n_pixels + offset;
+    int n_transfers = n_rows + offset;
 
     // Set default express to all transfers, and check no larger
     if (express == 0)
@@ -184,7 +189,7 @@ void ROE::set_express_matrix_from_pixels_and_express(
 
     // Temporarily ignore the first pixel-to-pixel transfer, if it is to be
     // handled differently than the rest
-    if ((empty_traps_for_first_transfers) && (express < n_pixels)) n_transfers--;
+    if ((empty_traps_for_first_transfers) && (express < n_rows)) n_transfers--;
 
     // Initialise an array with enough pixels to contain the supposed image,
     // including offset
@@ -216,7 +221,7 @@ void ROE::set_express_matrix_from_pixels_and_express(
     // Add an extra (first) transfer for every pixel, the effect of which
     // will only ever be counted once, because it is physically different
     // from the other transfers (it sees only empty traps)
-    if ((empty_traps_for_first_transfers) && (express < n_pixels)) {
+    if ((empty_traps_for_first_transfers) && (express < n_rows)) {
         // Create a new matrix for the full number of transfers
         n_transfers++;
         std::valarray<double> express_matrix_full(0.0, n_transfers * n_transfers);
@@ -255,13 +260,13 @@ void ROE::set_express_matrix_from_pixels_and_express(
     }
 
     // Remove the offset (which is not represented in the image pixels)
-    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_pixels);
+    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
 
     // Copy the post-offset slices of each row
     for (int express_index = 0; express_index < n_express_passes; express_index++) {
-        express_matrix_trim[std::slice(express_index * n_pixels, n_pixels, 1)] =
+        express_matrix_trim[std::slice(express_index * n_rows, n_rows, 1)] =
             tmp_express_matrix[std::slice(
-                express_index * n_transfers + offset, n_pixels, 1)];
+                express_index * n_transfers + offset, n_rows, 1)];
     }
 
     express_matrix = express_matrix_trim;
@@ -527,18 +532,21 @@ ROEChargeInjection::ROEChargeInjection(
     std::valarray<double>& dwell_times, bool empty_traps_between_columns,
     bool force_release_away_from_readout, bool use_integer_express_matrix)
     : ROE(dwell_times, empty_traps_between_columns, false,
-          force_release_away_from_readout, use_integer_express_matrix) {}
+          force_release_away_from_readout, use_integer_express_matrix) {
+          
+    type = roe_type_charge_injection;
+}
 
 /*
-    See ROE::set_express_matrix_from_pixels_and_express().
+    See ROE::set_express_matrix_from_rows_and_express().
 
     For charge injection, all charges are clocked the same number of times
     through all the pixels to the readout register.
 */
-void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
-    int n_pixels, int express, int offset) {
+void ROEChargeInjection::set_express_matrix_from_rows_and_express(
+    int n_rows, int express, int offset) {
 
-    int n_transfers = n_pixels + offset;
+    int n_transfers = n_rows + offset;
 
     // Set default express to all transfers, and check no larger
     if (express == 0)
@@ -586,12 +594,12 @@ void ROEChargeInjection::set_express_matrix_from_pixels_and_express(
     }
 
     // Remove the offset (which is not represented in the image pixels)
-    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_pixels);
+    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
 
     // Copy the post-offset slices of each row
     for (int express_index = 0; express_index < n_express_passes; express_index++) {
-        express_matrix_trim[std::slice(express_index * n_pixels, n_pixels, 1)] =
-            tmp_express_matrix[std::slice(express_index * n_transfers, n_pixels, 1)];
+        express_matrix_trim[std::slice(express_index * n_rows, n_rows, 1)] =
+            tmp_express_matrix[std::slice(express_index * n_transfers, n_rows, 1)];
     }
 
     express_matrix = express_matrix_trim;
@@ -743,10 +751,12 @@ ROETrapPumping::ROETrapPumping(
     if (n_steps % 2 != 0)
         error("The number of steps for trap pumping (%d) must be even", n_steps);
     n_phases = n_steps / 2;
+    
+    type = roe_type_trap_pumping;
 }
 
 /*
-    See ROE::set_express_matrix_from_pixels_and_express().
+    See ROE::set_express_matrix_from_rows_and_express().
 
     For trap pumping, instead of charge being transferred from pixel to pixel 
     until readout, only the back-and-forth pumping clock sequence is repeated a
@@ -759,17 +769,17 @@ ROETrapPumping::ROETrapPumping(
     Conveniently, the required express multipliers are the same as the ones for 
     the pixel furthest from readout with standard clocking.
 */
-void ROETrapPumping::set_express_matrix_from_pixels_and_express(
-    int n_pixels, int express, int offset) {
-    
-    if (n_pixels != 1)
-        error("Trap pumping currently requires the number of active pixels (%d) to be 1",
-            n_pixels);
+void ROETrapPumping::set_express_matrix_from_rows_and_express(
+    int n_rows, int express, int offset) {
+        
+    // if (n_active_rows != 1)
+    //     error("Trap pumping currently requires the number of active rows (%d) to be 1",
+    //         n_active_rows);
     if (offset != 0)
         error("Trap pumping requires the offset (%d) to be 0", offset);
     
     // Start with the standard express matrix for n_transfers = n_pumps
-    ROE::set_express_matrix_from_pixels_and_express(n_pumps, express, offset);
+    ROE::set_express_matrix_from_rows_and_express(n_pumps, express, offset);
     
     // Extract the relevant express multipliers of the final pixel
     std::valarray<double> tmp_col(0.0, n_express_passes);
@@ -777,19 +787,24 @@ void ROETrapPumping::set_express_matrix_from_pixels_and_express(
         tmp_col[express_index] = express_matrix[n_pumps - 1 + express_index * n_pumps];
     }
     
-    express_matrix = tmp_col;
-    
     // Extract the non-zero elements if doing first transfers separately
     if ((empty_traps_for_first_transfers) && (express < n_pumps)) {
+        std::valarray<double> tmp_col_2 = tmp_col;
+        
         n_express_passes = express + 1;
         tmp_col.resize(n_express_passes);
-        tmp_col = express_matrix[express_matrix != 0.0];
-        express_matrix.resize(n_express_passes);
-        express_matrix = tmp_col;
+        tmp_col = tmp_col_2[tmp_col_2 != 0.0];
         
         // Put back the final zero for mismatched integer multipliers
         if ((use_integer_express_matrix) && (n_pumps % express != 0))
-            express_matrix[n_express_passes - 1] = 0.0;
+            tmp_col[n_express_passes - 1] = 0.0;
+    }
+    
+    express_matrix.resize(n_rows * n_express_passes);
+    // Set multipliers for all rows, even though only one row will be active and
+    // actually used
+    for (int row_index = 0; row_index < n_rows; row_index++) {
+        express_matrix[std::slice(row_index, n_express_passes, n_rows)] = tmp_col;
     }
 }
 
@@ -800,7 +815,11 @@ void ROETrapPumping::set_express_matrix_from_pixels_and_express(
     the same trap, until the final pump.
 */
 void ROETrapPumping::set_store_trap_states_matrix() {
-    store_trap_states_matrix = std::valarray<bool>(true, n_express_passes);
+    // Store after each active pass
+    store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
+    store_trap_states_matrix[express_matrix != 0.0] = true;
     
-    store_trap_states_matrix[n_express_passes - 1] = false;
+    // Don't store the final pass
+    int n_rows = express_matrix.size() / n_express_passes;
+    store_trap_states_matrix[std::slice((n_express_passes - 1) * n_rows, n_rows, 1)] = false;
 }

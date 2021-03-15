@@ -4,6 +4,10 @@
 
 #include <valarray>
 
+enum ROEType {
+    roe_type_standard = 0, roe_type_charge_injection = 1, roe_type_trap_pumping = 2
+};
+
 static std::valarray<double> dwell_times_default = {1.0};
 static std::valarray<double> dwell_times_trap_pumping_default = {0.5, 0.5};
 
@@ -44,12 +48,13 @@ class ROE {
     std::valarray<bool> store_trap_states_matrix;
     std::valarray<std::valarray<ROEStepPhase>> clock_sequence;
 
+    ROEType type;
     int n_steps;
     int n_phases;
     int n_express_passes;
 
-    virtual void set_express_matrix_from_pixels_and_express(
-        int n_pixels, int express = 0, int offset = 0);
+    virtual void set_express_matrix_from_rows_and_express(
+        int n_rows, int express = 0, int offset = 0);
     virtual void set_store_trap_states_matrix();
     virtual void set_clock_sequence();
 };
@@ -63,8 +68,8 @@ class ROEChargeInjection : public ROE {
         bool use_integer_express_matrix = false);
     ~ROEChargeInjection(){};
 
-    void set_express_matrix_from_pixels_and_express(
-        int n_pixels, int express = 0, int offset = 0);
+    void set_express_matrix_from_rows_and_express(
+        int n_rows, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
 };
 
@@ -79,8 +84,8 @@ class ROETrapPumping : public ROE {
     
     int n_pumps;
 
-    void set_express_matrix_from_pixels_and_express(
-        int n_pixels, int express = 0, int offset = 0);
+    void set_express_matrix_from_rows_and_express(
+        int n_rows, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
 };
 

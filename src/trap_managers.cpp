@@ -774,12 +774,6 @@ TrapManagerManager::TrapManagerManager(
             "Size of all_traps (%ld) doesn't match n_watermark_types (%d).",
             all_traps.size(), n_watermark_types);
 
-    // Check matching numbers of dwell times and phases
-    if (ccd.n_phases != dwell_times.size())
-        error(
-            "Number of phases (%d) and dwell times (%ld) don't match.", ccd.n_phases,
-            dwell_times.size());
-
     // The number of trap species (if any) of each watermark type
     n_standard_traps = all_traps[watermark_type_standard].size();
     n_instant_capture_traps = all_traps[watermark_type_instant_capture].size();
@@ -797,6 +791,8 @@ TrapManagerManager::TrapManagerManager(
                 ccd.phases[phase_index]);
 
             trap_managers_standard[phase_index].initialise_trap_states();
+            //## This assumes dwell times are the same in each phase even in 
+            // e.g. trap-pumping clock sequences with n_steps > n_phases
             trap_managers_standard[phase_index].set_fill_probabilities_from_dwell_time(
                 dwell_times[phase_index]);
         }

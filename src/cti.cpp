@@ -63,10 +63,22 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Defaults
     if (row_stop == -1) row_stop = n_rows;
     if (column_stop == -1) column_stop = n_columns;
+    
+    // Number of active rows and columns
+    int n_active_rows = row_stop - row_start;
+    int n_active_columns = column_stop - column_start;
+    print_v(
+        1, "Clock charge in %d column(s) (%d to %d) and %d row(s) (%d to %d) \n",
+        n_active_columns, column_start, column_stop, n_active_rows, row_start, row_stop);
+    
+    // Checks for non-standard modes
+    if ((roe->type == roe_type_trap_pumping) && (n_active_rows != 1))
+        error("Trap pumping currently requires the number of active rows (%d) to be 1",
+            n_active_rows);
 
     // Set up the readout electronics and express arrays
     roe->set_clock_sequence();
-    roe->set_express_matrix_from_pixels_and_express(n_rows, express, offset);
+    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
     roe->set_store_trap_states_matrix();
     if (ccd->n_phases != roe->n_phases) error(
         "Number of CCD phases (%d) and ROE phases (%d) don't match.", 
@@ -76,6 +88,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     TrapManagerManager trap_manager_manager(
         *traps, row_stop - row_start, *ccd, roe->dwell_times);
 
+    int column_index;
+    int row_index;
     int row_read;
     int row_write;
     double n_free_electrons;
@@ -93,36 +107,43 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Clock each column of pixels through the column of traps
     // ========
     // Loop over:
-    // Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
-    for (int column_index = column_start; column_index < column_stop; column_index++) {
-        print_v(2, "////// column_index %d \n", column_index);
+    //   Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
+    for (int i_column = 0; i_column < n_active_columns; i_column++) {
+        column_index = column_start + i_column;
+        
+        print_v(2, "# # # #  i_column, column_index  %d,  %d \n", i_column, column_index);
 
-        // Monitor the traps in every pixel (express=n_rows), or just one
+        // Monitor the traps for every transfer (express=n_rows), or just one
         // (express=1) or a few (express=a few) then replicate their effect
         for (int express_index = 0; express_index < roe->n_express_passes;
              express_index++) {
-            print_v(2, "//// express_index %d \n", express_index);
+             
+            print_v(2, "# # #  express_index  %d \n", express_index);
 
             // Restore the trap occupancy levels, either to empty or to a saved
             // state from a previous express pass
             trap_manager_manager.restore_trap_states();
 
             // Each pixel
-            for (int row_index = row_start; row_index < row_stop; row_index++) {
-                print_v(2, "// row_index %d \n", row_index);
+            for (int i_row = 0; i_row < n_active_rows; i_row++) {
+                row_index = row_start + i_row;
+                
+                print_v(2, "# #  i_row, row_index  %d,  %d \n", i_row, row_index);
 
                 express_multiplier =
                     roe->express_matrix[express_index * n_rows + row_index];
                 if (express_multiplier == 0) continue;
-                print_v(2, "express_multiplier %g \n", express_multiplier);
+                
+                print_v(2, "express_multiplier  %g \n", express_multiplier);
 
                 // Each step in the clock sequence
                 for (int i_step = 0; i_step < roe->n_steps; i_step++) {
 
-                    if (roe->n_steps > 1) print_v(2, "// i_step %d \n", i_step);
-
                     // Each phase in the pixel
                     for (int i_phase = 0; i_phase < ccd->n_phases; i_phase++) {
+                        
+                        if ((roe->n_steps > 1) || (ccd->n_phases > 1)) 
+                            print_v(2, "#  i_step, i_phase  %d,  %d \n", i_step, i_phase);
                         
                         // State of the ROE in this step and phase of the sequence
                         roe_step_phase = &roe->clock_sequence[i_step][i_phase];
@@ -136,11 +157,9 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                             n_free_electrons += image[row_read][column_index];
                         }
 
-                        if (ccd->n_phases > 1) {
-                            print_v(2, "// i_phase %d \n", i_phase);
-                            print_v(2, "row_read %d \n", row_read);
-                        }
-                        print_v(2, "n_free_electrons %g \n", n_free_electrons);
+                        
+                        print_v(2, "row_read  %d \n", row_read);
+                        print_v(2, "n_free_electrons  %g \n", n_free_electrons);
 
                         // Release and capture electrons with the traps in this
                         // pixel/phase, for each type of traps
@@ -156,7 +175,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                                     .n_electrons_released_and_captured(n_free_electrons);
             
                         print_v(
-                            2, "n_electrons_released_and_captured %g \n",
+                            2, "n_electrons_released_and_captured  %g \n",
                             n_electrons_released_and_captured);
 
                         // Return the charge to the relevant pixel(s)
@@ -168,8 +187,9 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                                 += n_electrons_released_and_captured * express_multiplier
                                 * roe_step_phase->release_fraction_to_pixels[i];
                             
+                            print_v(2, "row_write  %d \n", row_write);
                             print_v(
-                                2, "image[%d][%d] %g \n", row_write, column_index,
+                                2, "image[%d][%d]  %g \n", row_write, column_index,
                                 image[row_write][column_index]);
                         }
                     }
@@ -178,6 +198,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 // Store the trap states if needed for the next express pass
                 if (roe->store_trap_states_matrix[express_index * n_rows + row_index]) {
                     trap_manager_manager.store_trap_states();
+                    
                     print_v(2, "store_trap_states \n");
                 }
             }
@@ -191,7 +212,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Time taken
     gettimeofday(&wall_time_end, nullptr);
     wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
-    print_v(1, "Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
+    print_v(1, "Wall-clock time elapsed:  %.4g s \n", wall_time_elapsed);
 
     return image;
 }
