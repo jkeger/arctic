@@ -441,6 +441,39 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         REQUIRE(
             trap_manager_manager.trap_managers_instant_capture[0]
                 .watermark_fills.size() == 124);
+    
+        // Trap densities modified by the CCD's fraction_of_traps_per_phase 
+        answer = {trap_1.density * 0.5, trap_2.density * 0.5};
+        test.assign(
+            std::begin(trap_manager_manager.trap_managers_standard[0].trap_densities),
+            std::end(trap_manager_manager.trap_managers_standard[0].trap_densities));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {trap_1.density * 0.25, trap_2.density * 0.25};
+        test.assign(
+            std::begin(trap_manager_manager.trap_managers_standard[1].trap_densities),
+            std::end(trap_manager_manager.trap_managers_standard[1].trap_densities));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {trap_1.density * 0.25, trap_2.density * 0.25};
+        test.assign(
+            std::begin(trap_manager_manager.trap_managers_standard[2].trap_densities),
+            std::end(trap_manager_manager.trap_managers_standard[2].trap_densities));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        
+        answer = {trap_3.density * 0.5};
+        test.assign(
+            std::begin(trap_manager_manager.trap_managers_instant_capture[0].trap_densities),
+            std::end(trap_manager_manager.trap_managers_instant_capture[0].trap_densities));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {trap_3.density * 0.25};
+        test.assign(
+            std::begin(trap_manager_manager.trap_managers_instant_capture[1].trap_densities),
+            std::end(trap_manager_manager.trap_managers_instant_capture[1].trap_densities));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {trap_3.density * 0.25};
+        test.assign(
+            std::begin(trap_manager_manager.trap_managers_instant_capture[2].trap_densities),
+            std::end(trap_manager_manager.trap_managers_instant_capture[2].trap_densities));
+        REQUIRE_THAT(test, Catch::Approx(answer));
     }
 
     SECTION("Store, reset, and restore all trap states") {

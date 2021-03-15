@@ -729,7 +729,12 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
     traps.
     
     On declaration, automatically creates the trap managers for each phase 
-    and/or watermark type and initialises their watermark arrays.
+    and/or watermark type and initialises their watermark arrays. The trap
+    managers of each type are held in the trap_managers_* arrays, each 
+    containing one manager of that type for each phase.
+    
+    Also, if relevant, modifies the trap managers' trap densities to account for
+    the fraction of traps in different CCD pixel phases.
 
     Parameters
     ----------
@@ -758,8 +763,9 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
     n_standard_traps, n_instant_capture_traps : int
         The number of trap species (if any) of each watermark type.
         
-    trap_managers_standard : std::valarray<TrapManager>
-    trap_managers_instant_capture : std::valarray<TrapManagerInstantCapture>
+    trap_managers_standard, trap_managers_instant_capture : 
+        std::valarray<TrapManager>, std::valarray<TrapManagerInstantCapture>
+        
         For each watermark type, the list of trap manager objects for each 
         phase. Ignored if the corresponding n_*_traps is 0.
 */
@@ -789,6 +795,10 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_standard[phase_index] = TrapManager(
                 all_traps[watermark_type_standard], max_n_transfers,
                 ccd.phases[phase_index]);
+            
+            // Modify the trap densities in different phases
+            trap_managers_standard[phase_index].trap_densities *= 
+                ccd.fraction_of_traps_per_phase[phase_index];
 
             trap_managers_standard[phase_index].initialise_trap_states();
             //## This assumes dwell times are the same in each phase even in 
@@ -817,6 +827,10 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_instant_capture[phase_index] = TrapManagerInstantCapture(
                 all_traps[watermark_type_instant_capture], max_n_transfers,
                 ccd.phases[phase_index]);
+            
+            // Modify the trap densities in different phases
+            trap_managers_instant_capture[phase_index].trap_densities *= 
+                ccd.fraction_of_traps_per_phase[phase_index];
 
             trap_managers_instant_capture[phase_index].initialise_trap_states();
             trap_managers_instant_capture[phase_index]
