@@ -542,14 +542,12 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         std::valarray<double> dwell_times(1.0 / 6.0, 6);
         ROETrapPumping roe(dwell_times, n_pumps);
         
-        // Active pixel 2
+        // Traps in active pixel 2
         int start = 2;
         int stop = 3;
         std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(100.0, 1), n_rows);
-        printf("\n\n");
-        print_array_2D(image_pre_cti);
         
         // ========
         // Traps in phase 0
@@ -565,7 +563,6 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         // Add CTI from pumping
         image_post_cti = add_cti(
             image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
-        print_array_2D(image_post_cti);
         
         // Decreased charge in pixel p, slightly decreased charge in pixel p+1
         REQUIRE(image_post_cti[2][0] < image_pre_cti[2][0]);
@@ -588,8 +585,6 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         // Add CTI from pumping
         image_post_cti = add_cti(
             image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
-        printf("\n");
-        print_array_2D(image_post_cti);
         
         // Decreased charge in pixel p, increased charge in pixel p+1
         REQUIRE(image_post_cti[2][0] < image_pre_cti[2][0]);
@@ -611,8 +606,6 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         // Add CTI from pumping
         image_post_cti = add_cti(
             image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
-        printf("\n");
-        print_array_2D(image_post_cti);
         
         // Decreased charge in pixel p, increased charge in pixel p-1
         REQUIRE(image_post_cti[2][0] < image_pre_cti[2][0]);

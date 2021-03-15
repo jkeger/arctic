@@ -11,80 +11,80 @@
 // ========
 // TrapManager::
 // ========
-/*
-    Class TrapManager.
-
-    The manager for one or multiple trap species that are able to use
-    watermarks in the same way as each other.
-
-    Parameters
-    ----------
-    traps : std::valarray<Trap>
-        A list of one or more trap species. Species listed together must be
-        able to share watermarks - i.e. they must be similarly distributed
-        throughout the pixel volume, and all their states must be stored
-        either by occupancy or by time since filling.
-
-    max_n_transfers : int
-        The number of pixel transfers containing traps that charge will be
-        expected to go through. This feeds in to the maximum number of possible
-        capture/release events that could create new watermark levels, and is
-        used to initialise the watermark array to be only as large as needed.
-
-    ccd_phase : CCDPhase
-        Parameters to describe how electrons fill the volume inside (one phase
-        of) a pixel in a CCD detector.
-
-    Attributes
-    ----------
-    n_traps : int
-        The number of trap species.
-
-    trap_densities : std::valarray<double>
-        The density of each trap species.
-
-    watermark_volumes : std::valarray<double>
-        Array of watermark fractional volumes to describe the trap states, i.e.
-        the proportion of the pixel volume occupied by each (active) watermark.
-
-    watermark_fills : std::valarray<double>
-        2D-style 1D array of watermark fill fractions to describe the trap
-        states, i.e. the proportion of traps that are filled in each (active)
-        watermark, multiplied by the trap's density, for each trap species.
-
-        Examples of slicing the arrays:
-            The ith watermark, jth trap fill:
-                watermark_fills[ i * n_traps + j ]
-
-            The ith watermark "row" of the fills:
-                watermark_fills[ std::slice(i * n_traps, n_traps, 1) ]
-
-            The ith trap species "column" of the fills:
-                watermark_fills[ std::slice(i, n_watermarks, n_traps) ]
-
-            The ith-to-jth watermark slices of the volumes and (all) the fills:
-                watermark_volumes[ std::slice(i, j - i, 1) ]
-                watermark_fills[ std::slice(i * n_traps, (j - i) * n_traps, 1) ]
-
-    i_first_active_wmk : int
-        The index of the first active watermark. The effective starting point
-        for the active region of the watermark arrays. i.e. watermark levels
-        below this are ignored because they've been superseded.
-
-    n_active_watermarks : int
-        The number of currently active watermark levels. So the index of the
-        last active watermark is (i_first_active_wmk + n_active_watermarks - 1).
-
-    n_watermarks_per_transfer : int
-        The number of new watermarks that could be made in each transfer.
-
-    n_watermarks : int
-        The total number of available watermark levels, determined by the number
-        of potential watermark-creating transfers and the watermarking scheme.
-
-    empty_watermark : double
-        The watermark value corresponding to empty traps.
-*/
+// /*
+//     Class TrapManager.
+// 
+//     The manager for one or multiple trap species that are able to use
+//     watermarks in the same way as each other.
+// 
+//     Parameters
+//     ----------
+//     traps : std::valarray<Trap>
+//         A list of one or more trap species. Species listed together must be
+//         able to share watermarks - i.e. they must be similarly distributed
+//         throughout the pixel volume, and all their states must be stored
+//         either by occupancy or by time since filling.
+// 
+//     max_n_transfers : int
+//         The number of pixel transfers containing traps that charge will be
+//         expected to go through. This feeds in to the maximum number of possible
+//         capture/release events that could create new watermark levels, and is
+//         used to initialise the watermark array to be only as large as needed.
+// 
+//     ccd_phase : CCDPhase
+//         Parameters to describe how electrons fill the volume inside (one phase
+//         of) a pixel in a CCD detector.
+// 
+//     Attributes
+//     ----------
+//     n_traps : int
+//         The number of trap species.
+// 
+//     trap_densities : std::valarray<double>
+//         The density of each trap species.
+// 
+//     watermark_volumes : std::valarray<double>
+//         Array of watermark fractional volumes to describe the trap states, i.e.
+//         the proportion of the pixel volume occupied by each (active) watermark.
+// 
+//     watermark_fills : std::valarray<double>
+//         2D-style 1D array of watermark fill fractions to describe the trap
+//         states, i.e. the proportion of traps that are filled in each (active)
+//         watermark, multiplied by the trap's density, for each trap species.
+// 
+//         Examples of slicing the arrays:
+//             The ith watermark, jth trap fill:
+//                 watermark_fills[ i * n_traps + j ]
+// 
+//             The ith watermark "row" of the fills:
+//                 watermark_fills[ std::slice(i * n_traps, n_traps, 1) ]
+// 
+//             The ith trap species "column" of the fills:
+//                 watermark_fills[ std::slice(i, n_watermarks, n_traps) ]
+// 
+//             The ith-to-jth watermark slices of the volumes and (all) the fills:
+//                 watermark_volumes[ std::slice(i, j - i, 1) ]
+//                 watermark_fills[ std::slice(i * n_traps, (j - i) * n_traps, 1) ]
+// 
+//     i_first_active_wmk : int
+//         The index of the first active watermark. The effective starting point
+//         for the active region of the watermark arrays. i.e. watermark levels
+//         below this are ignored because they've been superseded.
+// 
+//     n_active_watermarks : int
+//         The number of currently active watermark levels. So the index of the
+//         last active watermark is (i_first_active_wmk + n_active_watermarks - 1).
+// 
+//     n_watermarks_per_transfer : int
+//         The number of new watermarks that could be made in each transfer.
+// 
+//     n_watermarks : int
+//         The total number of available watermark levels, determined by the number
+//         of potential watermark-creating transfers and the watermarking scheme.
+// 
+//     empty_watermark : double
+//         The watermark value corresponding to empty traps.
+// */
 TrapManager::TrapManager(
     std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase)
     : traps(traps), max_n_transfers(max_n_transfers), ccd_phase(ccd_phase) {
@@ -100,17 +100,17 @@ TrapManager::TrapManager(
     }
 }
 
-/*
-    Initialise the watermark arrays.
-
-    Sets
-    ----
-    n_watermarks : int
-        The total number of available watermarks.
-
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The initial empty watermark arrays. See TrapManager().
-*/
+// /*
+//     Initialise the watermark arrays.
+// 
+//     Sets
+//     ----
+//     n_watermarks : int
+//         The total number of available watermarks.
+// 
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The initial empty watermark arrays. See TrapManager().
+// */
 void TrapManager::initialise_trap_states() {
     n_watermarks = max_n_transfers * n_watermarks_per_transfer + 1;
 
@@ -121,9 +121,9 @@ void TrapManager::initialise_trap_states() {
     store_trap_states();
 }
 
-/*
-    Reset the watermark arrays to empty.
-*/
+// /*
+//     Reset the watermark arrays to empty.
+// */
 void TrapManager::reset_trap_states() {
     n_active_watermarks = 0;
     i_first_active_wmk = 0;
@@ -131,9 +131,9 @@ void TrapManager::reset_trap_states() {
     watermark_fills = std::valarray<double>(empty_watermark, n_traps * n_watermarks);
 }
 
-/*
-    Store the watermark arrays to be loaded again later.
-*/
+// /*
+//     Store the watermark arrays to be loaded again later.
+// */
 void TrapManager::store_trap_states() {
     stored_n_active_watermarks = n_active_watermarks;
     stored_i_first_active_wmk = i_first_active_wmk;
@@ -141,9 +141,9 @@ void TrapManager::store_trap_states() {
     stored_watermark_fills = watermark_fills;
 }
 
-/*
-    Restore the watermark arrays to their saved values.
-*/
+// /*
+//     Restore the watermark arrays to their saved values.
+// */
 void TrapManager::restore_trap_states() {
     n_active_watermarks = stored_n_active_watermarks;
     i_first_active_wmk = stored_i_first_active_wmk;
@@ -151,31 +151,31 @@ void TrapManager::restore_trap_states() {
     watermark_fills = stored_watermark_fills;
 }
 
-/*
-    Set the probabilities of traps being full after release and/or capture.
-
-    See Lindegren (1998) section 3.2.
-
-    Parameters
-    ----------
-    dwell_time : double
-        The time spent in this pixel or phase, in the same units as the trap
-        timescales.
-
-    Sets
-    ----
-    fill_probabilities_from_empty : std::valarray<double>
-        The fraction of traps that were empty that become full.
-
-    fill_probabilities_from_full : std::valarray<double>
-        The fraction of traps that were full that stay full.
-
-    fill_probabilities_from_release : std::valarray<double>
-        The fraction of traps that were full that stay full after release.
-
-    empty_probabilities_from_release : std::valarray<double>
-        The fraction of traps that were full that become empty after release.
-*/
+// /*
+//     Set the probabilities of traps being full after release and/or capture.
+// 
+//     See Lindegren (1998) section 3.2.
+// 
+//     Parameters
+//     ----------
+//     dwell_time : double
+//         The time spent in this pixel or phase, in the same units as the trap
+//         timescales.
+// 
+//     Sets
+//     ----
+//     fill_probabilities_from_empty : std::valarray<double>
+//         The fraction of traps that were empty that become full.
+// 
+//     fill_probabilities_from_full : std::valarray<double>
+//         The fraction of traps that were full that stay full.
+// 
+//     fill_probabilities_from_release : std::valarray<double>
+//         The fraction of traps that were full that stay full after release.
+// 
+//     empty_probabilities_from_release : std::valarray<double>
+//         The fraction of traps that were full that become empty after release.
+// */
 void TrapManager::set_fill_probabilities_from_dwell_time(double dwell_time) {
     double total_rate, exponential_factor;
     fill_probabilities_from_empty = std::valarray<double>(0.0, n_traps);
@@ -209,22 +209,22 @@ void TrapManager::set_fill_probabilities_from_dwell_time(double dwell_time) {
     }
 }
 
-/*
-    Sum the total number of electrons currently held in traps.
-
-    ##Make sure no copies of the arrays are made, either with pointers or
-      just using the class attributes instead of arguments.
-
-    Parameters
-    ----------
-    wmk_volumes, wmk_fills : std::valarray<double>
-        Watermark arrays. See TrapManager().
-
-    Returns
-    -------
-    n_trapped_electrons : double
-        The number of electrons stored in traps.
-*/
+// /*
+//     Sum the total number of electrons currently held in traps.
+// 
+//     ##Make sure no copies of the arrays are made, either with pointers or
+//       just using the class attributes instead of arguments.
+// 
+//     Parameters
+//     ----------
+//     wmk_volumes, wmk_fills : std::valarray<double>
+//         Watermark arrays. See TrapManager().
+// 
+//     Returns
+//     -------
+//     n_trapped_electrons : double
+//         The number of electrons stored in traps.
+// */
 double TrapManager::n_trapped_electrons_from_watermarks(
     std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills) {
 
@@ -248,19 +248,19 @@ double TrapManager::n_trapped_electrons_from_watermarks(
     return n_trapped_electrons;
 }
 
-/*
-    Find the index of the watermark with a volume that reaches above the cloud.
-
-    Parameters
-    ----------
-    cloud_fractional_volume : double
-        The fractional volume the electron cloud reaches in the pixel well.
-
-    Returns
-    -------
-    i_wmk_above_cloud : int
-        The index of the first active watermark that reaches above the cloud.
-*/
+// /*
+//     Find the index of the watermark with a volume that reaches above the cloud.
+// 
+//     Parameters
+//     ----------
+//     cloud_fractional_volume : double
+//         The fractional volume the electron cloud reaches in the pixel well.
+// 
+//     Returns
+//     -------
+//     i_wmk_above_cloud : int
+//         The index of the first active watermark that reaches above the cloud.
+// */
 int TrapManager::watermark_index_above_cloud(double cloud_fractional_volume) {
     double cumulative_volume = 0.0;
 
@@ -277,26 +277,26 @@ int TrapManager::watermark_index_above_cloud(double cloud_fractional_volume) {
     return n_active_watermarks;
 }
 
-/*
-    Release and capture electrons and update the trap watermarks.
-    
-    ##Placeholder for now
-
-    Parameters
-    ----------
-    n_free_electrons : double
-        The number of available electrons for trapping.
-
-    Returns
-    -------
-    n_electrons_released_and_captured : double
-        The number of released electrons.
-
-    Updates
-    -------
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManager().
-*/
+// /*
+//     Release and capture electrons and update the trap watermarks.
+// 
+//     ##Placeholder for now
+// 
+//     Parameters
+//     ----------
+//     n_free_electrons : double
+//         The number of available electrons for trapping.
+// 
+//     Returns
+//     -------
+//     n_electrons_released_and_captured : double
+//         The number of released electrons.
+// 
+//     Updates
+//     -------
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The updated watermarks. See TrapManager().
+// */
 double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
     return 0.0;
 }
@@ -304,11 +304,11 @@ double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
 // ========
 // TrapManagerInstantCapture::
 // ========
-/*
-    Class TrapManagerInstantCapture.
-
-    For the old release-then-instant-capture algorithm.
-*/
+// /*
+//     Class TrapManagerInstantCapture.
+// 
+//     For the old release-then-instant-capture algorithm.
+// */
 TrapManagerInstantCapture::TrapManagerInstantCapture(
     std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase)
     : TrapManager(traps, max_n_transfers, ccd_phase) {
@@ -317,19 +317,19 @@ TrapManagerInstantCapture::TrapManagerInstantCapture(
     n_watermarks_per_transfer = 1;
 }
 
-/*
-    Release electrons from traps and update the watermarks.
-
-    Returns
-    -------
-    n_electrons_released : double
-        The number of released electrons.
-
-    Updates
-    -------
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManager().
-*/
+// /*
+//     Release electrons from traps and update the watermarks.
+// 
+//     Returns
+//     -------
+//     n_electrons_released : double
+//         The number of released electrons.
+// 
+//     Updates
+//     -------
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The updated watermarks. See TrapManager().
+// */
 double TrapManagerInstantCapture::n_electrons_released() {
     double n_released = 0.0;
     double n_released_this_wmk;
@@ -358,22 +358,22 @@ double TrapManagerInstantCapture::n_electrons_released() {
     return n_released;
 }
 
-/*
-    Modify the watermarks for normal capture.
-
-    Parameters
-    ----------
-    cloud_fractional_volume : double
-        The fractional volume the electron cloud reaches in the pixel well.
-
-    i_wmk_above_cloud : int
-        The index of the first active watermark that reaches above the cloud.
-
-    Updates
-    -------
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManager().
-*/
+// /*
+//     Modify the watermarks for normal capture.
+// 
+//     Parameters
+//     ----------
+//     cloud_fractional_volume : double
+//         The fractional volume the electron cloud reaches in the pixel well.
+// 
+//     i_wmk_above_cloud : int
+//         The index of the first active watermark that reaches above the cloud.
+// 
+//     Updates
+//     -------
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The updated watermarks. See TrapManager().
+// */
 void TrapManagerInstantCapture::update_watermarks_capture(
     double cloud_fractional_volume, int i_wmk_above_cloud) {
     // First capture
@@ -457,34 +457,34 @@ void TrapManagerInstantCapture::update_watermarks_capture(
     return;
 }
 
-/*
-    Modify the watermarks for capture when not enough electrons are available.
-
-    Each watermark is partially filled a fraction (`enough`) of the way to full,
-    such that the resulting number of captured electrons is restricted to the
-    number actually available for capture.
-
-    This only becomes relevant for tiny numbers of electrons, where the cloud
-    can reach a disproportionately large volume in the pixel (reaching
-    correspondingly many traps) for the small amount of charge.
-
-    Parameters
-    ----------
-    cloud_fractional_volume : double
-        The fractional volume the electron cloud reaches in the pixel well.
-
-    i_wmk_above_cloud : int
-        The index of the first active watermark that reaches above the cloud.
-
-    enough : double
-        The amount of electrons available as a fraction of the number that
-        could be captured by the watermarks reached by the cloud volume.
-
-    Updates
-    -------
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManager().
-*/
+// /*
+//     Modify the watermarks for capture when not enough electrons are available.
+// 
+//     Each watermark is partially filled a fraction (`enough`) of the way to full,
+//     such that the resulting number of captured electrons is restricted to the
+//     number actually available for capture.
+// 
+//     This only becomes relevant for tiny numbers of electrons, where the cloud
+//     can reach a disproportionately large volume in the pixel (reaching
+//     correspondingly many traps) for the small amount of charge.
+// 
+//     Parameters
+//     ----------
+//     cloud_fractional_volume : double
+//         The fractional volume the electron cloud reaches in the pixel well.
+// 
+//     i_wmk_above_cloud : int
+//         The index of the first active watermark that reaches above the cloud.
+// 
+//     enough : double
+//         The amount of electrons available as a fraction of the number that
+//         could be captured by the watermarks reached by the cloud volume.
+// 
+//     Updates
+//     -------
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The updated watermarks. See TrapManager().
+// */
 void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
     double cloud_fractional_volume, int i_wmk_above_cloud, double enough) {
     // First capture
@@ -602,24 +602,24 @@ void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
     return;
 }
 
-/*
-    Capture electrons in traps and update the watermarks.
-
-    Parameters
-    ----------
-    n_free_electrons : double
-        The number of available electrons for trapping.
-
-    Returns
-    -------
-    n_electrons_captured : double
-        The number of captured electrons.
-
-    Updates
-    -------
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManager().
-*/
+// /*
+//     Capture electrons in traps and update the watermarks.
+// 
+//     Parameters
+//     ----------
+//     n_free_electrons : double
+//         The number of available electrons for trapping.
+// 
+//     Returns
+//     -------
+//     n_electrons_captured : double
+//         The number of captured electrons.
+// 
+//     Updates
+//     -------
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The updated watermarks. See TrapManager().
+// */
 double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) {
     // The fractional volume the electron cloud reaches in the pixel well
     double cloud_fractional_volume =
@@ -685,24 +685,24 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     return n_captured;
 }
 
-/*
-    Release and capture electrons and update the trap watermarks.
-
-    Parameters
-    ----------
-    n_free_electrons : double
-        The number of available electrons for trapping.
-
-    Returns
-    -------
-    n_electrons_released_and_captured : double
-        The number of released electrons.
-
-    Updates
-    -------
-    watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManager().
-*/
+// /*
+//     Release and capture electrons and update the trap watermarks.
+// 
+//     Parameters
+//     ----------
+//     n_free_electrons : double
+//         The number of available electrons for trapping.
+// 
+//     Returns
+//     -------
+//     n_electrons_released_and_captured : double
+//         The number of released electrons.
+// 
+//     Updates
+//     -------
+//     watermark_volumes, watermark_fills : std::valarray<double>
+//         The updated watermarks. See TrapManager().
+// */
 double TrapManagerInstantCapture::n_electrons_released_and_captured(
     double n_free_electrons) {
 
@@ -716,59 +716,59 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
 // ========
 // TrapManagerManager::
 // ========
-/*
-    Class TrapManagerManager.
-
-    Handles the one or multiple trap managers required for models with a mix of
-    trap species and/or multiphase clocking.
-
-    Each individual trap manager tracks the states of one or more trap species.
-    A different trap manager is required for any traps that use a different
-    type of watermarks, and separate trap managers are also required for each
-    phase in multiphase clocking, which corresponds to an independent set of
-    traps.
-    
-    On declaration, automatically creates the trap managers for each phase 
-    and/or watermark type and initialises their watermark arrays. The trap
-    managers of each type are held in the trap_managers_* arrays, each 
-    containing one manager of that type for each phase.
-    
-    Also, if relevant, modifies the trap managers' trap densities to account for
-    the fraction of traps in different CCD pixel phases.
-
-    Parameters
-    ----------
-    all_traps : std::valarray<std::valarray<Trap>>
-        The array of all trap species, organised by watermark type. The first
-        dimension must be n_watermark_types long, with one array of traps
-        (which can be empty) for each watermark type. See enum WatermarkType.
-        
-        e.g. {{trap_1, trap_2}, {trap_3}} for two standard traps and one
-        instant-capture trap. Or {{}, {trap_1, trap_2}} for no standard traps
-        and two instant-capture traps.
-
-    max_n_transfers : int
-        Same as TrapManager.
-
-    ccd : CCD
-        Parameters to describe how electrons fill the volume inside (all phases
-        of) a pixel in a CCD detector.
-
-    dwell_times : std::valarray<double>
-        The time between steps in the clocking sequence, as stored by an ROE
-        object.
-
-    Attributes
-    ----------
-    n_standard_traps, n_instant_capture_traps : int
-        The number of trap species (if any) of each watermark type.
-        
-    trap_managers_standard, trap_managers_instant_capture : 
-        std::valarray<TrapManager>, std::valarray<TrapManagerInstantCapture>
-        
-        For each watermark type, the list of trap manager objects for each 
-        phase. Ignored if the corresponding n_*_traps is 0.
-*/
+// /*
+//     Class TrapManagerManager.
+// 
+//     Handles the one or multiple trap managers required for models with a mix of
+//     trap species and/or multiphase clocking.
+// 
+//     Each individual trap manager tracks the states of one or more trap species.
+//     A different trap manager is required for any traps that use a different
+//     type of watermarks, and separate trap managers are also required for each
+//     phase in multiphase clocking, which corresponds to an independent set of
+//     traps.
+// 
+//     On declaration, automatically creates the trap managers for each phase 
+//     and/or watermark type and initialises their watermark arrays. The trap
+//     managers of each type are held in the trap_managers_* arrays, each 
+//     containing one manager of that type for each phase.
+// 
+//     Also, if relevant, modifies the trap managers' trap densities to account for
+//     the fraction of traps in different CCD pixel phases.
+// 
+//     Parameters
+//     ----------
+//     all_traps : std::valarray<std::valarray<Trap>>
+//         The array of all trap species, organised by watermark type. The first
+//         dimension must be n_watermark_types long, with one array of traps
+//         (which can be empty) for each watermark type. See enum WatermarkType.
+// 
+//         e.g. {{trap_1, trap_2}, {trap_3}} for two standard traps and one
+//         instant-capture trap. Or {{}, {trap_1, trap_2}} for no standard traps
+//         and two instant-capture traps.
+// 
+//     max_n_transfers : int
+//         Same as TrapManager.
+// 
+//     ccd : CCD
+//         Parameters to describe how electrons fill the volume inside (all phases
+//         of) a pixel in a CCD detector.
+// 
+//     dwell_times : std::valarray<double>
+//         The time between steps in the clocking sequence, as stored by an ROE
+//         object.
+// 
+//     Attributes
+//     ----------
+//     n_standard_traps, n_instant_capture_traps : int
+//         The number of trap species (if any) of each watermark type.
+// 
+//     trap_managers_standard, trap_managers_instant_capture : 
+//         std::valarray<TrapManager>, std::valarray<TrapManagerInstantCapture>
+// 
+//         For each watermark type, the list of trap manager objects for each 
+//         phase. Ignored if the corresponding n_*_traps is 0.
+// */
 TrapManagerManager::TrapManagerManager(
     std::valarray<std::valarray<Trap>>& all_traps, int max_n_transfers, CCD ccd,
     std::valarray<double>& dwell_times)
@@ -783,6 +783,9 @@ TrapManagerManager::TrapManagerManager(
     // The number of trap species (if any) of each watermark type
     n_standard_traps = all_traps[watermark_type_standard].size();
     n_instant_capture_traps = all_traps[watermark_type_instant_capture].size();
+
+    // Account for the number of clock-sequence steps for the maximum transfers
+    max_n_transfers *= dwell_times.size();
 
     // ========
     // Set up the trap manager for each phase, for each watermark type
@@ -852,9 +855,9 @@ TrapManagerManager::TrapManagerManager(
     }
 }
 
-/*
-    Reset the watermark arrays to empty, for all trap managers.
-*/
+// /*
+//     Reset the watermark arrays to empty, for all trap managers.
+// */
 void TrapManagerManager::reset_trap_states() {
     if (n_standard_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
@@ -866,9 +869,9 @@ void TrapManagerManager::reset_trap_states() {
         }
 }
 
-/*
-    Store the watermark arrays to be loaded again later, for all trap managers.
-*/
+// /*
+//     Store the watermark arrays to be loaded again later, for all trap managers.
+// */
 void TrapManagerManager::store_trap_states() {
     if (n_standard_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
@@ -880,9 +883,9 @@ void TrapManagerManager::store_trap_states() {
         }
 }
 
-/*
-    Restore the watermark arrays to their saved values, for all trap managers.
-*/
+// /*
+//     Restore the watermark arrays to their saved values, for all trap managers.
+// */
 void TrapManagerManager::restore_trap_states() {
     if (n_standard_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
