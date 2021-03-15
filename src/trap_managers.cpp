@@ -307,7 +307,7 @@ double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
 /*
     Class TrapManagerInstantCapture.
 
-    For the old release-then-instant-capture algorithm.
+    For the old-standard, release-then-instant-capture algorithm.
 */
 TrapManagerInstantCapture::TrapManagerInstantCapture(
     std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase)
