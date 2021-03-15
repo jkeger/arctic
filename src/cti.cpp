@@ -37,6 +37,10 @@
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
+        
+        For trap pumping, it is currently assumed that only a single pixel is 
+        active and contains traps, so row_stop must be row_start + 1. See 
+        ROETrapPumping for more detail.
 
     column_start, column_stop : int (opt.)
         The subset of column pixels to model, to save time when only a specific
@@ -68,7 +72,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     int n_active_rows = row_stop - row_start;
     int n_active_columns = column_stop - column_start;
     print_v(
-        1, "Clock charge in %d column(s) (%d to %d) and %d row(s) (%d to %d) \n",
+        1, "Clock charge in %d column(s) [%d to %d] and %d row(s) [%d to %d] \n",
         n_active_columns, column_start, column_stop, n_active_rows, row_start, row_stop);
     
     // Checks for non-standard modes
@@ -183,9 +187,14 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                             row_write = row_index 
                                 + roe_step_phase->release_to_which_pixels[i];
                             
-                            image[row_write][column_index] 
+                            image[row_write][column_index]
                                 += n_electrons_released_and_captured * express_multiplier
                                 * roe_step_phase->release_fraction_to_pixels[i];
+                            
+                            // Make sure image counts don't go negative, which 
+                            // could happen with a too-large express multiplier
+                            if (image[row_write][column_index] < 0.0)
+                                image[row_write][column_index] = 0.0;
                             
                             print_v(2, "row_write  %d \n", row_write);
                             print_v(
@@ -354,9 +363,11 @@ std::valarray<std::valarray<double>> add_cti(
     All parameters are identical to those of add_cti() as described in its
     documentation, with the exception of:
 
-    iterations : int
+    n_iterations : int
         The number of times CTI-adding clocking is run to perform the correction
-        via forward modelling.
+        via forward modelling. More iterations provide better results at the 
+        cost of longer runtime. In practice, two or three iterations are often
+        sufficient.
 
     Returns
     -------
@@ -364,7 +375,7 @@ std::valarray<std::valarray<double>> add_cti(
         The output array of pixel values with CTI removed.
 */
 std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in, int iterations, ROE* parallel_roe,
+    std::valarray<std::valarray<double>>& image_in, int n_iterations, ROE* parallel_roe,
     CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps, 
     int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
@@ -376,8 +387,12 @@ std::valarray<std::valarray<double>> remove_cti(
     std::valarray<std::valarray<double>> image_remove_cti = image_in;
     std::valarray<std::valarray<double>> image_add_cti;
 
+    // Image shape
+    int n_rows = image_in.size();
+    int n_columns = image_in[0].size();
+
     // Estimate the image with removed CTI more accurately each iteration
-    for (int iteration = 1; iteration <= iterations; iteration++) {
+    for (int iteration = 1; iteration <= n_iterations; iteration++) {
         // Model the effect of adding CTI trails
         image_add_cti = add_cti(
             image_remove_cti, parallel_roe, parallel_ccd, parallel_traps,
@@ -387,6 +402,11 @@ std::valarray<std::valarray<double>> remove_cti(
 
         // Improve the estimate of the image with CTI trails removed
         image_remove_cti += image_in - image_add_cti;
+        
+        // Prevent negative image values
+        for (int row_index = 0; row_index < n_rows; row_index++) {
+            image_remove_cti[row_index][image_remove_cti[row_index] < 0.0] = 0.0;
+        }
     }
 
     return image_remove_cti;

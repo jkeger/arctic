@@ -278,13 +278,13 @@ TEST_CASE("Test remove CTI", "[cti]") {
             &ccd, &traps, express, offset, start, stop);
 
         // Remove CTI
-        for (int iterations = 2; iterations <= 6; iterations++) {
+        for (int n_iterations = 2; n_iterations <= 6; n_iterations++) {
             image_remove_cti = remove_cti(
-                image_add_cti, iterations, &roe, &ccd, &traps, express, offset,
+                image_add_cti, n_iterations, &roe, &ccd, &traps, express, offset,
                 start, stop, &roe, &ccd, &traps, express, offset, start, stop);
 
             // Expect better results with more iterations
-            double tolerance = pow(10.0, 1 - iterations);
+            double tolerance = pow(10.0, 1 - n_iterations);
             REQUIRE_THAT(
                 flatten(image_remove_cti),
                 Catch::Approx(flatten(image_pre_cti)).margin(tolerance));
