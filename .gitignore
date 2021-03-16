@@ -1,5 +1,7 @@
 arctic
 test_arctic
+libarctic.so
+python/lib_test
 
 build/
 dev/
