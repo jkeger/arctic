@@ -61,16 +61,16 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     std::valarray<std::valarray<double>> image = image_in;
 
     // Image shape
-    int n_rows = image.size();
-    int n_columns = image[0].size();
+    unsigned int n_rows = image.size();
+    unsigned int n_columns = image[0].size();
 
     // Defaults
     if (row_stop == -1) row_stop = n_rows;
     if (column_stop == -1) column_stop = n_columns;
 
     // Number of active rows and columns
-    int n_active_rows = row_stop - row_start;
-    int n_active_columns = column_stop - column_start;
+    unsigned int n_active_rows = row_stop - row_start;
+    unsigned int n_active_columns = column_stop - column_start;
     print_v(
         1, "Clock charge in %d column(s) [%d to %d] and %d row(s) [%d to %d] \n",
         n_active_columns, column_start, column_stop, n_active_rows, row_start,
@@ -91,14 +91,14 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
             "Number of CCD phases (%d) and ROE phases (%d) don't match.", ccd->n_phases,
             roe->n_phases);
 
-    // Set up the trap manager
+    // Set up the trap managers
     TrapManagerManager trap_manager_manager(
         *traps, row_stop - row_start, *ccd, roe->dwell_times);
 
-    int column_index;
-    int row_index;
-    int row_read;
-    int row_write;
+    unsigned int column_index;
+    unsigned int row_index;
+    unsigned int row_read;
+    unsigned int row_write;
     double n_free_electrons;
     double n_electrons_released_and_captured;
     double express_multiplier;
@@ -115,7 +115,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // ========
     // Loop over:
     //   Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
-    for (int i_column = 0; i_column < n_active_columns; i_column++) {
+    for (unsigned int i_column = 0; i_column < n_active_columns; i_column++) {
         column_index = column_start + i_column;
 
         print_v(
@@ -123,7 +123,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
         // Monitor the traps for every transfer (express=n_rows), or just one
         // (express=1) or a few (express=a few) then replicate their effect
-        for (int express_index = 0; express_index < roe->n_express_passes;
+        for (unsigned int express_index = 0; express_index < roe->n_express_passes;
              express_index++) {
 
             print_v(2, "# # #  express_index  %d \n", express_index);
@@ -133,7 +133,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
             trap_manager_manager.restore_trap_states();
 
             // Each pixel
-            for (int i_row = 0; i_row < n_active_rows; i_row++) {
+            for (unsigned int i_row = 0; i_row < n_active_rows; i_row++) {
                 row_index = row_start + i_row;
 
                 print_v(2, "# #  i_row, row_index  %d,  %d \n", i_row, row_index);
@@ -145,10 +145,10 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 print_v(2, "express_multiplier  %g \n", express_multiplier);
 
                 // Each step in the clock sequence
-                for (int i_step = 0; i_step < roe->n_steps; i_step++) {
+                for (unsigned int i_step = 0; i_step < roe->n_steps; i_step++) {
 
                     // Each phase in the pixel
-                    for (int i_phase = 0; i_phase < ccd->n_phases; i_phase++) {
+                    for (unsigned int i_phase = 0; i_phase < ccd->n_phases; i_phase++) {
 
                         if ((roe->n_steps > 1) || (ccd->n_phases > 1))
                             print_v(
@@ -391,9 +391,7 @@ std::valarray<std::valarray<double>> remove_cti(
     std::valarray<std::valarray<double>> image_remove_cti = image_in;
     std::valarray<std::valarray<double>> image_add_cti;
 
-    // Image shape
     int n_rows = image_in.size();
-    int n_columns = image_in[0].size();
 
     // Estimate the image with removed CTI more accurately each iteration
     for (int iteration = 1; iteration <= n_iterations; iteration++) {

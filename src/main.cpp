@@ -64,10 +64,10 @@ int run_custom_code() {
     print_array_2D(image_post_cti);
     
     // Remove CTI
-    int iterations = 4;
+    int n_iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
-        image_post_cti, iterations, &roe, &ccd, &traps, express, offset, start, stop,
-        &roe, &ccd, &traps, express, offset, start, stop);
+        image_post_cti, n_iterations, &roe, &ccd, &traps, express, offset, start,
+        stop, &roe, &ccd, &traps, express, offset, start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
     
@@ -94,8 +94,6 @@ void print_help() {
         "https://github.com/jkeger/arctic \n"
         "Jacob Kegerreis: jacob.kegerreis@durham.ac.uk \n"
         "\n"
-        "Parameters \n"
-        "---------- \n"
         "-h, --help \n"
         "    Print help information and exit. \n"
         "-v <int>, --verbosity=<int> \n"

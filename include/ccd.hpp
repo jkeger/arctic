@@ -28,7 +28,7 @@ class CCD {
     std::valarray<CCDPhase> phases;
     std::valarray<double> fraction_of_traps_per_phase;
 
-    int n_phases;
+    unsigned int n_phases;
 };
 
 #endif  // ARCTIC_CCD_HPP

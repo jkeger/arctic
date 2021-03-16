@@ -376,21 +376,21 @@ TEST_CASE("Test express matrix", "[roe]") {
         int n_passes;
         ROE roe;
 
-        for (unsigned int i_rows = 0; i_rows < rows.size(); i_rows++) {
+        for (int i_rows = 0; i_rows < rows.size(); i_rows++) {
             n_rows = rows[i_rows];
 
-            for (unsigned int i_express = 0; i_express < expresses.size();
+            for (int i_express = 0; i_express < expresses.size();
                  i_express++) {
                 express = expresses[i_express];
 
-                for (unsigned int i_offset = 0; i_offset < offsets.size(); i_offset++) {
+                for (int i_offset = 0; i_offset < offsets.size(); i_offset++) {
                     offset = offsets[i_offset];
 
-                    for (unsigned int i_integer = 0; i_integer < integers.size();
+                    for (int i_integer = 0; i_integer < integers.size();
                          i_integer++) {
                         roe.use_integer_express_matrix = integers[i_integer];
 
-                        for (unsigned int i_empty = 0; i_empty < emptys.size();
+                        for (int i_empty = 0; i_empty < emptys.size();
                              i_empty++) {
                             roe.empty_traps_for_first_transfers = emptys[i_empty];
 
@@ -1056,17 +1056,17 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
         int n_passes;
         ROEChargeInjection roe;
 
-        for (unsigned int i_rows = 0; i_rows < rows.size(); i_rows++) {
+        for (int i_rows = 0; i_rows < rows.size(); i_rows++) {
             n_rows = rows[i_rows];
 
-            for (unsigned int i_express = 0; i_express < expresses.size();
+            for (int i_express = 0; i_express < expresses.size();
                  i_express++) {
                 express = expresses[i_express];
 
-                for (unsigned int i_offset = 0; i_offset < offsets.size(); i_offset++) {
+                for (int i_offset = 0; i_offset < offsets.size(); i_offset++) {
                     offset = offsets[i_offset];
 
-                    for (unsigned int i_integer = 0; i_integer < integers.size();
+                    for (int i_integer = 0; i_integer < integers.size();
                          i_integer++) {
                         roe.use_integer_express_matrix = integers[i_integer];
 
@@ -1288,7 +1288,6 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
     }
 
     SECTION("Integer express matrix, empty traps for first transfers") {
-        double x;
         empty_traps_for_first_transfers = true;
         use_integer_express_matrix = true;
         ROETrapPumping roe(
@@ -1539,7 +1538,6 @@ TEST_CASE("Test trap pumping ROE", "[roe]") {
 }
 
 TEST_CASE("Test trap pumping clock sequence", "[roe]") {
-    int n_rows = 12;
     int n_pumps = 1;
     bool empty_traps_for_first_transfers = true;
     bool use_integer_express_matrix = true;

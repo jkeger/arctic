@@ -1,7 +1,7 @@
 
 # Compiler
 CXX := g++
-CXXFLAGS := -std=c++11 -O3 -Wall -Wno-reorder
+CXXFLAGS := -std=c++11 -O3 -Wall -Wno-reorder -Wno-sign-compare
 # CXXFLAGS := -std=c++11 -pg -no-pie -fno-builtin       # for gprof
 # CXXFLAGS := -std=c++11 -g                             # for valgrind
 

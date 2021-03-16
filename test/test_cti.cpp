@@ -426,7 +426,7 @@ TEST_CASE("Test offset and windows", "[cti]") {
                 parallel_stop, &roe, &ccd, &traps, express, offset, serial_start,
                 serial_stop);
 
-            for (unsigned int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
+            for (int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
                 // Extract each row to compare
                 test_row = (std::valarray<double>)image_post_cti[i_row][std::slice(
                     serial_start, serial_stop - serial_start, 1)];
@@ -454,9 +454,6 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
     set_verbosity(0);
 
     std::valarray<double> dwell_times = {1.0};
-    int offset = 0;
-    int start = 0;
-    int stop = -1;
 
     SECTION("Single pixel, compare with standard ROE") {
         std::valarray<std::valarray<double>> image_pre_cti, image_post_cti_std,
@@ -528,8 +525,8 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
     int n_rows = 5;
     int n_pumps = 2;
     int offset = 0;
-    bool empty_traps_for_first_transfers = true;
-    bool use_integer_express_matrix = false;
+    // bool empty_traps_for_first_transfers = true;
+    // bool use_integer_express_matrix = false;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
 
