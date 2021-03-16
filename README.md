@@ -40,14 +40,12 @@ Installation
 Compile the main code with `make` (or `make arctic` or `make all`) in the top 
 directory.
 
-Run with `./arctic`.
-
 
 
 Usage
 =====
 ArCTIC will normally be used via a wrapper, but the code can be executed 
-directly with the following command-line options:
+directly as `./arctic` with the following command-line options:
 
 + `-h`, `--help`  
     Print help information and exit.
@@ -79,7 +77,7 @@ run with `./test_arctic`.
 Add arguments to select which tests to run by their names, e.g:
 + `*'these ones'*`  All tests that contain 'these ones'.
 + `~*'not these'*`  All tests except those that contain 'not these'.
-+ `-# [#filename]`  All tests from the file 'somefile.cpp'.
++ `-# [#filename]`  All tests in filename.cpp.
 
 
 
@@ -90,6 +88,14 @@ The code docstrings contain the full documentation for each class and function.
 This section provides an overview of the key contents and features. It is aimed 
 at general users with a few extra details for anyone wanting to navigate or work
 on the code itself.
+
+The primary functions to add and remove CTI take as arguments custom objects 
+that describe the trap species, CCD properties, and ROE details (see below). 
+A core aspect of the code is that it includes several polymorphic versions of 
+each of these classes. These provide a variety of ways to model CTI, such as 
+different types of trap species, multiple phases in each pixel, or alternative 
+readout sequences for trap pumping, etc.
+
 
 
 Files
@@ -105,8 +111,11 @@ A quick summary of the code files and their contents:
         editable code directly.
     + `cti.cpp`  
         Contains the primary user-facing functions `add_cti()` and 
-        `remove_cti()`. These are wrappers for `clock_charge_in_one_direction()`, which contains the primary nested for loops over an image to add CTI to
-        (in order) each column, each express pass (see below), and each row.
+        `remove_cti()`. These are wrappers for `clock_charge_in_one_direction()`
+        which contains the primary nested for loops over an image to add CTI to,
+        in order: each column, each express pass (see below), and each row.
+        (And then each step and each phase in the clocking sequence if doing 
+        multiphase clocking, see below.)
     + `ccd.cpp`  
         Defines the `CCD` classes that describe how electrons fill the volume 
         inside each (phase of a) pixel in a CCD detector.
@@ -139,8 +148,18 @@ species, for either or both parallel and serial clocking.
 These parameters are set using the `CCD`, `ROE`, and `Trap` classes, as 
 described below.
 
-See `add_cti()`'s docstring in `main.cpp` for the full details.
+See `add_cti()`'s docstring in `cti.cpp` for the full details, and 
+`clock_charge_in_one_direction()` for the inner code that loops over the image.
 
+### Remove CTI
+Removing CTI trails is done by iteratively modelling the addition of CTI, as 
+described in Massey et al. (2010) section 3.2 and Table 1.
+
+The `remove_cti()` function takes all the same parameters as `add_cti()` plus
+the number of iterations for the forward modelling.
+
+More iterations provide higher accuracy at the cost of longer runtime. In 
+practice, just 2 or 3 iterations are usually sufficient.
 
 ### Image
 The input image should be a 2D array of charge values, where the first dimension
@@ -188,7 +207,6 @@ as happens in the real hardware, the code tracks the occupancies of the traps
 (see Watermarks below) and updates them by scanning over each pixel. This 
 simplifies the code structure and keeps the image array conveniently static.
 
-
 ### Express
 As described in more detail in Massey et al. (2014) section 2.1.5, the effects 
 of each individual pixel-to-pixel transfer can be very similar, so multiple 
@@ -206,16 +224,14 @@ without assumptions.
 
 The default `express = 0` is a convenient input for automatic `express = N`.
 
+### Offsets and windows
+To account for additional transfers before the first image pixel reaches the 
+readout (e.g. a prescan region), the `offset` sets the number of extra pixels.
 
-### Remove CTI
-Removing CTI trails is done by iteratively modelling the addition of CTI, as 
-described in Massey et al. (2010) section 3.2 and Table 1.
-
-The `remove_cti()` function takes all the same parameters as `add_cti()`
-plus the number of iterations for the forward modelling.
-
-More iterations provide higher accuracy at the cost of longer runtime. In 
-practice, just 2 or 3 iterations are usually sufficient.
+Somewhat similarly, instead of adding CTI to the entire supplied image, only a 
+subset of pixels can be selected using the `window_start` and `_stop` arguments.
+Note that, because of edge effects, the range should be started several pixels 
+before the actual region of interest.
 
 
 
@@ -223,9 +239,19 @@ CCD
 ---
 How electrons fill the volume inside each (phase of a) pixel.
 
-See the `CCD` class docstring in `ccd.cpp` for the full documentation.
+By default, charge is assumed to move instantly from one pixel to another, but 
+each pixel can be separated into multiple phases, in combination with a  
+multiphase ROE clock sequence.
 
-By default, charge is assumed to move instantly from one pixel to another.
+See the `CCD` and `CCDPhase` class docstrings in `ccd.cpp` for the full 
+documentation.
+
+### Multiple phases
+The `CCD` object can be created either with a single `CCDPhase` or a list of 
+phases plus an array of the fraction of traps distributed in each phase, which 
+could be interpreted as the physical width of each phase in the pixel.
+
+The number of phases must be the same for the CCD and ROE objects. 
 
 
 
@@ -233,12 +259,32 @@ ROE
 ---
 The properties of readout electronics (ROE) used to operate a CCD.
 
-See the `ROE` and child class docstrings in `roe.cpp` for the full documentation.
+Three different modes are available:
 
++ Standard, in which charge is read out from the pixels in which they
+    start to the readout register, so are transferred across a different number
+    of pixels depending on their initial distance from readout.
++ Charge injection, in which the electrons are directly created at the far end 
+    of the CCD, then are all transferred the same number of times through the 
+    full image of pixels to the readout register.
++ Trap pumping (AKA pocket pumping), in which charge is transferred back and 
+    forth, to end up in the same place it began.
+
+See the `ROE`, `set_clock_sequence()`, and child class docstrings in `roe.cpp` 
+for the full documentation, including illustrations of the multiphase clocking 
+sequences.
 
 ### Express matrix  
 The `ROE` class also contains the `set_express_matrix_from_pixels_and_express()` 
 function used to generate the array of express multipliers.
+
+### Multiple phases
+Like the CCD, the `ROE` object can model single or multiple steps in the clock 
+sequence for each transfer. The number of steps in a clocking sequence is 
+usually same as the number of phases, but not necessarily, as is the case for 
+trap pumping.
+
+The number of phases must be the same for the CCD and ROE objects. 
 
 
 
@@ -246,16 +292,15 @@ Trap species
 ------------
 The parameters for a trap species.
 
-See the `Trap` and child class docstrings in `traps.cpp` for the full documentation.
+See the `Trap` and child class docstrings in `traps.cpp` for the full 
+documentation.
 
-
-### Default trap species (WIP)
+### Standard (WIP)
 Combined release and capture, allowing for instant or non-zero capture times,
 following Lindegren (1998) section 3.2.
 
-
 ### Instant capture
-For the simpler algorithm of release first then instant-capture. This is the 
+For the simpler algorithm of release first then instant capture. This is the 
 primary model used by previous versions of ArCTIC.
 
 
@@ -265,13 +310,17 @@ Trap managers
 This is not relevant for typical users, but is key to the internal structure of 
 the code and the "watermark" approach to tracking the trap occupancies.
 
-The different trap managers also implement the different algorithms required for
-the corresponding types of trap species described above, primarily with their 
-`n_electrons_released_and_captured()` method.
+The different trap manager child classes also implement the different algorithms
+required for the corresponding types of trap species described above, primarily 
+with the `n_electrons_released_and_captured()` method.
 
 See the `TrapManager` and child class docstrings in `trap_managers.cpp` for the 
 full documentation.
 
+To allow the options of multiple types of trap species and/or multiple phases in 
+each pixel, the code actually uses a top-level trap-manager manager to hold the 
+necessary multiple `TrapManager` objects. See the `TrapManagerManager` class 
+docstring for the details.
 
 ### Watermarks 
 The `watermark_volumes` and `watermark_fills` arrays track the states of the 
