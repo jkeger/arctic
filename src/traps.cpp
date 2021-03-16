@@ -3,6 +3,12 @@
 
 #include "traps.hpp"
 
+/*
+    The number of watermark types available. i.e. the number of WatermarkType 
+    enum options.
+*/
+int n_watermark_types = 2;
+
 // ========
 // Trap::
 // ========
@@ -29,15 +35,21 @@
         
     Attributes
     ----------
-    capture_rate, emission_rate : double
-        The capture and emission rates (Lindegren (1998) section 3.2).
+    watermark_type : WatermarkType : enum int
+        The flag for the type of watermarks required for this type of trap. Used
+        to set up the trap managers etc.
+    
+    emission_rate, capture_rate : double
+        The emission and capture rates (Lindegren (1998) section 3.2).
 */
 Trap::Trap(double density, double release_timescale, double capture_timescale)
     : density(density),
       release_timescale(release_timescale),
       capture_timescale(capture_timescale) {
+    
+    watermark_type = watermark_type_standard;
+    
     emission_rate = 1.0 / release_timescale;
-
     if (capture_timescale != 0.0)
         capture_rate = 1.0 / capture_timescale;
     else
@@ -85,4 +97,7 @@ double Trap::fill_fraction_from_time_elapsed(double time_elapsed) {
         The emission rate (Lindegren (1998) section 3.2).
 */
 TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
-    : Trap(density, release_timescale, 0.0) {}
+    : Trap(density, release_timescale, 0.0) {
+    
+    watermark_type = watermark_type_instant_capture;
+}
