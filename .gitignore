@@ -10,3 +10,4 @@ dev/
 *test*.*
 gmon.out
 callgrind.out.*
+python/wrapper.cp*

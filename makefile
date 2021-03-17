@@ -19,6 +19,9 @@
 # 		All of the above.
 # 
 
+# ========
+# Set up
+# ========
 # Compiler
 CXX := g++
 CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
@@ -33,12 +36,13 @@ LIB_TARGET := libarctic.so
 LIB_TEST_TARGET := lib_test
 
 # Directories
-DIR_SRC := src/
-DIR_OBJ := build/
-DIR_INC := include/
-DIR_TEST := test/
-DIR_LIB_TEST := python/
-INCLUDE := -I $(DIR_INC)
+DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/
+DIR_SRC := $(DIR_ROOT)src/
+DIR_OBJ := $(DIR_ROOT)build/
+DIR_INC := $(DIR_ROOT)include/
+DIR_TEST := $(DIR_ROOT)test/
+DIR_LIB := $(DIR_ROOT)build/
+DIR_LIB_TEST := $(DIR_ROOT)python/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes
@@ -50,11 +54,18 @@ TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
 
-# Ignore any files with these names
-.PHONY: all lib test lib_test clean
+# Header and library links
+INCLUDE := -I $(DIR_INC)
+LINK := -L $(DIR_LIB) -Wl,-rpath=$(DIR_LIB) -l$(TARGET)
 
+# ========
+# Rules
+# ========
 # Default to main program
 .DEFAULT_GOAL := $(TARGET)
+
+# Ignore any files with these names
+.PHONY: all lib test lib_test clean
 
 # Main program, unit tests, library, and library test
 all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
@@ -83,12 +94,12 @@ $(DIR_OBJ)%.o: $(DIR_TEST)%.cpp
 lib: $(LIB_TARGET)
 
 $(LIB_TARGET): $(OBJECTS)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $(LDFLAGS) $^ -o $(DIR_LIB)$@
 
 # Test using the shared library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(INCLUDE) -L./ -l$(TARGET) $(DIR_LIB_TEST)$@.cpp -o $(DIR_LIB_TEST)$@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(DIR_LIB_TEST)$@.cpp -o $(DIR_LIB_TEST)$@
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
-	@rm -fv $(TARGET) $(TEST_TARGET) $(LIB_TARGET)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET)
