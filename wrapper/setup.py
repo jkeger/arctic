@@ -1,5 +1,6 @@
-import os
 
+import os
+import numpy as np
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
@@ -31,8 +32,9 @@ setup(
                 libraries=["arctic"],
                 library_dirs=[dir_link],
                 runtime_library_dirs=[dir_link],
-                include_dirs=[dir_include],
+                include_dirs=[dir_include, np.get_include()],
                 extra_compile_args=["-std=c++11", "-O3"],
+                define_macros=[('NPY_NO_DEPRECATED_API', 0)],
             )
         ],
         compiler_directives={"language_level": "3"},
