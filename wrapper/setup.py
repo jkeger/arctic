@@ -4,13 +4,13 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
-dir_root = os.path.dirname(os.path.realpath(__file__)) + "/"
-dir_arctic = os.path.abspath(os.path.join(dir_root, os.pardir)) + "/"
+dir_wrapper = os.path.dirname(os.path.realpath(__file__)) + "/"
+dir_arctic = os.path.abspath(os.path.join(dir_wrapper, os.pardir)) + "/"
 dir_include = dir_arctic + "include/"
 dir_link = dir_arctic + "build/"
 
 # Clean
-for root, dirs, files in os.walk(dir_root, topdown=False):
+for root, dirs, files in os.walk(dir_wrapper, topdown=False):
     for name in files:
         file = os.path.join(root, name)
         if name.endswith(".o") or (

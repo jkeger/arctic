@@ -13,7 +13,7 @@
 # 		The shared library object.
 # 
 # 	lib_test
-# 		A test for using the shared library. See python/lib_test.cpp.
+# 		A test for using the shared library. See wrapper/lib_test.cpp.
 # 
 # 	all
 # 		All of the above.
@@ -42,7 +42,7 @@ DIR_OBJ := $(DIR_ROOT)build/
 DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
 DIR_LIB := $(DIR_ROOT)build/
-DIR_LIB_TEST := $(DIR_ROOT)python/
+DIR_LIB_TEST := $(DIR_ROOT)wrapper/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes

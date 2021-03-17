@@ -1,7 +1,7 @@
 arctic
 test_arctic
 libarctic.so
-python/lib_test
+wrapper/lib_test
 
 build/
 dev/
@@ -10,4 +10,4 @@ dev/
 *test*.*
 gmon.out
 callgrind.out.*
-python/wrapper.cp*
+wrapper/wrapper.cp*
