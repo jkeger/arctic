@@ -41,7 +41,7 @@ DIR_SRC := $(DIR_ROOT)src/
 DIR_OBJ := $(DIR_ROOT)build/
 DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
-DIR_LIB := $(DIR_ROOT)build/
+DIR_LIB := $(DIR_ROOT)
 DIR_LIB_TEST := $(DIR_ROOT)wrapper/
 $(shell mkdir -p $(DIR_OBJ))
 

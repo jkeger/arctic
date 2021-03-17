@@ -8,7 +8,7 @@ from Cython.Build import cythonize
 dir_wrapper = os.path.dirname(os.path.realpath(__file__)) + "/"
 dir_arctic = os.path.abspath(os.path.join(dir_wrapper, os.pardir)) + "/"
 dir_include = dir_arctic + "include/"
-dir_link = dir_arctic + "build/"
+dir_link = dir_arctic
 
 # Clean
 for root, dirs, files in os.walk(dir_wrapper, topdown=False):
