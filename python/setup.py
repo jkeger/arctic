@@ -32,8 +32,7 @@ setup(
                 library_dirs=[dir_link],
                 runtime_library_dirs=[dir_link],
                 include_dirs=[dir_include],
-                # extra_compile_args=["-I%s" % dir_include],
-                # extra_link_args=["-L%s -Wl,-rpath=%s -larctic" % (dir_link, dir_link)],
+                extra_compile_args=["-std=c++11", "-O3"],
             )
         ],
         compiler_directives={"language_level": "3"},
