@@ -25,8 +25,8 @@
 # Compiler
 CXX := g++
 CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
-# CXXFLAGS := -std=c++11 -pg -no-pie -fno-builtin       # for gprof
-# CXXFLAGS := -std=c++11 -g                             # for valgrind
+# CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
+# CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := -shared
 
 # Executables
@@ -102,4 +102,4 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
-	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) $(DIR_LIB)$(LIB_TEST_TARGET)

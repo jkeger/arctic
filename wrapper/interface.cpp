@@ -72,9 +72,6 @@ void test_add_cti(
         }
     }
     
-    printf("Test image: \n");
-    print_array_2D(image_pre_cti);
-    
     // CTI model parameters
     TrapInstantCapture trap(trap_density, trap_lifetime);
     std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
@@ -82,15 +79,16 @@ void test_add_cti(
     ROE roe(dwell_times);
     CCD ccd(CCDPhase(ccd_full_well_depth, ccd_well_notch_depth, ccd_well_fill_power));
     
-    // Add parallel and serial CTI
+    // // Add parallel and serial CTI
+    // std::valarray<std::valarray<double>> image_post_cti = add_cti(
+    //     image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
+    //     &traps, express, offset, start, stop);
+    
+    // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
-        &traps, express, offset, start, stop);
+        image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
     
-    printf("Image with CTI added: \n");
-    print_array_2D(image_post_cti);
-    
-    // Convert the results back to 1D to modify the input array
+    // Convert the results back to modify the 1D input array
     for (int i_row = 0; i_row < n_rows; i_row++) {
         for (int i_col = 0; i_col < n_columns; i_col++) {
             image[i_row * n_columns + i_col] = image_post_cti[i_row][i_col];

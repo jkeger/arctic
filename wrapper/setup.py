@@ -1,3 +1,9 @@
+"""
+    Setup for ArCTIC cython wrapper. See README.md.
+
+    Build with:
+        python3 setup.py build_ext --inplace
+"""
 
 import os
 import numpy as np
@@ -5,6 +11,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+# Directories
 dir_wrapper = os.path.dirname(os.path.realpath(__file__)) + "/"
 dir_arctic = os.path.abspath(os.path.join(dir_wrapper, os.pardir)) + "/"
 dir_include = dir_arctic + "include/"
@@ -22,6 +29,7 @@ for root, dirs, files in os.walk(dir_wrapper, topdown=False):
             os.remove(file)
 
 # Build
+os.environ["CC"] = "g++"
 setup(
     ext_modules=cythonize(
         [
@@ -34,6 +42,7 @@ setup(
                 runtime_library_dirs=[dir_link],
                 include_dirs=[dir_include, np.get_include()],
                 extra_compile_args=["-std=c++11", "-O3"],
+                # extra_compile_args=["-std=c++11", "-g"],
                 define_macros=[('NPY_NO_DEPRECATED_API', 0)],
             )
         ],

@@ -372,6 +372,9 @@ Python Wrapper (WIP)
 
 The shared library must first be compiled with `make lib` (or `make all`).
 
+Download the debug test image here:  
+http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
+
 
 Set up
 ------
