@@ -10,7 +10,7 @@
 # 		The unit tests. See test/*.cpp.
 # 
 # 	lib, libarctic.so
-# 		The shared library object.
+# 		The dynamic library shared object.
 # 
 # 	lib_test
 # 		A test for using the shared library. See wrapper/lib_test.cpp.
@@ -90,13 +90,13 @@ $(TEST_TARGET): $(TEST_OBJECTS)
 $(DIR_OBJ)%.o: $(DIR_TEST)%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@
 
-# Shared library
+# Dynamic library
 lib: $(LIB_TARGET)
 
 $(LIB_TARGET): $(OBJECTS)
 	$(CXX) $(LDFLAGS) $^ -o $(DIR_LIB)$@
 
-# Test using the shared library
+# Test using the library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(DIR_LIB_TEST)$@.cpp -o $(DIR_LIB_TEST)$@
 
