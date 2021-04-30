@@ -1,5 +1,7 @@
 arctic
 test_arctic
+libarctic.so
+wrapper/lib_test
 
 build/
 dev/
@@ -8,3 +10,4 @@ dev/
 *test*.*
 gmon.out
 callgrind.out.*
+wrapper/wrapper.cp*

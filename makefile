@@ -1,20 +1,48 @@
+# 
+# 	Makefile for ArCTIC
+# 
+# 	Options
+# 	-------
+# 	arctic
+# 		(Default) The main program. See src/main.cpp.
+# 
+# 	test, test_arctic
+# 		The unit tests. See test/*.cpp.
+# 
+# 	lib, libarctic.so
+# 		The dynamic library shared object.
+# 
+# 	lib_test
+# 		A test for using the shared library. See wrapper/lib_test.cpp.
+# 
+# 	all
+# 		All of the above.
+# 
 
+# ========
+# Set up
+# ========
 # Compiler
 CXX := g++
-CXXFLAGS := -std=c++11 -O3 -Wall -Wno-reorder -Wno-sign-compare
-# CXXFLAGS := -std=c++11 -pg -no-pie -fno-builtin       # for gprof
-# CXXFLAGS := -std=c++11 -g                             # for valgrind
+CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
+# CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
+# CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
+LDFLAGS := -shared
 
 # Executables
 TARGET := arctic
 TEST_TARGET := test_arctic
+LIB_TARGET := libarctic.so
+LIB_TEST_TARGET := lib_test
 
 # Directories
-DIR_SRC := src/
-DIR_OBJ := build/
-DIR_INC := include/
-DIR_TEST := test/
-INCLUDE := -I $(DIR_INC)
+DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))/
+DIR_SRC := $(DIR_ROOT)src/
+DIR_OBJ := $(DIR_ROOT)build/
+DIR_INC := $(DIR_ROOT)include/
+DIR_TEST := $(DIR_ROOT)test/
+DIR_LIB := $(DIR_ROOT)
+DIR_LIB_TEST := $(DIR_ROOT)wrapper/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes
@@ -26,14 +54,21 @@ TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
 
-# Ignore any files with these names
-.PHONY: all test clean
+# Header and library links
+INCLUDE := -I $(DIR_INC)
+LINK := -L $(DIR_LIB) -Wl,-rpath=$(DIR_LIB) -l$(TARGET)
 
+# ========
+# Rules
+# ========
 # Default to main program
 .DEFAULT_GOAL := $(TARGET)
 
-# Main program and unit tests
-all: $(TARGET) $(TEST_TARGET)
+# Ignore any files with these names
+.PHONY: all lib test lib_test clean
+
+# Main program, unit tests, library, and library test
+all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
 
 # Main program
 $(TARGET): $(OBJECTS)
@@ -55,6 +90,16 @@ $(TEST_TARGET): $(TEST_OBJECTS)
 $(DIR_OBJ)%.o: $(DIR_TEST)%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@
 
+# Dynamic library
+lib: $(LIB_TARGET)
+
+$(LIB_TARGET): $(OBJECTS)
+	$(CXX) $(LDFLAGS) $^ -o $(DIR_LIB)$@
+
+# Test using the library
+$(LIB_TEST_TARGET): $(LIB_TARGET)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(DIR_LIB_TEST)$@.cpp -o $(DIR_LIB_TEST)$@
+
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
-	@rm -fv $(TARGET) $(TEST_TARGET)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) $(DIR_LIB)$(LIB_TEST_TARGET)

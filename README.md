@@ -32,13 +32,17 @@ Contents
     + Trap species
     + Trap managers
 + Examples
++ Python Wrapper
 
 
 
 Installation
 ============
-Compile the main code with `make` (or `make arctic` or `make all`) in the top 
-directory.
+Compile the main code with `make` (or `make all`) in the root directory. 
+
+See the `makefile` header documentation for all the options.
+
+See the Wrapper section for the python wrapper.
 
 
 
@@ -79,6 +83,9 @@ Add arguments to select which tests to run by their names, e.g:
 + `~*'not these'*`  All tests except those that contain 'not these'.
 + `-# [#filename]`  All tests in filename.cpp.
 
+Compiling with `make lib_test` will create a simple test of using the shared 
+object library (`build/libarctic.so`), which is run with `./wrapper/lib_test`.
+
 
 
 Documentation
@@ -103,7 +110,8 @@ Files
 A quick summary of the code files and their contents:
 
 + `arctic`, `test_arctic`   The program and unit-test executables.
-+ `makefile`                The makefile for compiling the code.
++ `makefile`                The makefile for compiling the code. See its header.
++ `libarctic.so`            The shared object library.
 + `src/`                    Source code files.
     + `main.cpp`  
         Main program. See above and its documentation for the command-line 
@@ -133,8 +141,10 @@ A quick summary of the code files and their contents:
         electrons and track the trapped electrons using the "watermarks".
     + `util.cpp`  
         Miscellaneous internal utilities.
-+ `include/`                The `*.hpp` header files for each source code file.
-+ `test/`                   Unit tests and examples.
++ `include/`    The `*.hpp` header files for each source code file.
++ `test/`       Unit tests and examples.
++ `build/`      Compiled object and dependency files.
++ `wrapper/`    The python, Cython, and other files for the wrapper (see below).
 
 
 
@@ -237,10 +247,11 @@ before the actual region of interest.
 
 CCD
 ---
-How electrons fill the volume inside each (phase of a) pixel.
+How electrons fill the volume inside each (phase of a) pixel in the charged-
+coupled device (CCD) detector.
 
 By default, charge is assumed to move instantly from one pixel to another, but 
-each pixel can be separated into multiple phases, in combination with a  
+each pixel can be separated into multiple phases, in combination with a 
 multiphase ROE clock sequence.
 
 See the `CCD` and `CCDPhase` class docstrings in `ccd.cpp` for the full 
@@ -318,8 +329,8 @@ See the `TrapManager` and child class docstrings in `trap_managers.cpp` for the
 full documentation.
 
 To allow the options of multiple types of trap species and/or multiple phases in 
-each pixel, the code actually uses a top-level trap-manager manager to hold the 
-necessary multiple `TrapManager` objects. See the `TrapManagerManager` class 
+each pixel, the code actually uses a top-level "trap-manager manager" to hold 
+the necessary multiple `TrapManager` objects. See the `TrapManagerManager` class
 docstring for the details.
 
 ### Watermarks 
@@ -353,3 +364,40 @@ Examples
 ========
 See `run_custom_code()` in `src/main.cpp` for a short and simple example of 
 using the core features of arctic to add and then remove CTI from a test image.
+
+
+
+Python Wrapper (WIP)
+==============
+
+The shared library must first be compiled with `make lib` (or `make all`).
+
+Download the debug test image here:  
+http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
+
+
+Set up
+------
++ `cd wrapper/`
++ `python3 setup.py build_ext --inplace`
++ Test: `python3 test_wrapper.py`
+
+
+Files
+-----
+In `wrapper/`:
+
++ `lib_test.cpp`  
+    A simple (just C++) test of using the library. Compile with 
+    `make lib_test` and run with `./wrapper/lib_test`.
++ `test_wrapper.py`  
+    A simple test and demo of using the compiled wrapper.
++ `setup.py`  
+    The file for compiling the package.
++ `interface.cpp`, `interface.hpp`  
+    The source and header files for functions to help interface between the 
+    main C++ and Cython.
++ `wrapper.pyx`  
+    The Cython wrappers for the C++ functions.
++ `build/`, `wrapper.cpp`, `wrapper.*.so`  
+    Compiled output files.
