@@ -35,7 +35,7 @@ setup(
         [
             Extension(
                 "wrapper",
-                sources=["wrapper.pyx", "interface.cpp"],
+                sources=[dir_wrapper + "wrapper.pyx", dir_wrapper + "interface.cpp"],
                 language="c++",
                 libraries=["arctic"],
                 library_dirs=[dir_link],

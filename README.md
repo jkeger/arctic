@@ -370,34 +370,35 @@ using the core features of arctic to add and then remove CTI from a test image.
 Python Wrapper (WIP)
 ==============
 
-The shared library must first be compiled with `make lib` (or `make all`).
+Set up
+------
++ `make wrapper` (or `make all`)  
+    or `make lib` then `python3 wrapper/setup.py build_ext --inplace`
++ Test: `python3 test/test_wrapper.py`
 
 Download the debug test image here:  
 http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
 
 
-Set up
-------
-+ `cd wrapper/`
-+ `python3 setup.py build_ext --inplace`
-+ Test: `python3 test_wrapper.py`
-
-
 Files
 -----
++ `test/test_wrapper.py`  
+    A simple test and demo of using the compiled wrapper.
+
 In `wrapper/`:
 
-+ `lib_test.cpp`  
-    A simple (just C++) test of using the library. Compile with 
-    `make lib_test` and run with `./wrapper/lib_test`.
-+ `test_wrapper.py`  
-    A simple test and demo of using the compiled wrapper.
 + `setup.py`  
     The file for compiling the package.
-+ `interface.cpp`, `interface.hpp`  
-    The source and header files for functions to help interface between the 
-    main C++ and Cython.
 + `wrapper.pyx`  
     The Cython wrappers for the C++ functions.
++ `classes.py`
+    Python versions of the `CCD`, `ROE`, and `Trap` classes that are needed as 
+    arguments for the main CTI functions.
++ `interface.cpp`, `interface.hpp`  
+    The source and header files for functions to help interface between Cython
+    and the main C++, e.g. convert the inputs into their C++ class objects.
 + `build/`, `wrapper.cpp`, `wrapper.*.so`  
     Compiled output files.
++ `lib_test.cpp`  
+    A simple (just C++) test of using the precompiled library. Compile with 
+    `make lib_test` and run with `./wrapper/lib_test`.
