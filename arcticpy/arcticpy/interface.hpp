@@ -14,8 +14,11 @@ void add_cti(
     int n_rows, 
     int n_columns, 
     // Traps
-    double trap_density, 
-    double trap_lifetime,
+    double* trap_densities,
+    double* trap_release_timescales,
+    double* trap_capture_timescales,
+    int n_traps_standard,
+    int n_traps_instant_capture,
     // ROE
     double* dwell_times_in, 
     int n_steps, 

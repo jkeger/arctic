@@ -10,8 +10,11 @@ cdef extern from "interface.hpp":
         int n_rows, 
         int n_columns, 
         # Traps
-        double trap_density, 
-        double trap_lifetime, 
+        double* trap_densities,
+        double* trap_release_timescales,
+        double* trap_capture_timescales,
+        int n_traps_standard,
+        int n_traps_instant_capture,
         # ROE
         double* dwell_times_in, 
         int n_steps, 
@@ -56,8 +59,11 @@ def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):
 def cy_add_cti(
     np.ndarray[np.double_t, ndim=2] image,
     # Traps
-    double trap_density,
-    double trap_lifetime,
+    np.ndarray[np.double_t, ndim=1] trap_densities,
+    np.ndarray[np.double_t, ndim=1] trap_release_timescales,
+    np.ndarray[np.double_t, ndim=1] trap_capture_timescales,
+    int n_traps_standard,
+    int n_traps_instant_capture,
     # ROE
     np.ndarray[np.double_t, ndim=1] dwell_times,
     int empty_traps_between_columns,
@@ -82,16 +88,11 @@ def cy_add_cti(
         image.shape[0],
         image.shape[1],
         # Traps
-        trap_density,
-        trap_lifetime,
-        # &trap_densities[0],
-        # len(trap_densities),
-        # &trap_lifetimes[0],
-        # len(trap_lifetimes),
-        # &trap_instant_capture_densities[0],
-        # len(trap_instant_capture_densities),
-        # &trap_instant_capture_lifetimes[0],
-        # len(trap_instant_capture_lifetimes),
+        &trap_densities[0],
+        &trap_release_timescales[0],
+        &trap_capture_timescales[0],
+        n_traps_standard,
+        n_traps_instant_capture,
         # ROE
         &dwell_times[0],
         len(dwell_times),

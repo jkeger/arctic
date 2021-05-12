@@ -1,6 +1,27 @@
 import numpy as np
 
 
+class Trap(object):
+    def __init__(
+        self,
+        density,
+        release_timescale,
+        capture_timescale,
+    ):
+        self.density = density
+        self.release_timescale = release_timescale
+        self.capture_timescale = capture_timescale
+
+
+class TrapInstantCapture(Trap):
+    def __init__(
+        self,
+        density,
+        release_timescale,
+    ):
+        super().__init__(density, release_timescale, 0.0)
+
+
 class ROE(object):
     def __init__(
         self,
@@ -37,14 +58,3 @@ class CCD(object):
     ):
         self.phases = phases
         self.fraction_of_traps_per_phase = np.array(fraction_of_traps_per_phase)
-
-        # Extract convenient arrays of the parameters for each phases
-        self.full_well_depths = np.array(
-            [phase.full_well_depth for phase in self.phases]
-        )
-        self.well_notch_depths = np.array(
-            [phase.well_notch_depth for phase in self.phases]
-        )
-        self.well_fill_powers = np.array(
-            [phase.well_fill_power for phase in self.phases]
-        )
