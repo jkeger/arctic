@@ -32,7 +32,14 @@ void print_array_2D(double* array, int n_rows, int n_columns) {
 }
 
 /*
-    Wrapper for arctic add_cti().
+    Wrapper for arctic's add_cti() in src/cti.cpp.
+    
+    Add CTI trails to an image by trapping, releasing, and moving electrons
+    along their independent columns, for parallel and/or serial clocking.
+    
+    This wrapper converts the simple numbers and arrays from the Cython wrapper
+    into C++ variables to pass to the main arcctic library. See cy_add_cti() in 
+    arcticpy/wrapper.pyx and add_cti() in arcticpy/main.py.
 */
 void add_cti(
     double* image, int n_rows, int n_columns,
@@ -183,14 +190,38 @@ void add_cti(
     // ========
     // Add CTI
     // ========
-    std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti,
-        // Parallel
-        &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
-        parallel_offset, parallel_window_start, parallel_window_stop,
-        // Serial
-        &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
-        serial_window_start, serial_window_stop);
+    std::valarray<std::valarray<double>> image_post_cti;
+    // No parallel, serial only
+    if (parallel_n_traps_standard + parallel_n_traps_instant_capture == 0) {
+        image_post_cti = add_cti(
+            image_pre_cti,
+            // Parallel
+            nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            // Serial
+            &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
+            serial_window_start, serial_window_stop);
+    }
+    // No serial, parallel only
+    else if (serial_n_traps_standard + serial_n_traps_instant_capture == 0) {
+        image_post_cti = add_cti(
+            image_pre_cti,
+            // Parallel
+            &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
+            parallel_offset, parallel_window_start, parallel_window_stop,
+            // Serial
+            nullptr, nullptr, nullptr, 0, 0, 0, -1);
+    }
+    // Parallel and serial
+    else {
+        image_post_cti = add_cti(
+            image_pre_cti,
+            // Parallel
+            &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
+            parallel_offset, parallel_window_start, parallel_window_stop,
+            // Serial
+            &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
+            serial_window_start, serial_window_stop);
+    }
 
     // Convert the output image back to modify the input image array
     for (int i_row = 0; i_row < n_rows; i_row++) {

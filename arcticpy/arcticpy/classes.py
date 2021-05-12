@@ -4,7 +4,7 @@ import numpy as np
 class ROE(object):
     def __init__(
         self,
-        dwell_times=[1],
+        dwell_times=[1.0],
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=True,
         force_release_away_from_readout=True,
@@ -37,6 +37,11 @@ class CCD(object):
     ):
         self.phases = phases
         self.fraction_of_traps_per_phase = np.array(fraction_of_traps_per_phase)
+        
+        # Extract convenient arrays
+        self.full_well_depths = np.array([phase.full_well_depth for phase in self.phases])
+        self.well_notch_depths = np.array([phase.well_notch_depth for phase in self.phases])
+        self.well_fill_powers = np.array([phase.well_fill_power for phase in self.phases])
 
 
 class Trap(object):

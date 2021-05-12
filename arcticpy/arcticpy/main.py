@@ -1,6 +1,6 @@
 import numpy as np
 import wrapper as w
-from arcticpy.classes import Trap, TrapInstantCapture
+from arcticpy.classes import ROE, CCDPhase, CCD, Trap, TrapInstantCapture
 
 
 def add_cti(
@@ -11,100 +11,114 @@ def add_cti(
     parallel_traps=None,
     parallel_express=0,
     parallel_offset=0,
-    parallel_window_start=None,
-    parallel_window_stop=None,
+    parallel_window_start=0,
+    parallel_window_stop=-1,
     # Serial
     serial_ccd=None,
     serial_roe=None,
     serial_traps=None,
     serial_express=0,
     serial_offset=0,
-    serial_window_start=None,
-    serial_window_stop=None,
+    serial_window_start=0,
+    serial_window_stop=-1,
 ):
+    """
+    Wrapper for arctic's add_cti() in src/cti.cpp, see its documentation.
+    
+    Add CTI trails to an image by trapping, releasing, and moving electrons
+    along their independent columns, for parallel and/or serial clocking.
+    
+    This wrapper extracts simple numbers and arrays from the user-input objects 
+    to pass to the C++ via Cython. See cy_add_cti() in arcticpy/wrapper.pyx and 
+    add_cti() in arcticpy/interface.cpp.
+    """
+    image_pre_cti = np.copy(image_pre_cti)
+    
     # Extract inputs to pass to the wrapper
 
-    # ========
     # Parallel
-    # ========
-    # Extract CCD phase inputs
-    parallel_ccd.full_well_depths = np.array(
-        [phase.full_well_depth for phase in parallel_ccd.phases]
-    )
-    parallel_ccd.well_notch_depths = np.array(
-        [phase.well_notch_depth for phase in parallel_ccd.phases]
-    )
-    parallel_ccd.well_fill_powers = np.array(
-        [phase.well_fill_power for phase in parallel_ccd.phases]
-    )
-
-    # Extract trap inputs
-    parallel_traps_standard = [trap for trap in parallel_traps if type(trap) == Trap]
-    parallel_traps_instant_capture = [
-        trap for trap in parallel_traps if type(trap) == TrapInstantCapture
-    ]
-    parallel_n_traps_standard = len(parallel_traps_standard)
-    parallel_n_traps_instant_capture = len(parallel_traps_instant_capture)
-    if parallel_n_traps_standard + parallel_n_traps_instant_capture != len(
-        parallel_traps
-    ):
-        raise Exception(
-            "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
-            % (
-                parallel_n_traps_standard,
-                parallel_n_traps_instant_capture,
-                len(parallel_traps),
+    if parallel_traps is not None:
+        # Extract trap inputs
+        parallel_traps_standard = [trap for trap in parallel_traps if type(trap) == Trap]
+        parallel_traps_instant_capture = [
+            trap for trap in parallel_traps if type(trap) == TrapInstantCapture
+        ]
+        parallel_n_traps_standard = len(parallel_traps_standard)
+        parallel_n_traps_instant_capture = len(parallel_traps_instant_capture)
+        if parallel_n_traps_standard + parallel_n_traps_instant_capture != len(
+            parallel_traps
+        ):
+            raise Exception(
+                "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+                % (
+                    parallel_n_traps_standard,
+                    parallel_n_traps_instant_capture,
+                    len(parallel_traps),
+                )
             )
+        # Make sure the order is correct
+        parallel_traps = parallel_traps_standard + parallel_traps_instant_capture
+        parallel_trap_densities = np.array([trap.density for trap in parallel_traps])
+        parallel_trap_release_timescales = np.array(
+            [trap.release_timescale for trap in parallel_traps]
         )
-    # Make sure the order is correct
-    parallel_traps = parallel_traps_standard + parallel_traps_instant_capture
-    parallel_trap_densities = np.array([trap.density for trap in parallel_traps])
-    parallel_trap_release_timescales = np.array(
-        [trap.release_timescale for trap in parallel_traps]
-    )
-    parallel_trap_capture_timescales = np.array(
-        [trap.capture_timescale for trap in parallel_traps]
-    )
+        parallel_trap_capture_timescales = np.array(
+            [trap.capture_timescale for trap in parallel_traps]
+        )
+    else:
+        # Set dummy variables
+        parallel_roe = ROE()
+        parallel_ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
+        parallel_trap_densities = np.array([0.0])
+        parallel_trap_release_timescales = np.array([0.0])
+        parallel_trap_capture_timescales = np.array([0.0])
+        parallel_n_traps_standard = 0
+        parallel_n_traps_instant_capture = 0
+        parallel_express = 0
+        parallel_offset = 0
+        parallel_window_start = 0
+        parallel_window_stop = 0
 
-    # ========
     # Serial
-    # ========
-    # Extract CCD phase inputs
-    serial_ccd.full_well_depths = np.array(
-        [phase.full_well_depth for phase in serial_ccd.phases]
-    )
-    serial_ccd.well_notch_depths = np.array(
-        [phase.well_notch_depth for phase in serial_ccd.phases]
-    )
-    serial_ccd.well_fill_powers = np.array(
-        [phase.well_fill_power for phase in serial_ccd.phases]
-    )
-
-    # Extract trap inputs
-    serial_traps_standard = [trap for trap in serial_traps if type(trap) == Trap]
-    serial_traps_instant_capture = [
-        trap for trap in serial_traps if type(trap) == TrapInstantCapture
-    ]
-    serial_n_traps_standard = len(serial_traps_standard)
-    serial_n_traps_instant_capture = len(serial_traps_instant_capture)
-    if serial_n_traps_standard + serial_n_traps_instant_capture != len(serial_traps):
-        raise Exception(
-            "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
-            % (
-                serial_n_traps_standard,
-                serial_n_traps_instant_capture,
-                len(serial_traps),
+    if serial_traps is not None:
+        # Extract trap inputs
+        serial_traps_standard = [trap for trap in serial_traps if type(trap) == Trap]
+        serial_traps_instant_capture = [
+            trap for trap in serial_traps if type(trap) == TrapInstantCapture
+        ]
+        serial_n_traps_standard = len(serial_traps_standard)
+        serial_n_traps_instant_capture = len(serial_traps_instant_capture)
+        if serial_n_traps_standard + serial_n_traps_instant_capture != len(serial_traps):
+            raise Exception(
+                "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+                % (
+                    serial_n_traps_standard,
+                    serial_n_traps_instant_capture,
+                    len(serial_traps),
+                )
             )
+        # Make sure the order is correct
+        serial_traps = serial_traps_standard + serial_traps_instant_capture
+        serial_trap_densities = np.array([trap.density for trap in serial_traps])
+        serial_trap_release_timescales = np.array(
+            [trap.release_timescale for trap in serial_traps]
         )
-    # Make sure the order is correct
-    serial_traps = serial_traps_standard + serial_traps_instant_capture
-    serial_trap_densities = np.array([trap.density for trap in serial_traps])
-    serial_trap_release_timescales = np.array(
-        [trap.release_timescale for trap in serial_traps]
-    )
-    serial_trap_capture_timescales = np.array(
-        [trap.capture_timescale for trap in serial_traps]
-    )
+        serial_trap_capture_timescales = np.array(
+            [trap.capture_timescale for trap in serial_traps]
+        )
+    else:
+        # Set dummy variables
+        serial_roe = ROE()
+        serial_ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
+        serial_trap_densities = np.array([0.0])
+        serial_trap_release_timescales = np.array([0.0])
+        serial_trap_capture_timescales = np.array([0.0])
+        serial_n_traps_standard = 0
+        serial_n_traps_instant_capture = 0
+        serial_express = 0
+        serial_offset = 0
+        serial_window_start = 0
+        serial_window_stop = 0
 
     # ========
     # Add CTI
