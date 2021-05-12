@@ -16,7 +16,7 @@
 # 		A test for using the shared library. See test/lib_test.cpp.
 # 
 # 	wrapper
-# 		The cython wrapper.
+# 		The cython wrapper for the arcticpy python module.
 # 
 # 	default
 # 		The main program and the library.
@@ -48,7 +48,7 @@ DIR_OBJ := $(DIR_ROOT)build/
 DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
 DIR_LIB := $(DIR_ROOT)
-DIR_WRAPPER := $(DIR_ROOT)wrapper/
+DIR_WRAPPER := $(DIR_ROOT)arcticpy/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes
@@ -59,7 +59,7 @@ TEST_SOURCES := $(shell find $(DIR_TEST) -type f -name *.cpp)
 TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
-WRAPPER_OBJECTS := $(DIR_WRAPPER)build/* $(DIR_ROOT)wrapper.*.so $(DIR_WRAPPER)wrapper.cpp
+WRAPPER_OBJECTS := $(DIR_WRAPPER)build/* $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER)wrapper.cpp
 
 # Header and library links
 INCLUDE := -I $(DIR_INC)

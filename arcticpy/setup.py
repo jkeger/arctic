@@ -13,6 +13,7 @@ from Cython.Build import cythonize
 
 # Directories
 dir_wrapper = os.path.dirname(os.path.realpath(__file__)) + "/"
+dir_src = dir_wrapper + "arcticpy/"
 dir_arctic = os.path.abspath(os.path.join(dir_wrapper, os.pardir)) + "/"
 dir_include = dir_arctic + "include/"
 dir_link = dir_arctic
@@ -35,7 +36,7 @@ setup(
         [
             Extension(
                 "wrapper",
-                sources=[dir_wrapper + "wrapper.pyx", dir_wrapper + "interface.cpp"],
+                sources=[dir_src + "wrapper.pyx", dir_src + "interface.cpp"],
                 language="c++",
                 libraries=["arctic"],
                 library_dirs=[dir_link],

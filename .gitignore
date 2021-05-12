@@ -1,10 +1,11 @@
+
 arctic
 test_arctic
 libarctic.so
-wrapper.*.so
-wrapper/lib_test
-wrapper/wrapper.cpp
-
+*.cpython*.so
+arcticpy/lib_test
+arcticpy/arcticpy/wrapper.cpp
+arcticpy/arcticpy/__pycache__/
 build/
 dev/
 
