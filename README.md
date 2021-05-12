@@ -144,7 +144,7 @@ A quick summary of the code files and their contents:
 + `include/`    The `*.hpp` header files for each source code file.
 + `test/`       Unit tests and examples.
 + `build/`      Compiled object and dependency files.
-+ `wrapper/`    The python, Cython, and other files for the wrapper (see below).
++ `arcticpy/`   The python, Cython, and other files for the wrapper (see below).
 
 
 
@@ -367,14 +367,14 @@ using the core features of arctic to add and then remove CTI from a test image.
 
 
 
-Python Wrapper (WIP)
-==============
+ArCTICPy Python Wrapper (WIP)
+=======================
 
 Set up
 ------
 + `make wrapper` (or `make all`)  
-    or `make lib` then `python3 wrapper/setup.py build_ext --inplace`
-+ Test: `python3 test/test_wrapper.py`
+    or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`
++ Test: `python3 arcticpy/test_wrapper.py`
 
 Download the debug test image here:  
 http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
@@ -382,23 +382,26 @@ http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
 
 Files
 -----
-+ `test/test_wrapper.py`  
-    A simple test and demo of using the compiled wrapper.
+In `arcticpy/`:
 
-In `wrapper/`:
-
-+ `setup.py`  
-    The file for compiling the package.
-+ `wrapper.pyx`  
-    The Cython wrappers for the C++ functions.
-+ `classes.py`
-    Python versions of the `CCD`, `ROE`, and `Trap` classes that are needed as 
-    arguments for the main CTI functions.
-+ `interface.cpp`, `interface.hpp`  
-    The source and header files for functions to help interface between Cython
-    and the main C++, e.g. convert the inputs into their C++ class objects.
-+ `build/`, `wrapper.cpp`, `wrapper.*.so`  
-    Compiled output files.
++ `test_wrapper.py`         A simple test and demo of using the python wrapper.
++ `setup.py`                The file for compiling the package.
++ `arcticpy/`               Source files.
+    + `main.py`  
+        The python versions of the primary user-facing functions `add_cti()` and 
+        `remove_cti()`.
+    + `classes.py`  
+        The python versions of the `CCD`, `ROE`, and `Trap` classes that are 
+        needed as arguments for the main CTI functions. These mirror the inputs 
+        for the corresponding same-name C++ classes described above.
+    + `wrapper.pyx`  
+        The Cython wrapper, passes the python inputs to the C++ functions.
+    + `interface.cpp`, `interface.hpp`  
+        The source and header files for functions to cleanly interface between 
+        Cython and the main C++. e.g. converts the image array and CTI model 
+        inputs into the required C++ class objects.
+    + `wrapper.cpp`, `../wrapper.cpython*.so`  
+        Compiled Cython output files.
 + `lib_test.cpp`  
     A simple (just C++) test of using the precompiled library. Compile with 
-    `make lib_test` and run with `./wrapper/lib_test`.
+    `make lib_test` and run with `./arcticpy/lib_test`.

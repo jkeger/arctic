@@ -49,6 +49,7 @@ DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
 DIR_LIB := $(DIR_ROOT)
 DIR_WRAPPER := $(DIR_ROOT)arcticpy/
+DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/arcticpy/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes
@@ -59,7 +60,6 @@ TEST_SOURCES := $(shell find $(DIR_TEST) -type f -name *.cpp)
 TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
-WRAPPER_OBJECTS := $(DIR_WRAPPER)build/* $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER)wrapper.cpp
 
 # Header and library links
 INCLUDE := -I $(DIR_INC)
@@ -114,5 +114,6 @@ wrapper: $(LIB_TARGET)
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
-	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) $(DIR_WRAPPER)$(LIB_TEST_TARGET)
-	@rm -fvr $(WRAPPER_OBJECTS)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) 
+	@rm -fv $(DIR_ROOT)build/lib_test.[od]
+	@rm -fvr $(DIR_ROOT)build/temp.* $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
