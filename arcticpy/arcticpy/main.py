@@ -19,14 +19,16 @@ def add_cti(
     n_traps_standard = len(traps_standard)
     n_traps_instant_capture = len(traps_instant_capture)
     if n_traps_standard + n_traps_instant_capture != len(traps):
-        raise Exception("Not all traps extracted successfully (%d standard, %d instant capture, % total)"
-            % (n_traps_standard, n_traps_instant_capture, len(traps)))
+        raise Exception(
+            "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+            % (n_traps_standard, n_traps_instant_capture, len(traps))
+        )
     # Make sure the order is correct
     traps = traps_standard + traps_instant_capture
     trap_densities = np.array([trap.density for trap in traps])
     trap_release_timescales = np.array([trap.release_timescale for trap in traps])
     trap_capture_timescales = np.array([trap.capture_timescale for trap in traps])
-    
+
     # Extract CCD phase inputs
     ccd.full_well_depths = np.array([phase.full_well_depth for phase in ccd.phases])
     ccd.well_notch_depths = np.array([phase.well_notch_depth for phase in ccd.phases])
