@@ -37,7 +37,7 @@
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
-        
+        
         For trap pumping, it is currently assumed that only a single pixel is
         active and contains traps, so row_stop must be row_start + 1. See
         ROETrapPumping for more detail.
@@ -323,12 +323,15 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         The output array of pixel values with CTI added.
 */
 std::valarray<std::valarray<double>> add_cti(
-    std::valarray<std::valarray<double>>& image_in, ROE* parallel_roe,
-    CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps,
-    int parallel_express, int parallel_offset, int parallel_window_start,
-    int parallel_window_stop, ROE* serial_roe, CCD* serial_ccd,
-    std::valarray<std::valarray<Trap>>* serial_traps, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop) {
+    std::valarray<std::valarray<double>>& image_in,
+    // Parallel
+    ROE* parallel_roe, CCD* parallel_ccd,
+    std::valarray<std::valarray<Trap>>* parallel_traps, int parallel_express,
+    int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    // Serial
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -380,12 +383,15 @@ std::valarray<std::valarray<double>> add_cti(
         The output array of pixel values with CTI removed.
 */
 std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in, int n_iterations, ROE* parallel_roe,
-    CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps,
-    int parallel_express, int parallel_offset, int parallel_window_start,
-    int parallel_window_stop, ROE* serial_roe, CCD* serial_ccd,
-    std::valarray<std::valarray<Trap>>* serial_traps, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop) {
+    std::valarray<std::valarray<double>>& image_in,
+    // Parallel
+    int n_iterations, ROE* parallel_roe, CCD* parallel_ccd,
+    std::valarray<std::valarray<Trap>>* parallel_traps, int parallel_express,
+    int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    // Serial
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image_remove_cti = image_in;
