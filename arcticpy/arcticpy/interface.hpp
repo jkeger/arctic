@@ -49,4 +49,6 @@ void add_cti(
     int serial_n_traps_instant_capture,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
-    int serial_window_stop);
+    int serial_window_stop,
+    // Output
+    int verbosity);

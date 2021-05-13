@@ -62,7 +62,8 @@ cdef extern from "interface.hpp":
         int serial_express, 
         int serial_offset, 
         int serial_window_start, 
-        int serial_window_stop
+        int serial_window_stop,
+        int verbosity
     )
 
 
@@ -138,13 +139,15 @@ def cy_add_cti(
     int serial_offset,
     int serial_window_start,
     int serial_window_stop,
+    # Output
+    int verbosity,
 ):
     """
     Cython wrapper for arctic's add_cti() in src/cti.cpp.
     
-    This wrapper passes the simple numbers and arrays from the python wrapper  
-    to the C++ interface. See add_cti() in arcticpy/main.py and add_cti() in 
-    arcticpy/interface.cpp.
+    This wrapper passes the individual numbers and arrays extracted by the 
+    python wrapper to the C++ interface. See add_cti() in arcticpy/main.py and 
+    add_cti() in arcticpy/interface.cpp.
     """
     image = check_contiguous(image)
     
@@ -206,6 +209,8 @@ def cy_add_cti(
         serial_offset,
         serial_window_start,
         serial_window_stop,
+        # Output
+        verbosity,
     )
     
     return image

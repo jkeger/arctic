@@ -21,6 +21,8 @@ def add_cti(
     serial_offset=0,
     serial_window_start=0,
     serial_window_stop=-1,
+    # Output
+    verbosity=1,
 ):
     """
     Wrapper for arctic's add_cti() in src/cti.cpp, see its documentation.
@@ -28,9 +30,9 @@ def add_cti(
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns, for parallel and/or serial clocking.
     
-    This wrapper extracts simple numbers and arrays from the user-input objects 
-    to pass to the C++ via Cython. See cy_add_cti() in arcticpy/wrapper.pyx and 
-    add_cti() in arcticpy/interface.cpp.
+    This wrapper extracts individual numbers and arrays from the user-input 
+    objects to pass to the C++ via Cython. See cy_add_cti() in 
+    arcticpy/wrapper.pyx and add_cti() in arcticpy/interface.cpp.
     """
     image_pre_cti = np.copy(image_pre_cti)
     
@@ -176,4 +178,6 @@ def add_cti(
         serial_offset,
         serial_window_start,
         serial_window_stop,
+        # Output
+        verbosity,
     )

@@ -707,8 +707,10 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
     double n_free_electrons) {
 
     double n_released = n_electrons_released();
+    print_v(2, "n_electrons_released  %g \n", n_released);
 
     double n_captured = n_electrons_captured(n_free_electrons + n_released);
+    print_v(2, "n_electrons_captured  %g \n", n_captured);
 
     return n_released - n_captured;
 }

@@ -33,13 +33,13 @@ void print_array_2D(double* array, int n_rows, int n_columns) {
 
 /*
     Wrapper for arctic's add_cti() in src/cti.cpp.
-    
+    
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns, for parallel and/or serial clocking.
-    
-    This wrapper converts the simple numbers and arrays from the Cython wrapper
-    into C++ variables to pass to the main arcctic library. See cy_add_cti() in 
-    arcticpy/wrapper.pyx and add_cti() in arcticpy/main.py.
+    
+    This wrapper converts the individual numbers and arrays from the Cython 
+    wrapper into C++ variables to pass to the main arcctic library. See 
+    cy_add_cti() in arcticpy/wrapper.pyx and add_cti() in arcticpy/main.py.
 */
 void add_cti(
     double* image, int n_rows, int n_columns,
@@ -81,7 +81,11 @@ void add_cti(
     int serial_n_traps_instant_capture,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
-    int serial_window_stop) {
+    int serial_window_stop,
+    // Output
+    int verbosity) {
+
+    set_verbosity(verbosity);
 
     // Convert the inputs into the relevant C++ objects
 
@@ -125,18 +129,14 @@ void add_cti(
     std::valarray<Trap> parallel_traps_instant_capture(
         TrapInstantCapture(0.0, 0.0), parallel_n_traps_instant_capture);
     for (int i_trap = 0; i_trap < parallel_n_traps_standard; i_trap++) {
-        parallel_traps_standard[i_trap].density = parallel_trap_densities[i_trap];
-        parallel_traps_standard[i_trap].release_timescale =
-            parallel_trap_release_timescales[i_trap];
-        parallel_traps_standard[i_trap].capture_timescale =
-            parallel_trap_capture_timescales[i_trap];
+        parallel_traps_standard[i_trap] = Trap(
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_capture_timescales[i_trap]);
     }
     for (int i_trap = parallel_n_traps_standard;
          i_trap < parallel_n_traps_instant_capture; i_trap++) {
-        parallel_traps_instant_capture[i_trap].density =
-            parallel_trap_densities[i_trap];
-        parallel_traps_instant_capture[i_trap].release_timescale =
-            parallel_trap_release_timescales[i_trap];
+        parallel_traps_instant_capture[i_trap] = TrapInstantCapture(
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
     }
     std::valarray<std::valarray<Trap>> parallel_traps{parallel_traps_standard,
                                                       parallel_traps_instant_capture};
@@ -172,17 +172,14 @@ void add_cti(
     std::valarray<Trap> serial_traps_instant_capture(
         TrapInstantCapture(0.0, 0.0), serial_n_traps_instant_capture);
     for (int i_trap = 0; i_trap < serial_n_traps_standard; i_trap++) {
-        serial_traps_standard[i_trap].density = serial_trap_densities[i_trap];
-        serial_traps_standard[i_trap].release_timescale =
-            serial_trap_release_timescales[i_trap];
-        serial_traps_standard[i_trap].capture_timescale =
-            serial_trap_capture_timescales[i_trap];
+        serial_traps_standard[i_trap] = Trap(
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_capture_timescales[i_trap]);
     }
     for (int i_trap = serial_n_traps_standard; i_trap < serial_n_traps_instant_capture;
          i_trap++) {
-        serial_traps_instant_capture[i_trap].density = serial_trap_densities[i_trap];
-        serial_traps_instant_capture[i_trap].release_timescale =
-            serial_trap_release_timescales[i_trap];
+        serial_traps_instant_capture[i_trap] = TrapInstantCapture(
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
     }
     std::valarray<std::valarray<Trap>> serial_traps{serial_traps_standard,
                                                     serial_traps_instant_capture};
