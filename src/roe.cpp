@@ -75,6 +75,14 @@ ROEStepPhase::ROEStepPhase(
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default {1.0}.
 
+    empty_traps_between_columns : bool (opt.)
+        true:  Each column has independent traps (appropriate for parallel
+               clocking)
+        false: Each column moves through the same traps, which therefore
+               preserve occupancy, allowing trails to extend onto the next
+               column (appropriate for serial clocking, if all prescan and
+               overscan pixels are included in the image array). Default true.
+
     empty_traps_for_first_transfers : bool (opt.)
         If true (and express != n_rows), then tweak the express algorithm to
         treat every first pixel-to-pixel transfer separately to the rest.
@@ -88,14 +96,6 @@ ROEStepPhase::ROEStepPhase(
         modification prevents that issue by modelling the first single
         transfer for each pixel separately and then using the express
         algorithm normally for the remainder.
-
-    empty_traps_between_columns : bool (opt.)
-        true:  Each column has independent traps (appropriate for parallel
-               clocking)
-        false: Each column moves through the same traps, which therefore
-               preserve occupancy, allowing trails to extend onto the next
-               column (appropriate for serial clocking, if all prescan and
-               overscan pixels are included in the image array). Default true.
 
     force_release_away_from_readout : bool (opt.)
         If true then force electrons to be released in a pixel not closer to
@@ -124,8 +124,8 @@ ROE::ROE(
     bool empty_traps_for_first_transfers, bool force_release_away_from_readout,
     bool use_integer_express_matrix)
     : dwell_times(dwell_times),
-      empty_traps_for_first_transfers(empty_traps_for_first_transfers),
       empty_traps_between_columns(empty_traps_between_columns),
+      empty_traps_for_first_transfers(empty_traps_for_first_transfers),
       force_release_away_from_readout(force_release_away_from_readout),
       use_integer_express_matrix(use_integer_express_matrix) {
 
@@ -247,10 +247,10 @@ void ROE::set_express_matrix_from_rows_and_express(
             new_index = (int)tmp_row.sum();
 
             // Insert the original transfers
-            express_matrix_full[std::slice(
-                new_index * n_transfers + 1, n_transfers - 1, 1)] +=
-                tmp_express_matrix[std::slice(
-                    old_index * (n_transfers - 1), n_transfers - 1, 1)];
+            // (Using slice here doesn't compile on mac for some odd reason...)
+            for (int i = 0; i < n_transfers - 1; i++)
+                express_matrix_full[new_index * n_transfers + 1 + i] +=
+                    tmp_express_matrix[old_index * (n_transfers - 1) + i];
         }
 
         tmp_express_matrix = express_matrix_full;
@@ -804,20 +804,21 @@ void ROETrapPumping::set_express_matrix_from_rows_and_express(
 
     // Extract the non-zero elements if doing first transfers separately
     if ((empty_traps_for_first_transfers) && (express < n_pumps)) {
-        std::valarray<double> tmp_col_2 = tmp_col;
+        std::valarray<double> tmp_col_2 = tmp_col[tmp_col != 0.0];
 
         n_express_passes = express + 1;
         tmp_col.resize(n_express_passes);
         // Set the non-zero elements, which won't include the final entry for 
         // mismatched integer multipliers
-        if ((use_integer_express_matrix) && (n_pumps % express != 0))
-            tmp_col[std::slice(0, n_express_passes - 1, 1)] = tmp_col_2[tmp_col_2 != 0.0];
-        else
-            tmp_col = tmp_col_2[tmp_col_2 != 0.0];
-
-        // Put back the final zero for mismatched integer multipliers
-        if ((use_integer_express_matrix) && (n_pumps % express != 0))
+        if ((use_integer_express_matrix) && (n_pumps % express != 0)) {
+            // (Using slice here doesn't compile on mac for some odd reason...)
+            for (int i = 0; i < n_express_passes - 1; i++)
+                tmp_col[i] = tmp_col_2[i];
+            
+            // Put back the final zero
             tmp_col[n_express_passes - 1] = 0.0;
+        } else
+            tmp_col = tmp_col_2;
     }
 
     express_matrix.resize(n_rows * n_express_passes);

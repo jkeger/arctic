@@ -4,7 +4,7 @@
 # 	Options
 # 	-------
 # 	arctic
-# 		(Default) The main program. See src/main.cpp.
+# 		The main program. See src/main.cpp.
 # 
 # 	test, test_arctic
 # 		The unit tests. See test/*.cpp.
@@ -13,7 +13,13 @@
 # 		The dynamic library shared object.
 # 
 # 	lib_test
-# 		A test for using the shared library. See wrapper/lib_test.cpp.
+# 		A test for using the shared library. See test/lib_test.cpp.
+# 
+# 	wrapper
+# 		The cython wrapper for the arcticpy python module.
+# 
+# 	default
+# 		The main program and the library.
 # 
 # 	all
 # 		All of the above.
@@ -42,7 +48,8 @@ DIR_OBJ := $(DIR_ROOT)build/
 DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
 DIR_LIB := $(DIR_ROOT)
-DIR_LIB_TEST := $(DIR_ROOT)wrapper/
+DIR_WRAPPER := $(DIR_ROOT)arcticpy/
+DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/arcticpy/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes
@@ -61,14 +68,15 @@ LINK := -L $(DIR_LIB) -Wl,-rpath=$(DIR_LIB) -l$(TARGET)
 # ========
 # Rules
 # ========
-# Default to main program
-.DEFAULT_GOAL := $(TARGET)
+# Default to main program and library
+.DEFAULT_GOAL := default
+default: $(TARGET) $(LIB_TARGET)
 
 # Ignore any files with these names
-.PHONY: all lib test lib_test clean
+.PHONY: all default test lib lib_test wrapper clean
 
 # Main program, unit tests, library, and library test
-all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
+all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) wrapper
 
 # Main program
 $(TARGET): $(OBJECTS)
@@ -98,8 +106,14 @@ $(LIB_TARGET): $(OBJECTS)
 
 # Test using the library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(DIR_LIB_TEST)$@.cpp -o $(DIR_LIB_TEST)$@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(DIR_WRAPPER)$@.cpp -o $(DIR_WRAPPER)$@
+
+# Cython wrapper
+wrapper: $(LIB_TARGET)
+	python3 $(DIR_WRAPPER)setup.py build_ext --inplace
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
-	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) $(DIR_LIB)$(LIB_TEST_TARGET)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) 
+	@rm -fv $(DIR_ROOT)build/lib_test.[od]
+	@rm -fvr $(DIR_ROOT)build/temp.* $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp

@@ -37,7 +37,7 @@
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
-        
+        
         For trap pumping, it is currently assumed that only a single pixel is
         active and contains traps, so row_stop must be row_start + 1. See
         ROETrapPumping for more detail.
@@ -103,6 +103,50 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     double n_electrons_released_and_captured;
     double express_multiplier;
     ROEStepPhase* roe_step_phase;
+    
+    // Print all inputs
+    if (verbosity >= 2) {
+        printf("\n");
+        printf(
+            "express = %d \n"
+            "offset = %d, row_start = %d, row_stop = %d, column_start = %d, column_stop = %d \n",
+            express, offset, row_start, row_stop, column_start, column_stop);
+            
+        printf("ROE n_steps = %d \n", roe->n_steps);
+        printf("  dwell_times = ");
+        print_array(roe->dwell_times);
+        printf("  empty_traps_between_columns = %d \n", roe->empty_traps_between_columns);
+        printf("  empty_traps_for_first_transfers = %d \n", roe->empty_traps_for_first_transfers);
+        printf("  force_release_away_from_readout = %d \n", roe->force_release_away_from_readout);
+        printf("  use_integer_express_matrix = %d \n", roe->use_integer_express_matrix);
+        
+        printf("CCD n_phases = %d \n", ccd->n_phases);
+        printf("  fraction_of_traps_per_phase = ");
+        print_array(ccd->fraction_of_traps_per_phase);
+        for (int i_phase=0; i_phase < ccd->n_phases; i_phase++) {
+            printf("  full_well_depth = %g, well_notch_depth = %g, well_fill_power = %g \n", 
+            ccd->phases[i_phase].full_well_depth,
+            ccd->phases[i_phase].well_notch_depth,
+            ccd->phases[i_phase].well_fill_power);
+        }
+        
+        printf("Standard traps n = %d \n", trap_manager_manager.n_standard_traps);
+        for (int i_trap=0; i_trap < trap_manager_manager.n_standard_traps; i_trap++) {
+            printf(
+                "  density = %g, release_timescale = %g, capture_timescale = %g \n", 
+                trap_manager_manager.trap_managers_standard[0].traps[i_trap].density,
+                trap_manager_manager.trap_managers_standard[0].traps[i_trap].release_timescale,
+                trap_manager_manager.trap_managers_standard[0].traps[i_trap].capture_timescale);
+        }
+        printf("Instant-capture traps n = %d \n", trap_manager_manager.n_instant_capture_traps);
+        for (int i_trap=0; i_trap < trap_manager_manager.n_instant_capture_traps; i_trap++) {
+            printf(
+                "  density = %g, release_timescale = %g \n", 
+                trap_manager_manager.trap_managers_instant_capture[0].traps[i_trap].density,
+                trap_manager_manager.trap_managers_instant_capture[0].traps[i_trap].release_timescale);
+        }
+        printf("\n");
+    }
 
     // Measure wall-clock time taken for the primary loop
     struct timeval wall_time_start;
@@ -323,12 +367,15 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         The output array of pixel values with CTI added.
 */
 std::valarray<std::valarray<double>> add_cti(
-    std::valarray<std::valarray<double>>& image_in, ROE* parallel_roe,
-    CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps,
-    int parallel_express, int parallel_offset, int parallel_window_start,
-    int parallel_window_stop, ROE* serial_roe, CCD* serial_ccd,
-    std::valarray<std::valarray<Trap>>* serial_traps, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop) {
+    std::valarray<std::valarray<double>>& image_in,
+    // Parallel
+    ROE* parallel_roe, CCD* parallel_ccd,
+    std::valarray<std::valarray<Trap>>* parallel_traps, int parallel_express,
+    int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    // Serial
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -380,12 +427,15 @@ std::valarray<std::valarray<double>> add_cti(
         The output array of pixel values with CTI removed.
 */
 std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in, int n_iterations, ROE* parallel_roe,
-    CCD* parallel_ccd, std::valarray<std::valarray<Trap>>* parallel_traps,
-    int parallel_express, int parallel_offset, int parallel_window_start,
-    int parallel_window_stop, ROE* serial_roe, CCD* serial_ccd,
-    std::valarray<std::valarray<Trap>>* serial_traps, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop) {
+    std::valarray<std::valarray<double>>& image_in,
+    // Parallel
+    int n_iterations, ROE* parallel_roe, CCD* parallel_ccd,
+    std::valarray<std::valarray<Trap>>* parallel_traps, int parallel_express,
+    int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    // Serial
+    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image_remove_cti = image_in;

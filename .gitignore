@@ -1,8 +1,11 @@
+
 arctic
 test_arctic
 libarctic.so
-wrapper/lib_test
-
+*.cpython*.so
+arcticpy/lib_test
+arcticpy/arcticpy/wrapper.cpp
+arcticpy/arcticpy/__pycache__/
 build/
 dev/
 
@@ -10,4 +13,3 @@ dev/
 *test*.*
 gmon.out
 callgrind.out.*
-wrapper/wrapper.cp*

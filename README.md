@@ -22,17 +22,17 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
++ Python Wrapper
 + Usage
 + Unit Tests
++ Files
 + Documentation
-    + Files
     + Add/remove CTI
     + CCD
     + ROE
     + Trap species
     + Trap managers
 + Examples
-+ Python Wrapper
 
 
 
@@ -42,14 +42,40 @@ Compile the main code with `make` (or `make all`) in the root directory.
 
 See the `makefile` header documentation for all the options.
 
-See the Wrapper section for the python wrapper.
+
+
+Python Wrapper
+==============
+ArCTIC is a standalone C++ library, but can also be used via the `arcticpy` 
+python module, using Cython to interface with the precompiled core library.
+
+Installation
+------------
++ `make wrapper` (or `make all`) in the root directory.  
+    Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`
++ Test: `python3 arcticpy/test_wrapper.py`  
+    Download the debug test image here:  
+    http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
+    
+The wrapper is organised as follows:  
+python --> Cython --> C++ wrapper --> core library.  
+This multi-level structure is a bit more extensive then strictly necessary, but 
+this keeps each level clean and with a single purpose. 
+
+The user-facing python functions take numpy arrays and custom input-parameter 
+objects as user-friendly arguments. These mirror exactly the custom C++ objects
+used as arguments by the core C++ program. To convert cleanly between the two, 
+the individual arrays and numbers are extracted from the python objects and are 
+passed via the Cython wrapper to the C++ wrapper, which then builds the C++ 
+objects as arguments for the core library functions.
+
 
 
 
 Usage
 =====
-ArCTIC will normally be used via a wrapper, but the code can be executed 
-directly as `./arctic` with the following command-line options:
+ArCTIC will typically be used via the python wrapper, but the code can be 
+executed directly as `./arctic` with the following command-line options:
 
 + `-h`, `--help`  
     Print help information and exit.
@@ -86,27 +112,14 @@ Add arguments to select which tests to run by their names, e.g:
 Compiling with `make lib_test` will create a simple test of using the shared 
 object library (`build/libarctic.so`), which is run with `./wrapper/lib_test`.
 
-
-
-Documentation
-=============
-The code docstrings contain the full documentation for each class and function. 
-
-This section provides an overview of the key contents and features. It is aimed 
-at general users with a few extra details for anyone wanting to navigate or work
-on the code itself.
-
-The primary functions to add and remove CTI take as arguments custom objects 
-that describe the trap species, CCD properties, and ROE details (see below). 
-A core aspect of the code is that it includes several polymorphic versions of 
-each of these classes. These provide a variety of ways to model CTI, such as 
-different types of trap species, multiple phases in each pixel, or alternative 
-readout sequences for trap pumping, etc.
+Python Tests
+------------
+((WIP))
 
 
 
 Files
------
+=====
 A quick summary of the code files and their contents:
 
 + `arctic`, `test_arctic`   The program and unit-test executables.
@@ -144,7 +157,46 @@ A quick summary of the code files and their contents:
 + `include/`    The `*.hpp` header files for each source code file.
 + `test/`       Unit tests and examples.
 + `build/`      Compiled object and dependency files.
-+ `wrapper/`    The python, Cython, and other files for the wrapper (see below).
++ `arcticpy/`   The python, Cython, and other files for the wrapper.
+    + `test_wrapper.py`         A simple test and demo of using the wrapper.
+    + `setup.py`                The file for compiling the package.
+    + `arcticpy/`               Source files.
+        + `main.py`  
+            The python versions of the primary user-facing functions `add_cti()` 
+            and `remove_cti()`.
+        + `classes.py`  
+            The python versions of the `CCD`, `ROE`, and `Trap` classes that are 
+            needed as arguments for the primary CTI functions. These mirror the 
+            inputs for the corresponding same-name C++ classes documented below.
+        + `wrapper.pyx`  
+            The Cython wrapper, passes the python inputs to the C++ interface.
+        + `interface.cpp`, `interface.hpp`  
+            The source and header files for functions to cleanly interface 
+            between Cython and the main precompiled library. e.g. converts the 
+            image array and CTI model inputs into the required C++ objects.
+        + `wrapper.cpp`, `../../wrapper.cpython*.so`  
+            Compiled Cython output files.
+    + `lib_test.cpp`  
+        A simple (just C++) test of using the precompiled library. Compile with 
+        `make lib_test` and run with `./arcticpy/lib_test`.
+
+
+
+
+Documentation
+=============
+The code docstrings contain the full documentation for each class and function. 
+
+This section provides an overview of the key contents and features. It is aimed 
+at general users with a few extra details for anyone wanting to navigate or work
+on the code itself.
+
+The primary functions to add and remove CTI take as arguments custom objects 
+that describe the trap species, CCD properties, and ROE details (see below). 
+A core aspect of the code is that it includes several polymorphic versions of 
+each of these classes. These provide a variety of ways to model CTI, such as 
+different types of trap species, multiple phases in each pixel, or alternative 
+readout sequences for trap pumping, etc.
 
 
 
@@ -365,39 +417,3 @@ Examples
 See `run_custom_code()` in `src/main.cpp` for a short and simple example of 
 using the core features of arctic to add and then remove CTI from a test image.
 
-
-
-Python Wrapper (WIP)
-==============
-
-The shared library must first be compiled with `make lib` (or `make all`).
-
-Download the debug test image here:  
-http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
-
-
-Set up
-------
-+ `cd wrapper/`
-+ `python3 setup.py build_ext --inplace`
-+ Test: `python3 test_wrapper.py`
-
-
-Files
------
-In `wrapper/`:
-
-+ `lib_test.cpp`  
-    A simple (just C++) test of using the library. Compile with 
-    `make lib_test` and run with `./wrapper/lib_test`.
-+ `test_wrapper.py`  
-    A simple test and demo of using the compiled wrapper.
-+ `setup.py`  
-    The file for compiling the package.
-+ `interface.cpp`, `interface.hpp`  
-    The source and header files for functions to help interface between the 
-    main C++ and Cython.
-+ `wrapper.pyx`  
-    The Cython wrappers for the C++ functions.
-+ `build/`, `wrapper.cpp`, `wrapper.*.so`  
-    Compiled output files.
