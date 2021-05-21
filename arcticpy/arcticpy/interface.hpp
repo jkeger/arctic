@@ -52,3 +52,47 @@ void add_cti(
     int serial_window_stop,
     // Output
     int verbosity);
+
+void remove_cti(
+    double* image, int n_rows, int n_columns, int n_iterations,
+    // ========
+    // Parallel
+    // ========
+    // ROE
+    double* parallel_dwell_times_in, int parallel_n_steps,
+    bool parallel_empty_traps_between_columns,
+    bool parallel_empty_traps_for_first_transfers,
+    bool parallel_force_release_away_from_readout,
+    bool parallel_use_integer_express_matrix,
+    // CCD
+    double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
+    double* parallel_full_well_depths, double* parallel_well_notch_depths,
+    double* parallel_well_fill_powers,
+    // Traps
+    double* parallel_trap_densities, double* parallel_trap_release_timescales,
+    double* parallel_trap_capture_timescales, int parallel_n_traps_standard,
+    int parallel_n_traps_instant_capture,
+    // Misc
+    int parallel_express, int parallel_offset, int parallel_window_start,
+    int parallel_window_stop,
+    // ========
+    // Serial
+    // ========
+    // ROE
+    double* serial_dwell_times_in, int serial_n_steps,
+    bool serial_empty_traps_between_columns,
+    bool serial_empty_traps_for_first_transfers,
+    bool serial_force_release_away_from_readout, bool serial_use_integer_express_matrix,
+    // CCD
+    double* serial_fraction_of_traps_per_phase_in, int serial_n_phases,
+    double* serial_full_well_depths, double* serial_well_notch_depths,
+    double* serial_well_fill_powers,
+    // Traps
+    double* serial_trap_densities, double* serial_trap_release_timescales,
+    double* serial_trap_capture_timescales, int serial_n_traps_standard,
+    int serial_n_traps_instant_capture,
+    // Misc
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop,
+    // Output
+    int verbosity);
