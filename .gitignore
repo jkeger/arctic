@@ -5,7 +5,7 @@ libarctic.so
 *.cpython*.so
 arcticpy/lib_test
 arcticpy/arcticpy/wrapper.cpp
-arcticpy/arcticpy/__pycache__/
+__pycache__/
 build/
 dev/
 

@@ -111,9 +111,11 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 # Cython wrapper
 wrapper: $(LIB_TARGET)
 	python3 $(DIR_WRAPPER)setup.py build_ext --inplace
+	@mv -v $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER)
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
 	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) 
 	@rm -fv $(DIR_ROOT)build/lib_test.[od]
-	@rm -fvr $(DIR_ROOT)build/temp.* $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
+	@rm -fv $(DIR_WRAPPER)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
+	@rm -rfv $(DIR_ROOT)build/temp.*/ $(DIR_WRAPPER_SRC)__pycache__/
