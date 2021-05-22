@@ -4,9 +4,9 @@ import numpy as np
 class Trap(object):
     def __init__(
         self,
-        density,
-        release_timescale,
-        capture_timescale,
+        density=1.0,
+        release_timescale=1.0,
+        capture_timescale=0.0,
     ):
         self.density = density
         self.release_timescale = release_timescale
@@ -16,7 +16,7 @@ class Trap(object):
 class TrapInstantCapture(Trap):
     def __init__(
         self,
-        density,
-        release_timescale,
+        density=1.0,
+        release_timescale=1.0,
     ):
         super().__init__(density, release_timescale, 0.0)
