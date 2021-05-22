@@ -13,7 +13,7 @@
 # 		The dynamic library shared object.
 # 
 # 	lib_test
-# 		A test for using the shared library. See test/lib_test.cpp.
+# 		A simple test for using the shared library. See test/test_lib.cpp.
 # 
 # 	wrapper
 # 		The cython wrapper for the arcticpy python module.
@@ -49,14 +49,16 @@ DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
 DIR_LIB := $(DIR_ROOT)
 DIR_WRAPPER := $(DIR_ROOT)arcticpy/
-DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/arcticpy/
+DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/src/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes
 SOURCES := $(shell find $(DIR_SRC) -type f -name *.cpp)
 OBJECTS := $(patsubst $(DIR_SRC)%, $(DIR_OBJ)%, $(SOURCES:.cpp=.o))
 DEPENDS := $(patsubst %.o, %.d, $(OBJECTS))
-TEST_SOURCES := $(shell find $(DIR_TEST) -type f -name *.cpp)
+LIB_TEST_SOURCES := $(DIR_TEST)test_lib.cpp
+TEST_SOURCES := $(filter-out $(LIB_TEST_SOURCES), \
+	$(shell find $(DIR_TEST) -type f -name *.cpp))
 TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
@@ -106,14 +108,16 @@ $(LIB_TARGET): $(OBJECTS)
 
 # Test using the library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(DIR_WRAPPER)$@.cpp -o $(DIR_WRAPPER)$@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(LIB_TEST_SOURCES) -o $@
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
 	python3 $(DIR_WRAPPER)setup.py build_ext --inplace
+	@mv -v $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER)
 
 clean:
-	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS)
-	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) 
-	@rm -fv $(DIR_ROOT)build/lib_test.[od]
-	@rm -fvr $(DIR_ROOT)build/temp.* $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
+	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)test_lib.[od]
+	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) $(LIB_TEST_TARGET)
+	@rm -fv $(DIR_WRAPPER)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
+	@rm -rfv $(DIR_ROOT)build/temp.*/ $(DIR_WRAPPER)__pycache__/ \
+		$(DIR_WRAPPER_SRC)__pycache__/ $(DIR_TEST)__pycache__/
