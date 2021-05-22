@@ -3,7 +3,7 @@ arctic
 test_arctic
 libarctic.so
 *.cpython*.so
-arcticpy/lib_test
+lib_test
 arcticpy/src/wrapper.cpp
 __pycache__/
 build/

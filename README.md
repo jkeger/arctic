@@ -109,8 +109,8 @@ Add arguments to select which tests to run by their names, e.g:
 + `~*'not these'*`  All tests except those that contain 'not these'.
 + `-# [#filename]`  All tests in filename.cpp.
 
-Compiling with `make lib_test` will create a simple test of using the shared 
-object library (`build/libarctic.so`), which is run with `./arcticpy/lib_test`.
+Compiling with `make lib_test` will create a simple example of using the shared 
+object library (`build/libarctic.so`), which is run with `./lib_test`.
 
 Python Tests
 ------------
@@ -178,9 +178,6 @@ A quick summary of the code files and their contents:
             image array and CTI model inputs into the required C++ objects.
         + `wrapper.cpp`, `../../wrapper.cpython*.so`  
             Compiled Cython output files.
-    + `lib_test.cpp`  
-        A simple (just C++) test of using the precompiled library. Compile with 
-        `make lib_test` and run with `./wrapper/lib_test`.
 
 
 
