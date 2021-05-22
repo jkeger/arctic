@@ -1,6 +1,6 @@
 import numpy as np
-import wrapper as w
-from arcticpy.classes import ROE, CCDPhase, CCD, Trap, TrapInstantCapture
+import arcticpy.wrapper as w
+from arcticpy.src.classes import ROE, CCDPhase, CCD, Trap, TrapInstantCapture
 
 
 def add_cti(

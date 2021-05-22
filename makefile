@@ -49,7 +49,7 @@ DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
 DIR_LIB := $(DIR_ROOT)
 DIR_WRAPPER := $(DIR_ROOT)arcticpy/
-DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/arcticpy/
+DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/src/
 $(shell mkdir -p $(DIR_OBJ))
 
 # Source and object files, and dependency files to detect header file changes

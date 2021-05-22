@@ -22,7 +22,7 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
-+ Python Wrapper
+    + Python Wrapper
 + Usage
 + Unit Tests
 + Files
@@ -42,18 +42,18 @@ Compile the main code with `make` (or `make all`) in the root directory.
 
 See the `makefile` header documentation for all the options.
 
+See the sections below for testing and running the code.
+
 
 
 Python Wrapper
-==============
+--------------
 ArCTIC is a standalone C++ library, but can also be used via the `arcticpy` 
 python module, using Cython to interface with the precompiled core library.
 
-Installation
-------------
 + `make wrapper` (or `make all`) in the root directory.  
     Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`
-+ Test: `python3 arcticpy/test_wrapper.py`  
++ Test: `python3 test/test_wrapper.py`  
     Download the debug test image here:  
     http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt
     
@@ -110,11 +110,14 @@ Add arguments to select which tests to run by their names, e.g:
 + `-# [#filename]`  All tests in filename.cpp.
 
 Compiling with `make lib_test` will create a simple test of using the shared 
-object library (`build/libarctic.so`), which is run with `./wrapper/lib_test`.
+object library (`build/libarctic.so`), which is run with `./arcticpy/lib_test`.
 
 Python Tests
 ------------
-((WIP))
+A few tests of the primary functions are included for the arcticpy wrapper.
+
+Prepare the wrapper with `make wrapper` (or `make all`) in the top directory, 
+then run with `pytest test/test_arcticpy.py`.
 
 
 
@@ -122,8 +125,8 @@ Files
 =====
 A quick summary of the code files and their contents:
 
-+ `arctic`, `test_arctic`   The program and unit-test executables.
 + `makefile`                The makefile for compiling the code. See its header.
++ `arctic`, `test_arctic`   The program and unit-test executables.
 + `libarctic.so`            The shared object library.
 + `src/`                    Source code files.
     + `main.cpp`  
@@ -154,13 +157,12 @@ A quick summary of the code files and their contents:
         electrons and track the trapped electrons using the "watermarks".
     + `util.cpp`  
         Miscellaneous internal utilities.
-+ `include/`    The `*.hpp` header files for each source code file.
-+ `test/`       Unit tests and examples.
-+ `build/`      Compiled object and dependency files.
-+ `arcticpy/`   The python, Cython, and other files for the wrapper.
-    + `test_wrapper.py`         A simple test and demo of using the wrapper.
++ `include/`                The `*.hpp` header files for each source code file.
++ `test/`                   Unit tests and examples.
++ `build/`                  Compiled object and dependency files.
++ `arcticpy/`               The python, Cython, and other files for the wrapper.
     + `setup.py`                The file for compiling the package.
-    + `arcticpy/`               Source files.
+    + `src/`                    Source files.
         + `main.py`  
             The python versions of the primary user-facing functions `add_cti()` 
             and `remove_cti()`.
@@ -178,7 +180,7 @@ A quick summary of the code files and their contents:
             Compiled Cython output files.
     + `lib_test.cpp`  
         A simple (just C++) test of using the precompiled library. Compile with 
-        `make lib_test` and run with `./arcticpy/lib_test`.
+        `make lib_test` and run with `./wrapper/lib_test`.
 
 
 
@@ -186,6 +188,10 @@ A quick summary of the code files and their contents:
 Documentation
 =============
 The code docstrings contain the full documentation for each class and function. 
+
+Most of the python wrapper code precisely mirrors the core C++ classes and 
+functions. The full docstrings are not duplicated in that case so please refer 
+to the C++ for the complete details.
 
 This section provides an overview of the key contents and features. It is aimed 
 at general users with a few extra details for anyone wanting to navigate or work
