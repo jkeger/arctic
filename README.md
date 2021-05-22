@@ -54,8 +54,8 @@ python module, using Cython to interface with the precompiled core library.
 
 + `make wrapper` (or `make all`) in the root directory.  
     Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`
-+ Import the python module e.g. `import arcticpy as ac`, or run some quick tests 
-    with `pytest test/test_arcticpy`.
++ Import the python module, e.g. `import arcticpy as ac`.  
+    The `test/test_arcticpy.py` file contains some tests and a basic example.
 
 
 
@@ -403,7 +403,7 @@ and capture, contain simple-number examples to demonstrate how it all works.
 Python wrapper
 --------------
 After compiling the Cython, the `arcticpy` python module can be imported and 
-used as normal. `test/test_arcticpy.py` contains some tests and basic examples.
+used as normal. `test/test_arcticpy.py` contains some tests and a basic example.
 
 The wrapper is organised internally as follows:  
 *python* --> *Cython* --> *C++ wrapper* --> *core library*.  
