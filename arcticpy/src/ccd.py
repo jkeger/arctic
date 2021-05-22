@@ -20,15 +20,17 @@ class CCD(object):
         fraction_of_traps_per_phase=[1.0],
     ):
         self.phases = phases
-        self.fraction_of_traps_per_phase = np.array(fraction_of_traps_per_phase)
+        self.fraction_of_traps_per_phase = np.array(
+            fraction_of_traps_per_phase, dtype=np.double
+        )
 
         # Extract convenient arrays
         self.full_well_depths = np.array(
-            [phase.full_well_depth for phase in self.phases]
+            [phase.full_well_depth for phase in self.phases], dtype=np.double
         )
         self.well_notch_depths = np.array(
-            [phase.well_notch_depth for phase in self.phases]
+            [phase.well_notch_depth for phase in self.phases], dtype=np.double
         )
         self.well_fill_powers = np.array(
-            [phase.well_fill_power for phase in self.phases]
+            [phase.well_fill_power for phase in self.phases], dtype=np.double
         )

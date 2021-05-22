@@ -10,7 +10,7 @@ class ROE(object):
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
     ):
-        self.dwell_times = np.array(dwell_times)
+        self.dwell_times = np.array(dwell_times, dtype=np.double)
         self.empty_traps_between_columns = empty_traps_between_columns
         self.empty_traps_for_first_transfers = empty_traps_for_first_transfers
         self.force_release_away_from_readout = force_release_away_from_readout

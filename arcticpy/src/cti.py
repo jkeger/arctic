@@ -6,7 +6,7 @@ from arcticpy.src.traps import Trap, TrapInstantCapture
 
 
 def add_cti(
-    image_pre_cti,
+    image,
     # Parallel
     parallel_ccd=None,
     parallel_roe=None,
@@ -36,7 +36,7 @@ def add_cti(
     objects to pass to the C++ via Cython. See cy_add_cti() in
     arcticpy/wrapper.pyx and add_cti() in arcticpy/interface.cpp.
     """
-    image_pre_cti = np.copy(image_pre_cti)
+    image = np.copy(image).astype(np.double)
 
     # Extract inputs to pass to the wrapper
 
@@ -64,20 +64,22 @@ def add_cti(
             )
         # Make sure the order is correct
         parallel_traps = parallel_traps_standard + parallel_traps_instant_capture
-        parallel_trap_densities = np.array([trap.density for trap in parallel_traps])
+        parallel_trap_densities = np.array(
+            [trap.density for trap in parallel_traps], dtype=np.double
+        )
         parallel_trap_release_timescales = np.array(
-            [trap.release_timescale for trap in parallel_traps]
+            [trap.release_timescale for trap in parallel_traps], dtype=np.double
         )
         parallel_trap_capture_timescales = np.array(
-            [trap.capture_timescale for trap in parallel_traps]
+            [trap.capture_timescale for trap in parallel_traps], dtype=np.double
         )
     else:
         # No parallel clocking, set dummy variables instead
         parallel_roe = ROE()
         parallel_ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
-        parallel_trap_densities = np.array([0.0])
-        parallel_trap_release_timescales = np.array([0.0])
-        parallel_trap_capture_timescales = np.array([0.0])
+        parallel_trap_densities = np.array([0.0], dtype=np.double)
+        parallel_trap_release_timescales = np.array([0.0], dtype=np.double)
+        parallel_trap_capture_timescales = np.array([0.0], dtype=np.double)
         parallel_n_traps_standard = 0
         parallel_n_traps_instant_capture = 0
         parallel_express = 0
@@ -107,20 +109,22 @@ def add_cti(
             )
         # Make sure the order is correct
         serial_traps = serial_traps_standard + serial_traps_instant_capture
-        serial_trap_densities = np.array([trap.density for trap in serial_traps])
+        serial_trap_densities = np.array(
+            [trap.density for trap in serial_traps], dtype=np.double
+        )
         serial_trap_release_timescales = np.array(
-            [trap.release_timescale for trap in serial_traps]
+            [trap.release_timescale for trap in serial_traps], dtype=np.double
         )
         serial_trap_capture_timescales = np.array(
-            [trap.capture_timescale for trap in serial_traps]
+            [trap.capture_timescale for trap in serial_traps], dtype=np.double
         )
     else:
         # No serial clocking, set dummy variables instead
         serial_roe = ROE()
         serial_ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
-        serial_trap_densities = np.array([0.0])
-        serial_trap_release_timescales = np.array([0.0])
-        serial_trap_capture_timescales = np.array([0.0])
+        serial_trap_densities = np.array([0.0], dtype=np.double)
+        serial_trap_release_timescales = np.array([0.0], dtype=np.double)
+        serial_trap_capture_timescales = np.array([0.0], dtype=np.double)
         serial_n_traps_standard = 0
         serial_n_traps_instant_capture = 0
         serial_express = 0
@@ -133,7 +137,7 @@ def add_cti(
     # ========
     # Pass the extracted inputs to C++ via the cython wrapper
     return w.cy_add_cti(
-        image_pre_cti,
+        image,
         # ========
         # Parallel
         # ========
@@ -190,7 +194,7 @@ def add_cti(
 
 
 def remove_cti(
-    image_pre_cti,
+    image,
     n_iterations,
     # Parallel
     parallel_ccd=None,
@@ -221,7 +225,7 @@ def remove_cti(
     objects to pass to the C++ via Cython. See cy_remove_cti() in
     arcticpy/wrapper.pyx and remove_cti() in arcticpy/interface.cpp.
     """
-    image_pre_cti = np.copy(image_pre_cti)
+    image = np.copy(image).astype(np.double)
 
     # Extract inputs to pass to the wrapper
 
@@ -249,20 +253,22 @@ def remove_cti(
             )
         # Make sure the order is correct
         parallel_traps = parallel_traps_standard + parallel_traps_instant_capture
-        parallel_trap_densities = np.array([trap.density for trap in parallel_traps])
+        parallel_trap_densities = np.array(
+            [trap.density for trap in parallel_traps], dtype=np.double
+        )
         parallel_trap_release_timescales = np.array(
-            [trap.release_timescale for trap in parallel_traps]
+            [trap.release_timescale for trap in parallel_traps], dtype=np.double
         )
         parallel_trap_capture_timescales = np.array(
-            [trap.capture_timescale for trap in parallel_traps]
+            [trap.capture_timescale for trap in parallel_traps], dtype=np.double
         )
     else:
         # No parallel clocking, set dummy variables instead
         parallel_roe = ROE()
         parallel_ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
-        parallel_trap_densities = np.array([0.0])
-        parallel_trap_release_timescales = np.array([0.0])
-        parallel_trap_capture_timescales = np.array([0.0])
+        parallel_trap_densities = np.array([0.0], dtype=np.double)
+        parallel_trap_release_timescales = np.array([0.0], dtype=np.double)
+        parallel_trap_capture_timescales = np.array([0.0], dtype=np.double)
         parallel_n_traps_standard = 0
         parallel_n_traps_instant_capture = 0
         parallel_express = 0
@@ -292,20 +298,22 @@ def remove_cti(
             )
         # Make sure the order is correct
         serial_traps = serial_traps_standard + serial_traps_instant_capture
-        serial_trap_densities = np.array([trap.density for trap in serial_traps])
+        serial_trap_densities = np.array(
+            [trap.density for trap in serial_traps], dtype=np.double
+        )
         serial_trap_release_timescales = np.array(
-            [trap.release_timescale for trap in serial_traps]
+            [trap.release_timescale for trap in serial_traps], dtype=np.double
         )
         serial_trap_capture_timescales = np.array(
-            [trap.capture_timescale for trap in serial_traps]
+            [trap.capture_timescale for trap in serial_traps], dtype=np.double
         )
     else:
         # No serial clocking, set dummy variables instead
         serial_roe = ROE()
         serial_ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
-        serial_trap_densities = np.array([0.0])
-        serial_trap_release_timescales = np.array([0.0])
-        serial_trap_capture_timescales = np.array([0.0])
+        serial_trap_densities = np.array([0.0], dtype=np.double)
+        serial_trap_release_timescales = np.array([0.0], dtype=np.double)
+        serial_trap_capture_timescales = np.array([0.0], dtype=np.double)
         serial_n_traps_standard = 0
         serial_n_traps_instant_capture = 0
         serial_express = 0
@@ -318,7 +326,7 @@ def remove_cti(
     # ========
     # Pass the extracted inputs to C++ via the cython wrapper
     return w.cy_remove_cti(
-        image_pre_cti,
+        image,
         n_iterations,
         # ========
         # Parallel
