@@ -1,6 +1,8 @@
 import numpy as np
 import arcticpy.wrapper as w
-from arcticpy.src.classes import ROE, CCDPhase, CCD, Trap, TrapInstantCapture
+from arcticpy.src.ccd import CCDPhase, CCD
+from arcticpy.src.roe import ROE
+from arcticpy.src.traps import Trap, TrapInstantCapture
 
 
 def add_cti(
@@ -26,22 +28,24 @@ def add_cti(
 ):
     """
     Wrapper for arctic's add_cti() in src/cti.cpp, see its documentation.
-    
+
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns, for parallel and/or serial clocking.
-    
-    This wrapper extracts individual numbers and arrays from the user-input 
-    objects to pass to the C++ via Cython. See cy_add_cti() in 
+
+    This wrapper extracts individual numbers and arrays from the user-input
+    objects to pass to the C++ via Cython. See cy_add_cti() in
     arcticpy/wrapper.pyx and add_cti() in arcticpy/interface.cpp.
     """
     image_pre_cti = np.copy(image_pre_cti)
-    
+
     # Extract inputs to pass to the wrapper
 
     # Parallel
     if parallel_traps is not None:
         # Extract trap inputs
-        parallel_traps_standard = [trap for trap in parallel_traps if type(trap) == Trap]
+        parallel_traps_standard = [
+            trap for trap in parallel_traps if type(trap) == Trap
+        ]
         parallel_traps_instant_capture = [
             trap for trap in parallel_traps if type(trap) == TrapInstantCapture
         ]
@@ -90,7 +94,9 @@ def add_cti(
         ]
         serial_n_traps_standard = len(serial_traps_standard)
         serial_n_traps_instant_capture = len(serial_traps_instant_capture)
-        if serial_n_traps_standard + serial_n_traps_instant_capture != len(serial_traps):
+        if serial_n_traps_standard + serial_n_traps_instant_capture != len(
+            serial_traps
+        ):
             raise Exception(
                 "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
                 % (
@@ -207,22 +213,24 @@ def remove_cti(
 ):
     """
     Wrapper for arctic's remove_cti() in src/cti.cpp, see its documentation.
-    
-    Remove CTI trails from an image by first modelling the addition of CTI, for 
+
+    Remove CTI trails from an image by first modelling the addition of CTI, for
     parallel and/or serial clocking.
-    
-    This wrapper extracts individual numbers and arrays from the user-input 
-    objects to pass to the C++ via Cython. See cy_remove_cti() in 
+
+    This wrapper extracts individual numbers and arrays from the user-input
+    objects to pass to the C++ via Cython. See cy_remove_cti() in
     arcticpy/wrapper.pyx and remove_cti() in arcticpy/interface.cpp.
     """
     image_pre_cti = np.copy(image_pre_cti)
-    
+
     # Extract inputs to pass to the wrapper
 
     # Parallel
     if parallel_traps is not None:
         # Extract trap inputs
-        parallel_traps_standard = [trap for trap in parallel_traps if type(trap) == Trap]
+        parallel_traps_standard = [
+            trap for trap in parallel_traps if type(trap) == Trap
+        ]
         parallel_traps_instant_capture = [
             trap for trap in parallel_traps if type(trap) == TrapInstantCapture
         ]
@@ -271,7 +279,9 @@ def remove_cti(
         ]
         serial_n_traps_standard = len(serial_traps_standard)
         serial_n_traps_instant_capture = len(serial_traps_instant_capture)
-        if serial_n_traps_standard + serial_n_traps_instant_capture != len(serial_traps):
+        if serial_n_traps_standard + serial_n_traps_instant_capture != len(
+            serial_traps
+        ):
             raise Exception(
                 "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
                 % (

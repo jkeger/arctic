@@ -163,10 +163,10 @@ A quick summary of the code files and their contents:
 + `arcticpy/`               The python, Cython, and other files for the wrapper.
     + `setup.py`                The file for compiling the package.
     + `src/`                    Source files.
-        + `main.py`  
+        + `cti.py`  
             The python versions of the primary user-facing functions `add_cti()` 
             and `remove_cti()`.
-        + `classes.py`  
+        + `ccd.py`, `roe.py`, `traps.py`  
             The python versions of the `CCD`, `ROE`, and `Trap` classes that are 
             needed as arguments for the primary CTI functions. These mirror the 
             inputs for the corresponding same-name C++ classes documented below.
