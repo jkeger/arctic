@@ -51,7 +51,7 @@ def add_cti(
             parallel_traps
         ):
             raise Exception(
-                "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+                "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
                 % (
                     parallel_n_traps_standard,
                     parallel_n_traps_instant_capture,
@@ -92,7 +92,7 @@ def add_cti(
         serial_n_traps_instant_capture = len(serial_traps_instant_capture)
         if serial_n_traps_standard + serial_n_traps_instant_capture != len(serial_traps):
             raise Exception(
-                "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+                "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
                 % (
                     serial_n_traps_standard,
                     serial_n_traps_instant_capture,
@@ -232,7 +232,7 @@ def remove_cti(
             parallel_traps
         ):
             raise Exception(
-                "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+                "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
                 % (
                     parallel_n_traps_standard,
                     parallel_n_traps_instant_capture,
@@ -273,7 +273,7 @@ def remove_cti(
         serial_n_traps_instant_capture = len(serial_traps_instant_capture)
         if serial_n_traps_standard + serial_n_traps_instant_capture != len(serial_traps):
             raise Exception(
-                "Not all traps extracted successfully (%d standard, %d instant capture, % total)"
+                "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
                 % (
                     serial_n_traps_standard,
                     serial_n_traps_instant_capture,
