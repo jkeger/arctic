@@ -241,6 +241,40 @@ TEST_CASE("Test add CTI", "[cti]") {
     }
 }
 
+TEST_CASE("Test add CTI, compare trap species", "[cti]") {
+    set_verbosity(0);
+
+    std::valarray<double> dwell_times = {1.0};
+
+    SECTION("Standard traps trail less than instant-capture traps") {
+        std::valarray<std::valarray<double>> image_pre_cti, image_add_std, image_add_ic;
+        int express;
+        Trap trap_std(10.0, -1.0 / log(0.5), 0.1);
+        TrapInstantCapture trap_ic(10.0, -1.0 / log(0.5));
+        std::valarray<std::valarray<Trap>> traps_std = {{trap_std}, {}};
+        std::valarray<std::valarray<Trap>> traps_ic = {{}, {trap_ic}};
+        ROE roe(dwell_times, true, false, true, true);
+        CCD ccd(CCDPhase(1e3, 0.0, 1.0));
+        image_pre_cti =
+            std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 10);
+        image_pre_cti[2][0] = 800.0;
+        express = 0;
+
+        // Parallel
+        image_add_std = add_cti(image_pre_cti, &roe, &ccd, &traps_std, express);
+        image_add_ic = add_cti(image_pre_cti, &roe, &ccd, &traps_ic, express);
+        
+        // Similarish results, but less charge removed from bright pixel and 
+        // less released into trail by standard traps than instant-capture traps
+        REQUIRE(image_add_std[2][0] > image_add_ic[2][0]);
+        REQUIRE(image_add_std[2][0] == Approx(image_add_ic[2][0]).epsilon(0.01));
+        for (int i_row = 3; i_row < 10; i_row++) {
+            REQUIRE(image_add_std[i_row][0] < image_add_ic[i_row][0]);
+            REQUIRE(image_add_std[i_row][0] == Approx(image_add_ic[i_row][0]).margin(1.0));
+        }
+    }
+}
+
 TEST_CASE("Test remove CTI", "[cti]") {
     set_verbosity(0);
 
