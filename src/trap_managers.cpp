@@ -70,6 +70,10 @@
         The index of the first active watermark. The effective starting point
         for the active region of the watermark arrays. i.e. watermark levels
         below this are ignored because they've been superseded.
+        
+        This is primarily used by instant-capture traps where a charge cloud
+        will entirely fill all traps below it, making any pre-existing lower
+        watermarks no longer necessary to track.
 
     n_active_watermarks : int
         The number of currently active watermark levels. So the index of the
@@ -279,7 +283,7 @@ int TrapManager::watermark_index_above_cloud(double cloud_fractional_volume) {
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
     + First any previously filled traps that are not within the cloud volume
@@ -287,6 +291,8 @@ int TrapManager::watermark_index_above_cloud(double cloud_fractional_volume) {
     + This may update the number of free electrons in the cloud that are
         available for capture.
     + Then all traps within the cloud volume release and capture charge.
+    + In the rare case that not enough electrons are available for capture, 
+        all traps within the cloud capture proportionally less charge to match.
 
     Parameters
     ----------
@@ -399,8 +405,9 @@ double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
     }
 
     // Update the electron cloud
+    n_free_electrons += n_released;
     cloud_fractional_volume =
-        ccd_phase.cloud_fractional_volume_from_electrons(n_free_electrons + n_released);
+        ccd_phase.cloud_fractional_volume_from_electrons(n_free_electrons);
     i_wmk_above_cloud = watermark_index_above_cloud(cloud_fractional_volume);
 
     // ========
@@ -442,7 +449,7 @@ double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
     }
 
     // Release and capture electrons in each watermark below the cloud
-    double n_released_and_captured = n_released;
+    double n_released_and_captured = 0.0;
     double n_released_and_captured_this_wmk = 0.0;
     double new_fill;
     for (int i_wmk = i_first_active_wmk; i_wmk < i_wmk_above_cloud; i_wmk++) {
@@ -465,9 +472,6 @@ double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
             // Net released minus captured electrons
             n_released_and_captured_this_wmk +=
                 watermark_fills[i_wmk * n_traps + i_trap] - new_fill;
-
-            // Update watermark fill fractions
-            watermark_fills[i_wmk * n_traps + i_trap] = new_fill;
         }
 
         // Multiply by the watermark volume
@@ -478,15 +482,45 @@ double TrapManager::n_electrons_released_and_captured(double n_free_electrons) {
     // ========
     // Update the watermarks
     // ========
-    // Check enough available electrons to capture
-    double enough = n_free_electrons / n_released_and_captured;
+    // Check enough available electrons to capture, if more captured than released
+    double enough;
+    if (n_released_and_captured < 0.0)
+        enough = n_free_electrons / -n_released_and_captured;
+    else
+        enough = 1.0;
 
-    // Partial capture
-    if (enough < 1.0) {
-        //### todo: just have to duplicate maybe?
+    // Update the watermarks for release and capture below the cloud
+    for (int i_wmk = i_first_active_wmk; i_wmk < i_wmk_above_cloud; i_wmk++) {
+        n_released_and_captured_this_wmk = 0.0;
+
+        // Total volume at the bottom and top of this watermark
+        cumulative_volume = next_cumulative_volume;
+        next_cumulative_volume += watermark_volumes[i_wmk];
+
+        // Each trap species
+        for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+            // Fraction of full traps that remain full plus fraction of empty
+            // traps that become full
+            new_fill = fill_probabilities_from_full[i_trap] *
+                           watermark_fills[i_wmk * n_traps + i_trap] +
+                       fill_probabilities_from_empty[i_trap] *
+                           (trap_densities[i_trap] -
+                            watermark_fills[i_wmk * n_traps + i_trap]);
+
+            // Modify for not-enough capture
+            if (enough < 1.0) {
+                new_fill = enough * new_fill +
+                           (1.0 - enough) * watermark_fills[i_wmk * n_traps + i_trap];
+            }
+
+            // Update watermark fill fractions
+            watermark_fills[i_wmk * n_traps + i_trap] = new_fill;
+        }
     }
 
-    return n_released_and_captured;
+    if (enough < 1.0) n_released_and_captured *= enough;
+
+    return n_released + n_released_and_captured;
 }
 
 // ========
@@ -875,13 +909,15 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
     + First the previously filled traps release charge.
     + This may update the number of free electrons in the cloud that are
         available for capture.
     + Then any unfilled traps within the cloud volume capture charge.
+    + In the rare case that not enough electrons are available for capture, 
+        all traps within the cloud capture proportionally less charge to match.
 
     Parameters
     ----------
