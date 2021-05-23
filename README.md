@@ -346,7 +346,7 @@ The parameters for a trap species.
 See the `Trap` and child class docstrings in `traps.cpp` for the full 
 documentation.
 
-### Standard (WIP)
+### Standard
 Combined release and capture, allowing for instant or non-zero capture times,
 following Lindegren (1998) section 3.2.
 
