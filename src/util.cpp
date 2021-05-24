@@ -174,7 +174,7 @@ std::valarray<std::valarray<double>> transpose(
     image : std::valarray<std::valarray<double>>
         The loaded 2D image array.
 */
-std::valarray<std::valarray<double>> load_image_from_txt(char* filename) {
+std::valarray<std::valarray<double>> load_image_from_txt(const char* filename) {
     FILE* f = fopen(filename, "r");
     if (!f) error("Failed to open image file '%s'", filename);
 
@@ -218,7 +218,7 @@ std::valarray<std::valarray<double>> load_image_from_txt(char* filename) {
     image : std::valarray<std::valarray<double>>
         The 2D image array to save.
 */
-void save_image_to_txt(char* filename, std::valarray<std::valarray<double>> image) {
+void save_image_to_txt(const char* filename, std::valarray<std::valarray<double>> image) {
     FILE* f = fopen(filename, "w");
     if (!f) error("Failed to open file '%s'", filename);
 

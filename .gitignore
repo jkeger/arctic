@@ -7,9 +7,10 @@ lib_test
 arcticpy/src/wrapper.cpp
 __pycache__/
 build/
-dev/
 
 *.fits
 *test*.*
 gmon.out
 callgrind.out.*
+hst_acs_10_col.txt
+dev/

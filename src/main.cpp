@@ -10,6 +10,7 @@
 #include "util.hpp"
 
 static bool custom_mode = false;
+static bool benchmark_mode = false;
 
 /*
     Run arctic with --custom or -c to execute this manually-editable code.
@@ -38,13 +39,13 @@ int run_custom_code() {
             {0.0,   0.0,   0.0,   0.0},
         }  // clang-format on
     );
-    
+
     // Load the image
     std::valarray<std::valarray<double>> image_pre_cti =
         load_image_from_txt((char*)"image_test_pre_cti.txt");
     print_v(1, "Loaded test image from image_test_pre_cti.txt: \n");
     print_array_2D(image_pre_cti);
-    
+
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
@@ -55,25 +56,65 @@ int run_custom_code() {
     int offset = 0;
     int start = 0;
     int stop = -1;
-    
+
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
         &traps, express, offset, start, stop);
     print_v(1, "Image with CTI added: \n");
     print_array_2D(image_post_cti);
-    
+
     // Remove CTI
     int n_iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
-        image_post_cti, n_iterations, &roe, &ccd, &traps, express, offset, start,
-        stop, &roe, &ccd, &traps, express, offset, start, stop);
+        image_post_cti, n_iterations, &roe, &ccd, &traps, express, offset, start, stop,
+        &roe, &ccd, &traps, express, offset, start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
-    
+
     // Save the final image
     save_image_to_txt((char*)"image_test_cti_removed.txt", image_remove_cti);
     print_v(1, "Saved final image to image_test_cti_removed.txt \n");
+
+    return 0;
+}
+
+/*
+    Run arctic with --benchmark or -b for this simple test, e.g. for profiling.
+    
+    Add CTI to a 10-column extract of an HST ACS image. Takes ~0.02 s.
+*/
+int run_benchmark() {
+
+    // Download the test image
+    const char* filename = "hst_acs_10_col.txt";
+    FILE* f = fopen(filename, "r");
+    if (!f) {
+        const char* command =
+            "wget http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt";
+        printf("%s\n", command);
+        int status = system(command);
+        if (status != 0) exit(status);
+    } else
+        fclose(f);
+
+    // Load the image
+    std::valarray<std::valarray<double>> image_pre_cti = load_image_from_txt(filename);
+
+    // CTI model parameters
+    TrapInstantCapture trap(10.0, -1.0 / log(0.5));
+    std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+    std::valarray<double> dwell_times = {1.0};
+    ROE roe(dwell_times, true, false, true, false);
+    CCD ccd(CCDPhase(1e4, 0.0, 1.0));
+    int express = 5;
+    int offset = 0;
+    int start = 0;
+    int stop = -1;
+
+    // Add parallel CTI
+    std::valarray<std::valarray<double>> image_post_cti =
+        add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
 
     return 0;
 }
@@ -91,9 +132,6 @@ void print_help() {
         "detectors by modelling the trapping, releasing, and moving of charge along "
         "pixels. \n"
         "\n"
-        "https://github.com/jkeger/arctic \n"
-        "Jacob Kegerreis: jacob.kegerreis@durham.ac.uk \n"
-        "\n"
         "-h, --help \n"
         "    Print help information and exit. \n"
         "-v <int>, --verbosity=<int> \n"
@@ -105,8 +143,10 @@ void print_help() {
         "    Execute the custom code in the run_custom_code() function at the very \n"
         "    top of main.cpp. For manual editing to test or run arctic without using \n"
         "    any wrappers. The demo version adds then removes CTI from a test image. \n"
+        "-b, --benchmark \n"
+        "    Execute the run_benchmark() function in main.cpp, e.g. for profiling. \n"
         "\n"
-        "See README.md for more information. \n");
+        "See README.md for more information.  https://github.com/jkeger/arctic \n\n");
 }
 
 /*
@@ -114,11 +154,12 @@ void print_help() {
 */
 void parse_parameters(int argc, char** argv) {
     // Short options
-    const char* const short_opts = ":hv:c";
+    const char* const short_opts = ":hv:cb";
     // Full options
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                 {"verbosity", required_argument, nullptr, 'v'},
                                 {"custom", no_argument, nullptr, 'c'},
+                                {"benchmark", no_argument, nullptr, 'b'},
                                 {0, 0, 0, 0}};
 
     // Parse options
@@ -136,6 +177,9 @@ void parse_parameters(int argc, char** argv) {
                 break;
             case 'c':
                 custom_mode = true;
+                break;
+            case 'b':
+                benchmark_mode = true;
                 break;
             case ':':
                 printf(
@@ -174,6 +218,9 @@ void parse_parameters(int argc, char** argv) {
         Execute the custom code in the run_custom_code() function at the very
         top of this file. For manual editing to test or run arctic without using
         any wrappers. The demo version adds then removes CTI from a test image.
+
+    -b, --benchmark
+        Execute the run_benchmark() function above, e.g. for profiling.
 */
 int main(int argc, char** argv) {
 
@@ -182,6 +229,10 @@ int main(int argc, char** argv) {
     if (custom_mode) {
         print_v(1, "# ArCTIC: Running custom code! \n\n");
         return run_custom_code();
+    }
+    if (benchmark_mode) {
+        print_v(1, "# ArCTIC: Running benchmark code \n\n");
+        return run_benchmark();
     }
 
     return 0;
