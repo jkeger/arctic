@@ -62,8 +62,8 @@ python module, using Cython to interface with the precompiled core library.
 
 Usage
 =====
-ArCTIC will typically be used via the python wrapper, but the code can be 
-executed directly as `./arctic` with the following command-line options:
+ArCTIC will typically be used via the python wrapper module, but the code can be 
+run directly as `./arctic` with the following command-line options:
 
 + `-h`, `--help`  
     Print help information and exit.
@@ -77,6 +77,13 @@ executed directly as `./arctic` with the following command-line options:
     top of `src/main.cpp`. A good place to run your own quick tests or use 
     arctic without any wrappers. The demo version adds then removes CTI from a 
     test image.
++ `-b`, `--benchmark`  
+    Execute the simple test `run_benchmark()` function in `src/main.cpp`, 
+    e.g. for profiling.
+
+The code can also be used as a library for other C++ programs, as in the 
+`lib_test` example.
+
 
 
 
@@ -98,7 +105,7 @@ Add arguments to select which tests to run by their names, e.g:
 + `-# [#filename]`  All tests in filename.cpp.
 
 Compiling with `make lib_test` will create a simple example of using the shared 
-object library (`build/libarctic.so`), which is run with `./lib_test`.
+object library (`libarctic.so`), which is run with `./lib_test`.
 
 A few python tests of the primary functions are included for the arcticpy 
 wrapper. Compile the wrapper with `make wrapper` (or `make all`) in the top 
@@ -161,7 +168,7 @@ A quick summary of the code files and their contents:
             The source and header files for functions to cleanly interface 
             between Cython and the main precompiled library. e.g. converts the 
             image array and CTI model inputs into the required C++ objects.
-        + `wrapper.cpp`, `../../wrapper.cpython*.so`  
+        + `wrapper.cpp`, `../wrapper.cpython*.so`  
             Compiled Cython output files.
 
 
@@ -347,12 +354,12 @@ See the `Trap` and child class docstrings in `traps.cpp` for the full
 documentation.
 
 ### Standard
-Combined release and capture, allowing for instant or non-zero capture times,
-following Lindegren (1998) section 3.2.
+Combined release and capture, allowing for non-zero capture times, following 
+Lindegren (1998) section 3.2.
 
 ### Instant capture
-For the simpler algorithm of release first then instant capture. This is the 
-primary model used by previous versions of ArCTIC.
+For the slightly simpler algorithm of release first then instant capture. This 
+is the primary model used by previous versions of ArCTIC.
 
 
 

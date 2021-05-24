@@ -63,9 +63,9 @@ std::valarray<std::valarray<double>> transpose(
 // ========
 // I/O
 // ========
-std::valarray<std::valarray<double>> load_image_from_txt(char* filename);
+std::valarray<std::valarray<double>> load_image_from_txt(const char* filename);
 
-void save_image_to_txt(char* filename, std::valarray<std::valarray<double>> image);
+void save_image_to_txt(const char* filename, std::valarray<std::valarray<double>> image);
 
 // ========
 // Misc
