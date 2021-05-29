@@ -181,8 +181,8 @@ double ff_from_te_integrand(double tau, void* params) {
 double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
     // Prep the integration
     double result, error;
-    const double min = 0;
-    const double epsabs = 1e-6;
+    const double min = 0.0;
+    const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
     gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
@@ -191,12 +191,12 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
     gsl_function F;
     F.function = &ff_from_te_integrand;
     F.params = &params;
-
+    
     // Integrate F.function from min to +infinity
-    int ret = gsl_integration_qagiu(
+    int status = gsl_integration_qagiu(
         &F, min, epsabs, epsrel, limit, workspace, &result, &error);
 
-    if (ret) error("Integration failed, status %d", ret);
+    if (status) error("Integration failed, status %d", status);
 
     return result;
 }
@@ -240,8 +240,8 @@ double TrapContinuum::time_elapsed_from_fill_fraction(double fill_fraction) {
     // Prep the root finder
     double root;
     int status;
-    int iter = 0, max_iter = 100;
-    double epsabs = 0.0, epsrel = 0.0001;
+    const int max_iter = 100;
+    const double epsabs = 0.0, epsrel = 1e-6;
     const gsl_root_fsolver_type* T;
     gsl_root_fsolver* s;
     T = gsl_root_fsolver_brent;
@@ -255,6 +255,7 @@ double TrapContinuum::time_elapsed_from_fill_fraction(double fill_fraction) {
     double x_lo = 0.0, x_hi = 999.0;  //## set using dwell time etc
 
     // Iterate the root finder
+    int iter = 0;
     gsl_root_fsolver_set(s, &F, x_lo, x_hi);
     do {
         iter++;

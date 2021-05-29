@@ -216,9 +216,6 @@ void TrapManager::set_fill_probabilities_from_dwell_time(double dwell_time) {
 /*
     Sum the total number of electrons currently held in traps.
 
-    ##Make sure no copies of the arrays are made, either with pointers or
-      just using the class attributes instead of arguments.
-
     Parameters
     ----------
     wmk_volumes, wmk_fills : std::valarray<double>
@@ -944,6 +941,28 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
     print_v(2, "n_electrons_captured  %g \n", n_captured);
 
     return n_released - n_captured;
+}
+
+// ========
+// TrapManagerContinuum::
+// ========
+/*
+    Class TrapManagerContinuum.
+    
+    For trap species with continous distributions of release timesacles, and 
+    the old-standard, release-then-instant-capture algorithm.
+
+    In this case, the watermark_fills array tracks the total time elapsed since 
+    the traps were filled, instead of the fill fractions. Empty watermarks are 
+    set by -1 instead of 0.
+*/
+TrapManagerContinuum::TrapManagerContinuum(
+    std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase)
+    : TrapManagerInstantCapture(traps, max_n_transfers, ccd_phase) {
+
+    // Overwrite default parameter values
+    n_watermarks_per_transfer = 1;
+    empty_watermark = -1.0;
 }
 
 // ========

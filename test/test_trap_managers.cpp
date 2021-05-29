@@ -1998,3 +1998,25 @@ TEST_CASE("Test standard traps: release and capture", "[trap_managers]") {
         REQUIRE_THAT(test, Catch::Approx(answer).margin(1e-99));
     }
 }
+
+TEST_CASE("Test continuum traps: utilities", "[trap_managers]") {
+    TrapContinuum trap_1(10.0, -1.0 / log(0.5), 0.1);
+    TrapContinuum trap_2(10.0, -1.0 / log(0.5), 1.0);
+
+    SECTION("Initial watermarks") {
+        TrapManagerContinuum trap_manager(
+            std::valarray<Trap>{trap_1, trap_2}, 3, ccd_phase);
+        trap_manager.initialise_trap_states();
+
+        REQUIRE(trap_manager.n_watermarks == 4);
+        REQUIRE(trap_manager.watermark_volumes.size() == 4);
+        REQUIRE(trap_manager.watermark_fills.size() == 8);
+        REQUIRE(trap_manager.empty_watermark == -1);
+        REQUIRE(
+            trap_manager.watermark_volumes.sum() ==
+            trap_manager.n_watermarks * trap_manager.empty_watermark);
+        REQUIRE(
+            trap_manager.watermark_fills.sum() ==
+            2 * trap_manager.n_watermarks * trap_manager.empty_watermark);
+    }
+}

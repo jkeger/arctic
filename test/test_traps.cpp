@@ -4,7 +4,7 @@
 #include "catch2/catch.hpp"
 #include "traps.hpp"
 
-TEST_CASE("Test trap species", "[traps]") {
+TEST_CASE("Test standard and instant-capture traps", "[traps]") {
 
     Trap trap_1(10.0, 1.0, 0.0);
     Trap trap_2(8.0, 1.0, 0.1);

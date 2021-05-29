@@ -66,6 +66,14 @@ class TrapManagerInstantCapture : public TrapManager {
     double n_electrons_released_and_captured(double n_free_electrons);
 };
 
+class TrapManagerContinuum : public TrapManagerInstantCapture {
+   public:
+    TrapManagerContinuum(){};
+    TrapManagerContinuum(
+        std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
+    ~TrapManagerContinuum(){};
+};
+
 class TrapManagerManager {
    public:
     TrapManagerManager(){};
@@ -80,8 +88,10 @@ class TrapManagerManager {
 
     int n_standard_traps;
     int n_instant_capture_traps;
+    int n_continuum_traps;
     std::valarray<TrapManager> trap_managers_standard;
     std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
+    std::valarray<TrapManagerContinuum> trap_managers_continuum;
 
     void reset_trap_states();
     void store_trap_states();
