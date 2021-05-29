@@ -106,8 +106,7 @@ int run_benchmark() {
 
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<Trap> standard_traps = {};
-    std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
+    std::valarray<TrapInstantCapture> traps = {trap};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times, true, false, true, false);
     CCD ccd(CCDPhase(1e4, 0.0, 1.0));
@@ -118,8 +117,7 @@ int run_benchmark() {
 
     // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps, express,
-        offset, start, stop);
+        image_pre_cti, &roe, &ccd, nullptr, &traps, express, offset, start, stop);
 
     return 0;
 }

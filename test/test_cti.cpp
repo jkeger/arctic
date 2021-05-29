@@ -269,7 +269,7 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         Trap trap_std(10.0, -1.0 / log(0.5), 0.1);
         TrapInstantCapture trap_ic(10.0, -1.0 / log(0.5));
         std::valarray<Trap> standard_traps = {trap_std};
-        std::valarray<TrapInstantCapture> instant_capture_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap_ic};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
@@ -279,13 +279,9 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
 
         // Parallel
         image_add_std = add_cti(
-            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
-            express);
-        standard_traps = {};
-        instant_capture_traps = {trap_ic};
+            image_pre_cti, &roe, &ccd, &standard_traps, nullptr, express);
         image_add_ic = add_cti(
-            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
-            express);
+            image_pre_cti, &roe, &ccd, nullptr, &instant_capture_traps, express);
 
         // Similarish results, but less charge removed from bright pixel and
         // less released into trail by standard traps than instant-capture traps

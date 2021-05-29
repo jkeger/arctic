@@ -96,8 +96,8 @@ class TrapManagerManager {
     TrapManagerManager(){};
     TrapManagerManager(
         std::valarray<Trap>& standard_traps,
-        std::valarray<TrapInstantCapture>& instant_capture_traps, int max_n_transfers,
-        CCD ccd, std::valarray<double>& dwell_times);
+        std::valarray<TrapInstantCapture>& instant_capture_traps,
+        int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
     std::valarray<Trap> standard_traps;

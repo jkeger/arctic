@@ -93,6 +93,16 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
             "Number of CCD phases (%d) and ROE phases (%d) don't match.", ccd->n_phases,
             roe->n_phases);
 
+    // Set empty arrays for nullptr trap lists
+    if (standard_traps == nullptr) {
+        std::valarray<Trap> no_standard_traps = {};
+        standard_traps = &no_standard_traps;
+    }
+    if (instant_capture_traps == nullptr) {
+        std::valarray<TrapInstantCapture> no_instant_capture_traps = {};
+        instant_capture_traps = &no_instant_capture_traps;
+    }
+
     // Set up the trap managers
     TrapManagerManager trap_manager_manager(
         *standard_traps, *instant_capture_traps, row_stop - row_start, *ccd,
@@ -343,10 +353,10 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     parallel_ccd : CCD* (opt.)
         The object describing the CCD volume, for parallel clocking.
 
-    standard_traps : std::valarray<Trap>* (opt.)
-    instant_capture_traps : std::valarray<TrapInstantCapture>* (opt.)
+    parallel_standard_traps : std::valarray<Trap>* (opt.)
+    parallel_instant_capture_traps : std::valarray<TrapInstantCapture>* (opt.)
         The arrays of trap species objects, one for each type (which can be 
-        empty), for parallel clocking.
+        empty, or nullptr), for parallel clocking. 
 
     parallel_express : int (opt.)
        The number of times the transfers are computed, determining the
