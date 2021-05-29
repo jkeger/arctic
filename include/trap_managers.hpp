@@ -46,18 +46,6 @@ class TrapManagerBase {
     int watermark_index_above_cloud(double cloud_fractional_volume);
 };
 
-class TrapManager : public TrapManagerBase {
-   public:
-    TrapManager(){};
-    TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
-    ~TrapManager(){};
-
-    std::valarray<Trap> traps;
-
-    void set_fill_probabilities_from_dwell_time(double dwell_time);
-    virtual double n_electrons_released_and_captured(double n_free_electrons);
-};
-
 class TrapManagerInstantCapture : public TrapManagerBase {
    public:
     TrapManagerInstantCapture(){};
@@ -78,6 +66,19 @@ class TrapManagerInstantCapture : public TrapManagerBase {
     double n_electrons_released_and_captured(double n_free_electrons);
 };
 
+class TrapManagerSlowCapture : public TrapManagerBase {
+   public:
+    TrapManagerSlowCapture(){};
+    TrapManagerSlowCapture(
+        std::valarray<TrapSlowCapture> traps, int max_n_transfers, CCDPhase ccd_phase);
+    ~TrapManagerSlowCapture(){};
+
+    std::valarray<TrapSlowCapture> traps;
+
+    void set_fill_probabilities_from_dwell_time(double dwell_time);
+    virtual double n_electrons_released_and_captured(double n_free_electrons);
+};
+
 class TrapManagerContinuum : public TrapManagerBase {
    public:
     TrapManagerContinuum(){};
@@ -95,20 +96,20 @@ class TrapManagerManager {
    public:
     TrapManagerManager(){};
     TrapManagerManager(
-        std::valarray<Trap>& standard_traps,
-        std::valarray<TrapInstantCapture>& instant_capture_traps,
-        int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times);
+        std::valarray<TrapSlowCapture>& slow_capture_traps,
+        std::valarray<TrapInstantCapture>& instant_capture_traps, int max_n_transfers,
+        CCD ccd, std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
-    std::valarray<Trap> standard_traps;
+    std::valarray<TrapSlowCapture> slow_capture_traps;
     std::valarray<TrapInstantCapture> instant_capture_traps;
     int max_n_transfers;
     CCD ccd;
 
-    int n_standard_traps;
+    int n_slow_capture_traps;
     int n_instant_capture_traps;
     int n_continuum_traps;
-    std::valarray<TrapManager> trap_managers_standard;
+    std::valarray<TrapManagerSlowCapture> trap_managers_slow_capture;
     std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
 
     void reset_trap_states();

@@ -15,16 +15,64 @@
 int n_watermark_types = 3;
 
 // ========
-// Trap::
+// TrapInstantCapture::
 // ========
 /*
-    Class Trap.
+    Class TrapInstantCapture.
 
-    A single trap species.
+    For the standard release-then-instant-capture algorithm.
 
     Controls the density of traps and the timescales/probabilities of
     capture and release, along with utilities for the watermarking tracking
     of trap states and the calculation of capture and release.
+
+    Parameters
+    ----------
+    density : double
+        The density of the trap species in a pixel.
+
+    release_timescale : double
+        The release timescale of the trap, in the same units as the time
+        spent in each pixel or phase.
+
+    Attributes
+    ----------
+    emission_rate : double
+        The emission rate (Lindegren (1998) section 3.2).
+*/
+TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
+    : density(density),
+      release_timescale(release_timescale) {
+
+    watermark_type = watermark_type_instant_capture;
+    emission_rate = 1.0 / release_timescale;
+}
+
+/*
+    Calculate the fraction of filled traps after an amount of elapsed time.
+
+    Parameters
+    ----------
+    time_elapsed : double
+        The total time elapsed since the traps were filled, in the same
+        units as the trap timescales.
+
+    Returns
+    -------
+    fill_fraction : double
+        The remaining fraction of filled traps.
+*/
+double TrapInstantCapture::fill_fraction_from_time_elapsed(double time_elapsed) {
+    return exp(-time_elapsed / release_timescale);
+}
+
+// ========
+// TrapSlowCapture::
+// ========
+/*
+    Class TrapSlowCapture.
+
+    For traps with a non-instant capture time.
 
     Parameters
     ----------
@@ -47,64 +95,16 @@ int n_watermark_types = 3;
     emission_rate, capture_rate : double
         The emission and capture rates (Lindegren (1998) section 3.2).
 */
-Trap::Trap(double density, double release_timescale, double capture_timescale)
-    : density(density),
-      release_timescale(release_timescale),
+TrapSlowCapture::TrapSlowCapture(
+    double density, double release_timescale, double capture_timescale)
+    : TrapInstantCapture(density, release_timescale),
       capture_timescale(capture_timescale) {
 
-    watermark_type = watermark_type_standard;
-
-    emission_rate = 1.0 / release_timescale;
+    watermark_type = watermark_type_slow_capture;
     if (capture_timescale != 0.0)
         capture_rate = 1.0 / capture_timescale;
     else
         capture_rate = 0.0;
-}
-
-/*
-    Calculate the fraction of filled traps after an amount of elapsed time.
-
-    Parameters
-    ----------
-    time_elapsed : double
-        The total time elapsed since the traps were filled, in the same
-        units as the trap timescales.
-
-    Returns
-    -------
-    fill_fraction : double
-        The remaining fraction of filled traps.
-*/
-double Trap::fill_fraction_from_time_elapsed(double time_elapsed) {
-    return exp(-time_elapsed / release_timescale);
-}
-
-// ========
-// TrapInstantCapture::
-// ========
-/*
-    Class TrapInstantCapture.
-
-    For the old release-then-instant-capture algorithm.
-
-    Parameters
-    ----------
-    density : double
-        The density of the trap species in a pixel.
-
-    release_timescale : double
-        The release timescale of the trap, in the same units as the time
-        spent in each pixel or phase.
-
-    Attributes
-    ----------
-    emission_rate : double
-        The emission rate (Lindegren (1998) section 3.2).
-*/
-TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
-    : Trap(density, release_timescale, 0.0) {
-
-    watermark_type = watermark_type_instant_capture;
 }
 
 // ========
@@ -138,7 +138,7 @@ TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
 */
 TrapContinuum::TrapContinuum(
     double density, double release_timescale, double release_timescale_sigma)
-    : Trap(density, release_timescale, 0.0),
+    : TrapInstantCapture(density, release_timescale),
       release_timescale_sigma(release_timescale_sigma) {
 
     watermark_type = watermark_type_continuum;

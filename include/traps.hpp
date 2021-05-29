@@ -4,34 +4,35 @@
 
 extern int n_watermark_types;
 enum WatermarkType {
-    watermark_type_standard = 0,
-    watermark_type_instant_capture = 1,
+    watermark_type_instant_capture = 0,
+    watermark_type_slow_capture = 1,
     watermark_type_continuum = 2
 };
 
-class Trap {
+class TrapInstantCapture {
    public:
-    Trap(double density, double release_timescale, double capture_timescale);
-    ~Trap(){};
+    TrapInstantCapture(double density, double release_timescale);
+    ~TrapInstantCapture(){};
 
     double density;
-    double release_timescale;
-    double capture_timescale;
-
     WatermarkType watermark_type;
+    
+    double release_timescale;
     double emission_rate;
-    double capture_rate;
 
     virtual double fill_fraction_from_time_elapsed(double time_elapsed);
 };
 
-class TrapInstantCapture : public Trap {
+class TrapSlowCapture : public TrapInstantCapture {
    public:
-    TrapInstantCapture(double density, double release_timescale);
-    ~TrapInstantCapture(){};
+    TrapSlowCapture(double density, double release_timescale, double capture_timescale);
+    ~TrapSlowCapture(){};
+    
+    double capture_timescale;    
+    double capture_rate;
 };
 
-class TrapContinuum : public Trap {
+class TrapContinuum : public TrapInstantCapture {
    public:
     TrapContinuum(
         double density, double release_timescale, double release_timescale_sigma);
