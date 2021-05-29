@@ -1,12 +1,12 @@
 
-#include <math.h>
 #include <gsl/gsl_integration.h>
+#include <math.h>
 
 #include "traps.hpp"
 #include "util.hpp"
 
 /*
-    The number of watermark types available. i.e. the number of WatermarkType 
+    The number of watermark types available. i.e. the number of WatermarkType
     enum options.
 */
 int n_watermark_types = 3;
@@ -48,9 +48,9 @@ Trap::Trap(double density, double release_timescale, double capture_timescale)
     : density(density),
       release_timescale(release_timescale),
       capture_timescale(capture_timescale) {
-    
+
     watermark_type = watermark_type_standard;
-    
+
     emission_rate = 1.0 / release_timescale;
     if (capture_timescale != 0.0)
         capture_rate = 1.0 / capture_timescale;
@@ -100,17 +100,17 @@ double Trap::fill_fraction_from_time_elapsed(double time_elapsed) {
 */
 TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
     : Trap(density, release_timescale, 0.0) {
-    
+
     watermark_type = watermark_type_instant_capture;
 }
 
 // ========
-// Trap::TrapContinuum
+// TrapContinuum::
 // ========
 /*
     Class TrapContinuum.
 
-    For a trap species with a continuum (log-normal distribution) of release 
+    For a trap species with a continuum (log-normal distribution) of release
     timescales, and instant capture.
 
     i.e. Density as function of release timecsale is set by:
@@ -137,6 +137,64 @@ TrapContinuum::TrapContinuum(
     double density, double release_timescale, double release_timescale_sigma)
     : Trap(density, release_timescale, 0.0),
       release_timescale_sigma(release_timescale_sigma) {
-    
+
     watermark_type = watermark_type_continuum;
+}
+
+/*
+    Calculate the fraction of filled traps after an amount of elapsed time.
+
+    Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
+    trap density distribution with trap release timescales.
+
+    Parameters
+    ----------
+    time_elapsed : double
+        The total time elapsed since the traps were filled, in the same
+        units as the trap timescales.
+
+    Returns
+    -------
+    fill_fraction : double
+        The fraction of filled traps.
+*/
+// Input parameters for the integrand
+struct ff_from_te_params {
+    double t;
+    double mu;
+    double sigma;
+};
+
+// Integrand function
+double ff_from_te_integrand(double tau, void* params) {
+    struct ff_from_te_params* p = (struct ff_from_te_params*)params;
+
+    return exp(-p->t / tau) *
+           exp(-pow(log(tau) - log(p->mu), 2) / (2 * p->sigma * p->sigma)) /
+           (tau * p->sigma * sqrt(2 * M_PI));
+}
+
+double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
+    // Set the parameter values
+    struct ff_from_te_params params = {time_elapsed, release_timescale,
+                                       release_timescale_sigma};
+
+    // Prep the integration
+    double result, error;
+    const double min = 0;
+    const double epsabs = 1e-6;
+    const double epsrel = 1e-6;
+    const int limit = 100;
+    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+    gsl_function F;
+    F.function = &ff_from_te_integrand;
+    F.params = &params;
+
+    // Integrate F.function from min to +infinity
+    int ret = gsl_integration_qagiu(
+        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
+
+    if (ret) error("Integration failed, status %d", ret);
+
+    return result;
 }
