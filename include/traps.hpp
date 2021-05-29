@@ -2,20 +2,12 @@
 #ifndef ARCTIC_TRAPS_HPP
 #define ARCTIC_TRAPS_HPP
 
-extern int n_watermark_types;
-enum WatermarkType {
-    watermark_type_instant_capture = 0,
-    watermark_type_slow_capture = 1,
-    watermark_type_continuum = 2
-};
-
 class TrapInstantCapture {
    public:
     TrapInstantCapture(double density, double release_timescale);
     ~TrapInstantCapture(){};
 
     double density;
-    WatermarkType watermark_type;
     
     double release_timescale;
     double emission_rate;

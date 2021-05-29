@@ -1158,17 +1158,6 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_slow_capture[phase_index]
                 .set_fill_probabilities_from_dwell_time(dwell_times[phase_index]);
         }
-
-        // Check correct watermark types
-        for (int i_trap = 0; i_trap < trap_managers_slow_capture[0].n_traps; i_trap++) {
-            if (trap_managers_slow_capture[0].traps[i_trap].watermark_type !=
-                watermark_type_slow_capture)
-                error(
-                    "TrapSlowCapture [%d]'s watermark type (%d) doesn't match "
-                    "watermark_type_slow_capture (%d).",
-                    i_trap, trap_managers_slow_capture[0].traps[i_trap].watermark_type,
-                    watermark_type_slow_capture);
-        }
     }
 
     if (n_instant_capture_traps > 0) {
@@ -1186,19 +1175,6 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_instant_capture[phase_index].initialise_trap_states();
             trap_managers_instant_capture[phase_index]
                 .set_fill_probabilities_from_dwell_time(dwell_times[phase_index]);
-        }
-
-        // Check correct watermark types
-        for (int i_trap = 0; i_trap < trap_managers_instant_capture[0].n_traps;
-             i_trap++) {
-            if (trap_managers_instant_capture[0].traps[i_trap].watermark_type !=
-                watermark_type_instant_capture)
-                error(
-                    "TrapSlowCapture [%d]'s watermark type (%d) doesn't match "
-                    "watermark_type_instant_capture (%d).",
-                    i_trap,
-                    trap_managers_instant_capture[0].traps[i_trap].watermark_type,
-                    watermark_type_instant_capture);
         }
     }
 }

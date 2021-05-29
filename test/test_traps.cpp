@@ -11,19 +11,16 @@ TEST_CASE("Test standard and instant-capture traps", "[traps]") {
     TrapSlowCapture trap_3(8.0, 1.0, 0.1);
 
     SECTION("Initialisation") {
-        REQUIRE(trap_1.watermark_type == watermark_type_instant_capture);
         REQUIRE(trap_1.density == 10.0);
         REQUIRE(trap_1.release_timescale == 2.0);
         REQUIRE(trap_1.emission_rate == 0.5);
 
-        REQUIRE(trap_2.watermark_type == watermark_type_slow_capture);
         REQUIRE(trap_2.density == 10.0);
         REQUIRE(trap_2.release_timescale == 1.0);
         REQUIRE(trap_2.capture_timescale == 0.0);
         REQUIRE(trap_2.emission_rate == 1.0);
         REQUIRE(trap_2.capture_rate == 0.0);
 
-        REQUIRE(trap_3.watermark_type == watermark_type_slow_capture);
         REQUIRE(trap_3.density == 8.0);
         REQUIRE(trap_3.release_timescale == 1.0);
         REQUIRE(trap_3.capture_timescale == 0.1);
@@ -47,12 +44,10 @@ TEST_CASE("Test continuum traps", "[traps]") {
     TrapContinuum trap_2(10.0, -1.0 / log(0.5), 1.0);
 
     SECTION("Initialisation") {
-        REQUIRE(trap_1.watermark_type == watermark_type_continuum);
         REQUIRE(trap_1.density == 10.0);
         REQUIRE(trap_1.release_timescale == -1.0 / log(0.5));
         REQUIRE(trap_1.release_timescale_sigma == 0.1);
 
-        REQUIRE(trap_2.watermark_type == watermark_type_continuum);
         REQUIRE(trap_2.density == 10.0);
         REQUIRE(trap_2.release_timescale == -1.0 / log(0.5));
         REQUIRE(trap_2.release_timescale_sigma == 1.0);

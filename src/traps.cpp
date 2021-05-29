@@ -8,12 +8,6 @@
 #include "traps.hpp"
 #include "util.hpp"
 
-/*
-    The number of watermark types available. i.e. the number of WatermarkType
-    enum options.
-*/
-int n_watermark_types = 3;
-
 // ========
 // TrapInstantCapture::
 // ========
@@ -44,7 +38,6 @@ TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
     : density(density),
       release_timescale(release_timescale) {
 
-    watermark_type = watermark_type_instant_capture;
     emission_rate = 1.0 / release_timescale;
 }
 
@@ -88,10 +81,6 @@ double TrapInstantCapture::fill_fraction_from_time_elapsed(double time_elapsed) 
 
     Attributes
     ----------
-    watermark_type : WatermarkType : enum int
-        The flag for the type of watermarks required for this type of trap. Used
-        to set up the trap managers etc.
-
     emission_rate, capture_rate : double
         The emission and capture rates (Lindegren (1998) section 3.2).
 */
@@ -100,7 +89,6 @@ TrapSlowCapture::TrapSlowCapture(
     : TrapInstantCapture(density, release_timescale),
       capture_timescale(capture_timescale) {
 
-    watermark_type = watermark_type_slow_capture;
     if (capture_timescale != 0.0)
         capture_rate = 1.0 / capture_timescale;
     else
@@ -139,10 +127,7 @@ TrapSlowCapture::TrapSlowCapture(
 TrapContinuum::TrapContinuum(
     double density, double release_timescale, double release_timescale_sigma)
     : TrapInstantCapture(density, release_timescale),
-      release_timescale_sigma(release_timescale_sigma) {
-
-    watermark_type = watermark_type_continuum;
-}
+      release_timescale_sigma(release_timescale_sigma) {}
 
 /*
     Calculate the fraction of filled traps after an amount of elapsed time.
