@@ -7,13 +7,12 @@
 #include "ccd.hpp"
 #include "traps.hpp"
 
-class TrapManager {
+class TrapManagerBase {
    public:
-    TrapManager(){};
-    TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
-    ~TrapManager(){};
+    TrapManagerBase(){};
+    TrapManagerBase(int max_n_transfers, CCDPhase ccd_phase);
+    ~TrapManagerBase(){};
 
-    std::valarray<Trap> traps;
     int max_n_transfers;
     CCDPhase ccd_phase;
 
@@ -23,13 +22,13 @@ class TrapManager {
     std::valarray<double> stored_watermark_fills;
 
     int n_traps;
-    int n_watermarks_per_transfer;
-    int n_watermarks;
+    double empty_watermark;
     int n_active_watermarks;
     int i_first_active_wmk;
+    int n_watermarks_per_transfer;
+    int n_watermarks;
     int stored_n_active_watermarks;
     int stored_i_first_active_wmk;
-    double empty_watermark;
 
     std::valarray<double> trap_densities;
     std::valarray<double> fill_probabilities_from_empty;
@@ -42,21 +41,34 @@ class TrapManager {
     void store_trap_states();
     void restore_trap_states();
 
-    void set_fill_probabilities_from_dwell_time(double dwell_time);
     virtual double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
     int watermark_index_above_cloud(double cloud_fractional_volume);
+};
 
+class TrapManager : public TrapManagerBase {
+   public:
+    TrapManager(){};
+    TrapManager(std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
+    ~TrapManager(){};
+
+    std::valarray<Trap> traps;
+
+    void set_fill_probabilities_from_dwell_time(double dwell_time);
     virtual double n_electrons_released_and_captured(double n_free_electrons);
 };
 
-class TrapManagerInstantCapture : public TrapManager {
+class TrapManagerInstantCapture : public TrapManagerBase {
    public:
     TrapManagerInstantCapture(){};
     TrapManagerInstantCapture(
-        std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
+        std::valarray<TrapInstantCapture> traps, int max_n_transfers,
+        CCDPhase ccd_phase);
     ~TrapManagerInstantCapture(){};
 
+    std::valarray<TrapInstantCapture> traps;
+
+    void set_fill_probabilities_from_dwell_time(double dwell_time);
     double n_electrons_released();
     void update_watermarks_capture(
         double cloud_fractional_volume, int i_wmk_above_cloud);
@@ -66,23 +78,30 @@ class TrapManagerInstantCapture : public TrapManager {
     double n_electrons_released_and_captured(double n_free_electrons);
 };
 
-class TrapManagerContinuum : public TrapManagerInstantCapture {
+class TrapManagerContinuum : public TrapManagerBase {
    public:
     TrapManagerContinuum(){};
     TrapManagerContinuum(
-        std::valarray<Trap> traps, int max_n_transfers, CCDPhase ccd_phase);
+        std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase);
     ~TrapManagerContinuum(){};
+
+    std::valarray<TrapContinuum> traps;
+
+    virtual double n_trapped_electrons_from_watermarks(
+        std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
 };
 
 class TrapManagerManager {
    public:
     TrapManagerManager(){};
     TrapManagerManager(
-        std::valarray<std::valarray<Trap>>& all_traps, int max_n_transfers, CCD ccd,
-        std::valarray<double>& dwell_times);
+        std::valarray<Trap>& standard_traps,
+        std::valarray<TrapInstantCapture>& instant_capture_traps, int max_n_transfers,
+        CCD ccd, std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
-    std::valarray<std::valarray<Trap>> all_traps;
+    std::valarray<Trap> standard_traps;
+    std::valarray<TrapInstantCapture> instant_capture_traps;
     int max_n_transfers;
     CCD ccd;
 
@@ -91,7 +110,6 @@ class TrapManagerManager {
     int n_continuum_traps;
     std::valarray<TrapManager> trap_managers_standard;
     std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
-    std::valarray<TrapManagerContinuum> trap_managers_continuum;
 
     void reset_trap_states();
     void store_trap_states();

@@ -24,7 +24,8 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+        std::valarray<Trap> standard_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
@@ -32,8 +33,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         image_pre_cti[2][0] = 800.0;
 
         express = 1;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000}, {0.000000000}, {776.000000000}, {15.920000000},
                     {9.999750000}, {6.029849250}, {3.534999123},   {2.030099496},
                     {1.147640621}, {0.640766014}, {0.354183414},   {0.194156908},
@@ -42,8 +44,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(image_py)));
 
         express = 2;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000}, {0.000000000}, {776.000000000}, {15.920000000},
                     {9.999750000}, {6.029849250}, {3.534999123},   {2.030099496},
                     {1.147640621}, {0.640766014}, {0.351503820},   {0.195205130},
@@ -52,8 +55,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(image_py)));
 
         express = 5;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000}, {0.000000000}, {776.000000000}, {15.920000000},
                     {9.944726500}, {6.044398638}, {3.575964224},   {2.077645109},
                     {1.187409621}, {0.673921772}, {0.380110626},   {0.213191168},
@@ -62,8 +66,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(image_py)));
 
         express = 10;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000}, {0.000000000}, {776.160000000}, {15.681200000},
                     {9.859558480}, {5.988455305}, {3.543547476},   {2.064161346},
                     {1.186023190}, {0.675948795}, {0.382161311},   {0.215111905},
@@ -72,8 +77,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(image_py)));
 
         express = 20;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000}, {0.000000000}, {776.239200000}, {15.603586518},
                     {9.849325322}, {5.992674142}, {3.557803028},   {2.076188299},
                     {1.196521151}, {0.683175954}, {0.387335013},   {0.218424309},
@@ -85,7 +91,8 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, far from readout, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+        std::valarray<Trap> standard_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 0.5));
         image_pre_cti =
@@ -93,8 +100,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         image_pre_cti[102][0] = 800.0;
 
         express = 2;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000},   {0.000000000},   {0.000000000},  {0.000000000},
                     {0.000000000},   {0.000000000},   {0.000000000},  {0.000000000},
                     {0.000000000},   {0.000000000},   {0.000000000},  {0.000000000},
@@ -128,8 +136,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         REQUIRE_THAT(flatten(image_post_cti), Catch::Approx(flatten(image_py)));
 
         express = 20;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000},   {0.000000000},  {0.000000000},   {0.000000000},
                     {0.000000000},   {0.000000000},  {0.000000000},   {0.000000000},
                     {0.000000000},   {0.000000000},  {0.000000000},   {0.000000000},
@@ -166,7 +175,8 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, longer release time") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, 5);
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+        std::valarray<Trap> standard_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 0.5));
         image_pre_cti =
@@ -174,8 +184,9 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         image_pre_cti[2][0] = 800.0;
 
         express = 40;
-        image_post_cti =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_post_cti = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         image_py = {{0.000000000}, {0.000000000}, {773.317606690}, {5.999125213},
                     {6.144729845}, {6.060553754}, {5.823556488},   {5.494554880},
                     {5.115565639}, {4.715930005}, {4.315646031},   {3.927879015},
@@ -202,7 +213,8 @@ TEST_CASE("Test add CTI", "[cti]") {
         std::valarray<std::valarray<double>> image_pre_cti, image_add, image_clock;
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+        std::valarray<Trap> standard_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti = {
@@ -218,25 +230,30 @@ TEST_CASE("Test add CTI", "[cti]") {
         express = 0;
 
         // Parallel
-        image_add = add_cti(image_pre_cti, &roe, &ccd, &traps, express);
-        image_clock =
-            clock_charge_in_one_direction(image_pre_cti, &roe, &ccd, &traps, express);
+        image_add = add_cti(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
+        image_clock = clock_charge_in_one_direction(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
 
         // Add serial
         image_add = add_cti(
-            image_add, nullptr, nullptr, nullptr, express, offset, start, stop, &roe,
-            &ccd, &traps, express, offset, start, stop);
+            image_add, nullptr, nullptr, nullptr, nullptr, express, offset, start, stop,
+            &roe, &ccd, &standard_traps, &instant_capture_traps, express, offset, start,
+            stop);
         image_clock = transpose(image_clock);
-        image_clock =
-            clock_charge_in_one_direction(image_clock, &roe, &ccd, &traps, express);
+        image_clock = clock_charge_in_one_direction(
+            image_clock, &roe, &ccd, &standard_traps, &instant_capture_traps, express);
         image_clock = transpose(image_clock);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
 
         // Both at once
         image_add = add_cti(
-            image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
-            &traps, express, offset, start, stop);
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps, express,
+            offset, start, stop, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express, offset, start, stop);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
     }
 }
@@ -251,8 +268,8 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         int express;
         Trap trap_std(10.0, -1.0 / log(0.5), 0.1);
         TrapInstantCapture trap_ic(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps_std = {{trap_std}, {}, {}};
-        std::valarray<std::valarray<Trap>> traps_ic = {{}, {trap_ic}, {}};
+        std::valarray<Trap> standard_traps = {trap_std};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
@@ -261,16 +278,23 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         express = 0;
 
         // Parallel
-        image_add_std = add_cti(image_pre_cti, &roe, &ccd, &traps_std, express);
-        image_add_ic = add_cti(image_pre_cti, &roe, &ccd, &traps_ic, express);
-        
-        // Similarish results, but less charge removed from bright pixel and 
+        image_add_std = add_cti(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
+        standard_traps = {};
+        instant_capture_traps = {trap_ic};
+        image_add_ic = add_cti(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express);
+
+        // Similarish results, but less charge removed from bright pixel and
         // less released into trail by standard traps than instant-capture traps
         REQUIRE(image_add_std[2][0] > image_add_ic[2][0]);
         REQUIRE(image_add_std[2][0] == Approx(image_add_ic[2][0]).epsilon(0.01));
         for (int i_row = 3; i_row < 10; i_row++) {
             REQUIRE(image_add_std[i_row][0] < image_add_ic[i_row][0]);
-            REQUIRE(image_add_std[i_row][0] == Approx(image_add_ic[i_row][0]).margin(1.0));
+            REQUIRE(
+                image_add_std[i_row][0] == Approx(image_add_ic[i_row][0]).margin(1.0));
         }
     }
 }
@@ -289,7 +313,8 @@ TEST_CASE("Test remove CTI", "[cti]") {
             image_remove_cti;
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+        std::valarray<Trap> standard_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti = {
@@ -306,14 +331,16 @@ TEST_CASE("Test remove CTI", "[cti]") {
 
         // Add CTI
         image_add_cti = add_cti(
-            image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
-            &traps, express, offset, start, stop);
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps, express,
+            offset, start, stop, &roe, &ccd, &standard_traps, &instant_capture_traps,
+            express, offset, start, stop);
 
         // Remove CTI
         for (int n_iterations = 2; n_iterations <= 6; n_iterations++) {
             image_remove_cti = remove_cti(
-                image_add_cti, n_iterations, &roe, &ccd, &traps, express, offset, start,
-                stop, &roe, &ccd, &traps, express, offset, start, stop);
+                image_add_cti, n_iterations, &roe, &ccd, &standard_traps,
+                &instant_capture_traps, express, offset, start, stop, &roe, &ccd,
+                &standard_traps, &instant_capture_traps, express, offset, start, stop);
 
             // Expect better results with more iterations
             double tolerance = pow(10.0, 1 - n_iterations);
@@ -330,7 +357,8 @@ TEST_CASE("Test offset and windows", "[cti]") {
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
     int express, offset;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+    std::valarray<Trap> standard_traps = {};
+    std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times, true, false, true, true);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -357,11 +385,13 @@ TEST_CASE("Test offset and windows", "[cti]") {
             for (int i_express = 0; i_express < 3; i_express++) {
                 express = express_tests[i_express];
 
-                image_post_cti =
-                    add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset);
+                image_post_cti = add_cti(
+                    image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+                    express, offset);
 
                 image_post_cti_manual_offset = add_cti(
-                    image_pre_cti_manual_offset, &roe, &ccd, &traps, express, 0);
+                    image_pre_cti_manual_offset, &roe, &ccd, &standard_traps,
+                    &instant_capture_traps, express, 0);
 
                 // Strip the offset
                 extract = (std::valarray<std::valarray<double>>)
@@ -393,7 +423,9 @@ TEST_CASE("Test offset and windows", "[cti]") {
             express = express_tests[i_express];
 
             // Full image
-            image_post_cti_full = add_cti(image_pre_cti, &roe, &ccd, &traps, express);
+            image_post_cti_full = add_cti(
+                image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+                express);
 
             // Windows
             for (int i = 0; i < 5; i++) {
@@ -401,8 +433,8 @@ TEST_CASE("Test offset and windows", "[cti]") {
                 window_stop = window_tests[i][1];
 
                 image_post_cti = add_cti(
-                    image_pre_cti, &roe, &ccd, &traps, express, offset, window_start,
-                    window_stop);
+                    image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+                    express, offset, window_start, window_stop);
 
                 if (i == 0) {
                     // Window misses the bright pixel so no trail
@@ -451,13 +483,15 @@ TEST_CASE("Test offset and windows", "[cti]") {
 
             // Full image
             image_post_cti_full = add_cti(
-                image_pre_cti, &roe, &ccd, &traps, express, offset, 0, -1, &roe, &ccd,
-                &traps, express, offset, 0, -1);
+                image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+                express, offset, 0, -1, &roe, &ccd, &standard_traps,
+                &instant_capture_traps, express, offset, 0, -1);
 
             // Window
             image_post_cti = add_cti(
-                image_pre_cti, &roe, &ccd, &traps, express, offset, parallel_start,
-                parallel_stop, &roe, &ccd, &traps, express, offset, serial_start,
+                image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps,
+                express, offset, parallel_start, parallel_stop, &roe, &ccd,
+                &standard_traps, &instant_capture_traps, express, offset, serial_start,
                 serial_stop);
 
             for (int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
@@ -494,7 +528,8 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
             image_post_cti_ci;
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+        std::valarray<Trap> standard_traps = {};
+        std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
         ROE roe_std(dwell_times, true, false, true);
         ROEChargeInjection roe_ci(dwell_times, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -506,8 +541,12 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
         express = 0;
 
         // Parallel
-        image_post_cti_std = add_cti(image_pre_cti, &roe_std, &ccd, &traps, express);
-        image_post_cti_ci = add_cti(image_pre_cti, &roe_ci, &ccd, &traps, express);
+        image_post_cti_std = add_cti(
+            image_pre_cti, &roe_std, &ccd, &standard_traps, &instant_capture_traps,
+            express);
+        image_post_cti_ci = add_cti(
+            image_pre_cti, &roe_ci, &ccd, &standard_traps, &instant_capture_traps,
+            express);
 
         // Charge injection trails behind each bright pixel are similar to each
         // other, apart from the first pixels encountering empty traps
@@ -562,7 +601,8 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
     // bool empty_traps_for_first_transfers = true;
     // bool use_integer_express_matrix = false;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
+    std::valarray<Trap> standard_traps = {};
+    std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
 
     SECTION("Three phases, dipoles created") {
         std::valarray<double> dwell_times(1.0 / 6.0, 6);
@@ -587,8 +627,9 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         CCD ccd(phases, fraction_of_traps_per_phase);
 
         // Add CTI from pumping
-        image_post_cti =
-            add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
+        image_post_cti = add_cti(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps, express,
+            offset, start, stop);
 
         // Decreased charge in pixel p, slightly decreased charge in pixel p+1
         REQUIRE(image_post_cti[2][0] < image_pre_cti[2][0]);
@@ -609,8 +650,9 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         ccd = CCD(phases, fraction_of_traps_per_phase);
 
         // Add CTI from pumping
-        image_post_cti =
-            add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
+        image_post_cti = add_cti(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps, express,
+            offset, start, stop);
 
         // Decreased charge in pixel p, increased charge in pixel p+1
         REQUIRE(image_post_cti[2][0] < image_pre_cti[2][0]);
@@ -630,8 +672,9 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
         ccd = CCD(phases, fraction_of_traps_per_phase);
 
         // Add CTI from pumping
-        image_post_cti =
-            add_cti(image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop);
+        image_post_cti = add_cti(
+            image_pre_cti, &roe, &ccd, &standard_traps, &instant_capture_traps, express,
+            offset, start, stop);
 
         // Decreased charge in pixel p, increased charge in pixel p-1
         REQUIRE(image_post_cti[2][0] < image_pre_cti[2][0]);
