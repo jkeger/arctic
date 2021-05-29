@@ -1,5 +1,8 @@
 
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_roots.h>
 #include <math.h>
 
 #include "traps.hpp"
@@ -146,6 +149,8 @@ TrapContinuum::TrapContinuum(
 
     Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
     trap density distribution with trap release timescales.
+    
+    (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
     Parameters
     ----------
@@ -158,27 +163,22 @@ TrapContinuum::TrapContinuum(
     fill_fraction : double
         The fraction of filled traps.
 */
-// Input parameters for the integrand
 struct ff_from_te_params {
-    double t;
+    double time_elapsed;
     double mu;
     double sigma;
 };
 
-// Integrand function
 double ff_from_te_integrand(double tau, void* params) {
     struct ff_from_te_params* p = (struct ff_from_te_params*)params;
 
-    return exp(-p->t / tau) *
+    // To integrate: e^(-time_elapsed / tau) * fill_fraction(tau) dtau
+    return exp(-p->time_elapsed / tau) *
            exp(-pow(log(tau) - log(p->mu), 2) / (2 * p->sigma * p->sigma)) /
            (tau * p->sigma * sqrt(2 * M_PI));
 }
 
 double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
-    // Set the parameter values
-    struct ff_from_te_params params = {time_elapsed, release_timescale,
-                                       release_timescale_sigma};
-
     // Prep the integration
     double result, error;
     const double min = 0;
@@ -186,6 +186,8 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
     const double epsrel = 1e-6;
     const int limit = 100;
     gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+    struct ff_from_te_params params = {time_elapsed, release_timescale,
+                                       release_timescale_sigma};
     gsl_function F;
     F.function = &ff_from_te_integrand;
     F.params = &params;
@@ -197,4 +199,71 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
     if (ret) error("Integration failed, status %d", ret);
 
     return result;
+}
+
+/*
+    Calculate the amount of elapsed time from the fraction of filled traps.
+    
+    Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
+    equal to the required fill_fraction, using a root finder.
+    
+    (www.gnu.org/software/gsl/doc/html/roots.html)
+
+    Parameters
+    ----------
+    fill_fraction : double
+        The fraction of filled traps.
+
+    Returns
+    -------
+    time_elapsed : double
+        The total time elapsed since the traps were filled, in the same
+        units as the trap timescales.
+*/
+struct te_from_ff_params {
+    TrapContinuum* trap;
+    double fill_fraction;
+};
+
+double te_from_ff_root_function(double time_elapsed, void* params) {
+    struct te_from_ff_params* p = (struct te_from_ff_params*)params;
+
+    // To find time such that: fill_fraction(time) - fill_fraction = 0
+    return p->trap->fill_fraction_from_time_elapsed(time_elapsed) - p->fill_fraction;
+}
+
+double TrapContinuum::time_elapsed_from_fill_fraction(double fill_fraction) {
+    // Completely full or empty
+    if (fill_fraction == 1.0) return 0.0;
+    if (fill_fraction == 0.0) return std::numeric_limits<double>::max();
+
+    // Prep the root finder
+    double root;
+    int status;
+    int iter = 0, max_iter = 100;
+    double epsabs = 0.0, epsrel = 0.0001;
+    const gsl_root_fsolver_type* T;
+    gsl_root_fsolver* s;
+    T = gsl_root_fsolver_brent;
+    s = gsl_root_fsolver_alloc(T);
+    struct te_from_ff_params params = {this, fill_fraction};
+    gsl_function F;
+    F.function = &te_from_ff_root_function;
+    F.params = &params;
+
+    // Bounding values
+    double x_lo = 0.0, x_hi = 999.0;  //## set using dwell time etc
+
+    // Iterate the root finder
+    gsl_root_fsolver_set(s, &F, x_lo, x_hi);
+    do {
+        iter++;
+        status = gsl_root_fsolver_iterate(s);
+        root = gsl_root_fsolver_root(s);
+        x_lo = gsl_root_fsolver_x_lower(s);
+        x_hi = gsl_root_fsolver_x_upper(s);
+        status = gsl_root_test_interval(x_lo, x_hi, epsabs, epsrel);
+    } while (status == GSL_CONTINUE && iter < max_iter);
+
+    return root;
 }

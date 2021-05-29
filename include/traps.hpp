@@ -40,6 +40,7 @@ class TrapContinuum : public Trap {
     double release_timescale_sigma;
 
     virtual double fill_fraction_from_time_elapsed(double time_elapsed);
+    double time_elapsed_from_fill_fraction(double fill_fraction);
 };
 
 #endif  // ARCTIC_TRAPS_HPP
