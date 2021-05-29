@@ -42,3 +42,25 @@ TEST_CASE("Test trap species", "[traps]") {
         REQUIRE(trap_3.fill_fraction_from_time_elapsed(123.456) == exp(-123.456 / 2.0));
     }
 }
+
+TEST_CASE("Test continuum traps", "[traps]") {
+
+    // Narrow and wide distributions of release lifetimes
+    TrapContinuum trap_1(10.0, 1.0, 0.1);
+    TrapContinuum trap_2(10.0, 1.0, 0.5);
+    
+    // Single release time for comparison
+    TrapInstantCapture trap_ic(10.0, 1.0);
+    
+    SECTION("Initialisation") {
+        REQUIRE(trap_1.watermark_type == watermark_type_continuum);
+        REQUIRE(trap_1.density == 10.0);
+        REQUIRE(trap_1.release_timescale == 1.0);
+        REQUIRE(trap_1.release_timescale_sigma == 0.1);
+        
+        REQUIRE(trap_2.watermark_type == watermark_type_continuum);
+        REQUIRE(trap_2.density == 10.0);
+        REQUIRE(trap_2.release_timescale == 1.0);
+        REQUIRE(trap_2.release_timescale_sigma == 0.5);
+    }
+}

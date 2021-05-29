@@ -363,7 +363,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Initialisation, single phase, one type of traps") {
         std::valarray<Trap> traps{trap_1, trap_2};
         std::valarray<Trap> traps_ic = {};
-        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic};
+        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic, {}};
         ROE roe;
         CCD ccd(ccd_phase);
 
@@ -381,7 +381,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Initialisation, single phase, two types of traps") {
         std::valarray<Trap> traps{trap_1, trap_2};
         std::valarray<Trap> traps_ic{trap_3};
-        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic};
+        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic, {}};
         ROE roe;
         CCD ccd(ccd_phase);
 
@@ -402,7 +402,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Initialisation, multiphase, two types of traps") {
         std::valarray<Trap> traps{trap_1, trap_2};
         std::valarray<Trap> traps_ic{trap_3};
-        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic};
+        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic, {}};
         std::valarray<double> dwell_times = {0.8, 0.1, 0.1};
         ROE roe(dwell_times);
         CCDPhase ccd_phase_2(2e4, 0.0, 0.8);
@@ -496,7 +496,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Store, reset, and restore all trap states") {
         std::valarray<Trap> traps{trap_1, trap_2};
         std::valarray<Trap> traps_ic{trap_3};
-        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic};
+        std::valarray<std::valarray<Trap>> all_traps{traps, traps_ic, {}};
         std::valarray<double> dwell_times = {0.8, 0.1, 0.1};
         ROE roe(dwell_times);
         CCDPhase ccd_phase_2(2e4, 0.0, 0.8);

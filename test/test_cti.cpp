@@ -24,7 +24,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
@@ -85,7 +85,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, far from readout, various express") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 0.5));
         image_pre_cti =
@@ -166,7 +166,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
     SECTION("Single pixel, longer release time") {
         // Nice numbers for easier manual checking
         TrapInstantCapture trap(10.0, 5);
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 0.5));
         image_pre_cti =
@@ -202,7 +202,7 @@ TEST_CASE("Test add CTI", "[cti]") {
         std::valarray<std::valarray<double>> image_pre_cti, image_add, image_clock;
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti = {
@@ -251,8 +251,8 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         int express;
         Trap trap_std(10.0, -1.0 / log(0.5), 0.1);
         TrapInstantCapture trap_ic(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps_std = {{trap_std}, {}};
-        std::valarray<std::valarray<Trap>> traps_ic = {{}, {trap_ic}};
+        std::valarray<std::valarray<Trap>> traps_std = {{trap_std}, {}, {}};
+        std::valarray<std::valarray<Trap>> traps_ic = {{}, {trap_ic}, {}};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
@@ -289,7 +289,7 @@ TEST_CASE("Test remove CTI", "[cti]") {
             image_remove_cti;
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti = {
@@ -330,7 +330,7 @@ TEST_CASE("Test offset and windows", "[cti]") {
     std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
     int express, offset;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+    std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times, true, false, true, true);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -494,7 +494,7 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
             image_post_cti_ci;
         int express;
         TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-        std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+        std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
         ROE roe_std(dwell_times, true, false, true);
         ROEChargeInjection roe_ci(dwell_times, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -562,7 +562,7 @@ TEST_CASE("Test trap pumping ROE, add CTI", "[cti]") {
     // bool empty_traps_for_first_transfers = true;
     // bool use_integer_express_matrix = false;
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+    std::valarray<std::valarray<Trap>> traps = {{}, {trap}, {}};
 
     SECTION("Three phases, dipoles created") {
         std::valarray<double> dwell_times(1.0 / 6.0, 6);

@@ -3,7 +3,9 @@
 #define ARCTIC_TRAPS_HPP
 
 extern int n_watermark_types;
-enum WatermarkType { watermark_type_standard = 0, watermark_type_instant_capture = 1 };
+enum WatermarkType {
+    watermark_type_standard = 0, watermark_type_instant_capture = 1, 
+    watermark_type_continuum = 2 };
 
 class Trap {
    public:
@@ -25,6 +27,15 @@ class TrapInstantCapture : public Trap {
    public:
     TrapInstantCapture(double density, double release_timescale);
     ~TrapInstantCapture(){};
+};
+
+class TrapContinuum : public Trap {
+   public:
+    TrapContinuum(
+        double density, double release_timescale, double release_timescale_sigma);
+    ~TrapContinuum(){};
+
+    double release_timescale_sigma;
 };
 
 #endif  // ARCTIC_TRAPS_HPP
