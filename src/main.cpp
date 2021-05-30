@@ -50,6 +50,7 @@ int run_custom_code() {
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
     std::valarray<TrapSlowCapture> slow_capture_traps = {};
+    std::valarray<TrapContinuum> continuum_traps = {};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -60,9 +61,10 @@ int run_custom_code() {
 
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &instant_capture_traps, &slow_capture_traps, express,
-        offset, start, stop, &roe, &ccd, &instant_capture_traps, &slow_capture_traps,
-        express, offset, start, stop);
+        image_pre_cti, &roe, &ccd, &instant_capture_traps, &slow_capture_traps,
+        &continuum_traps, express, offset, start, stop, &roe, &ccd,
+        &instant_capture_traps, &slow_capture_traps, &continuum_traps, express, offset,
+        start, stop);
     print_v(1, "Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
@@ -70,8 +72,9 @@ int run_custom_code() {
     int n_iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, &roe, &ccd, &instant_capture_traps,
-        &slow_capture_traps, express, offset, start, stop, &roe, &ccd,
-        &instant_capture_traps, &slow_capture_traps, express, offset, start, stop);
+        &slow_capture_traps, &continuum_traps, express, offset, start, stop, &roe, &ccd,
+        &instant_capture_traps, &slow_capture_traps, &continuum_traps, express, offset,
+        start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 
@@ -84,7 +87,7 @@ int run_custom_code() {
 
 /*
     Run arctic with --benchmark or -b for this simple test, e.g. for profiling.
-    
+    
     Add CTI to a 10-column extract of an HST ACS image. Takes ~0.02 s.
 */
 int run_benchmark() {
@@ -117,7 +120,8 @@ int run_benchmark() {
 
     // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps, nullptr, express, offset, start, stop);
+        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, express, offset, start,
+        stop);
 
     return 0;
 }

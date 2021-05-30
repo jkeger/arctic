@@ -106,12 +106,14 @@ class TrapManagerManager {
     TrapManagerManager(){};
     TrapManagerManager(
         std::valarray<TrapInstantCapture>& instant_capture_traps,
-        std::valarray<TrapSlowCapture>& slow_capture_traps, int max_n_transfers,
-        CCD ccd, std::valarray<double>& dwell_times);
+        std::valarray<TrapSlowCapture>& slow_capture_traps,
+        std::valarray<TrapContinuum>& continuum_traps, int max_n_transfers, CCD ccd,
+        std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
     std::valarray<TrapInstantCapture> instant_capture_traps;
     std::valarray<TrapSlowCapture> slow_capture_traps;
+    std::valarray<TrapContinuum> continuum_traps;
     int max_n_transfers;
     CCD ccd;
 
@@ -120,6 +122,7 @@ class TrapManagerManager {
     int n_continuum_traps;
     std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
     std::valarray<TrapManagerSlowCapture> trap_managers_slow_capture;
+    std::valarray<TrapManagerContinuum> trap_managers_continuum;
 
     void reset_trap_states();
     void store_trap_states();
