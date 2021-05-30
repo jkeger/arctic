@@ -13,7 +13,7 @@
 // ========
 /*
     Class TrapManagerBase.
-    
+    
     Abstract base class for the trap manager of one or multiple trap species
     that are able to use watermarks in the same way as each other.
 
@@ -21,7 +21,7 @@
     ----------
     traps : std::valarray<Trap>
         A list of one or more trap species of the specific trap manager's type.
-        
+        
         Not included in this base class, since the different managers require
         different class types for the array.
 
@@ -34,11 +34,11 @@
     ccd_phase : CCDPhase
         Parameters to describe how electrons fill the volume inside (one phase
         of) a pixel in a CCD detector.
-    
+    
     dwell_time : double
         The time spent in this pixel or phase, in the same units as the trap
         timescales.
-    
+    
     Attributes
     ----------
     n_traps : int
@@ -633,7 +633,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
 
 
 
@@ -752,7 +752,7 @@ void TrapManagerSlowCapture::set_fill_probabilities() {
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
     + First any previously filled traps that are not within the cloud volume
@@ -1001,10 +1001,10 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
 
     For trap species with continous distributions of release timescales, and
     the standard release-then-instant-capture algorithm.
-    
+    
     For release, the watermark fill fractions are converted into the total time
     elapsed since the traps were filled in order to update them.
-    
+    
     Capture is identical to instant-capture traps.
 */
 TrapManagerContinuum::TrapManagerContinuum(
@@ -1403,7 +1403,7 @@ double TrapManagerContinuum::n_electrons_released_and_captured(
     dwell_times : std::valarray<double>
         The time between steps in the clocking sequence, as stored by an ROE
         object.
-        
+        
         Note: currently assumes the dwell time in each phase is the same for all
         steps, which might not be true in sequences with n_steps > n_phases.
 
@@ -1438,6 +1438,7 @@ TrapManagerManager::TrapManagerManager(
 
     // Account for the number of clock-sequence steps for the maximum transfers
     max_n_transfers *= dwell_times.size();
+    this->max_n_transfers = max_n_transfers;
 
     // ========
     // Set up the trap manager for each phase, for each watermark type
