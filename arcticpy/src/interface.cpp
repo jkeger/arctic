@@ -33,12 +33,12 @@ void print_array_2D(double* array, int n_rows, int n_columns) {
 
 /*
     Wrapper for arctic's add_cti() in src/cti.cpp.
-    
+    
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns, for parallel and/or serial clocking.
-    
-    This wrapper converts the individual numbers and arrays from the Cython 
-    wrapper into C++ variables to pass to the main arcctic library. See 
+    
+    This wrapper converts the individual numbers and arrays from the Cython
+    wrapper into C++ variables to pass to the main arcctic library. See
     cy_add_cti() in arcticpy/wrapper.pyx and add_cti() in arcticpy/main.py.
 */
 void add_cti(
@@ -58,8 +58,8 @@ void add_cti(
     double* parallel_well_fill_powers,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
-    double* parallel_trap_capture_timescales, int parallel_n_traps_standard,
-    int parallel_n_traps_instant_capture,
+    double* parallel_trap_third_params, int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture, int parallel_n_traps_continuum,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -77,8 +77,8 @@ void add_cti(
     double* serial_well_fill_powers,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
-    double* serial_trap_capture_timescales, int serial_n_traps_standard,
-    int serial_n_traps_instant_capture,
+    double* serial_trap_third_params, int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture, int serial_n_traps_continuum,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
@@ -124,22 +124,32 @@ void add_cti(
     CCD parallel_ccd(parallel_phases, parallel_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<Trap> parallel_traps_standard(
-        Trap(0.0, 0.0, 0.0), parallel_n_traps_standard);
-    std::valarray<Trap> parallel_traps_instant_capture(
+    std::valarray<TrapInstantCapture> parallel_traps_instant_capture(
         TrapInstantCapture(0.0, 0.0), parallel_n_traps_instant_capture);
-    for (int i_trap = 0; i_trap < parallel_n_traps_standard; i_trap++) {
-        parallel_traps_standard[i_trap] = Trap(
-            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
-            parallel_trap_capture_timescales[i_trap]);
-    }
-    for (int i_trap = parallel_n_traps_standard;
-         i_trap < parallel_n_traps_instant_capture; i_trap++) {
+    std::valarray<TrapSlowCapture> parallel_traps_slow_capture(
+        TrapSlowCapture(0.0, 0.0, 0.0), parallel_n_traps_slow_capture);
+    std::valarray<TrapContinuum> parallel_traps_continuum(
+        TrapContinuum(0.0, 0.0, 0.0), parallel_n_traps_continuum);
+
+    for (int i_trap = 0; i_trap < parallel_n_traps_instant_capture; i_trap++) {
         parallel_traps_instant_capture[i_trap] = TrapInstantCapture(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
     }
-    std::valarray<std::valarray<Trap>> parallel_traps{parallel_traps_standard,
-                                                      parallel_traps_instant_capture};
+    for (int i_trap = parallel_n_traps_instant_capture;
+         i_trap < parallel_n_traps_instant_capture + parallel_n_traps_slow_capture;
+         i_trap++) {
+        parallel_traps_slow_capture[i_trap] = TrapSlowCapture(
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_third_params[i_trap]);
+    }
+    for (int i_trap = parallel_n_traps_instant_capture + parallel_n_traps_slow_capture;
+         i_trap < parallel_n_traps_instant_capture + parallel_n_traps_slow_capture +
+                      parallel_n_traps_continuum;
+         i_trap++) {
+        parallel_traps_continuum[i_trap] = TrapContinuum(
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_third_params[i_trap]);
+    }
 
     // ========
     // Serial
@@ -167,57 +177,71 @@ void add_cti(
     CCD serial_ccd(serial_phases, serial_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<Trap> serial_traps_standard(
-        Trap(0.0, 0.0, 0.0), serial_n_traps_standard);
-    std::valarray<Trap> serial_traps_instant_capture(
+    std::valarray<TrapInstantCapture> serial_traps_instant_capture(
         TrapInstantCapture(0.0, 0.0), serial_n_traps_instant_capture);
-    for (int i_trap = 0; i_trap < serial_n_traps_standard; i_trap++) {
-        serial_traps_standard[i_trap] = Trap(
-            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
-            serial_trap_capture_timescales[i_trap]);
-    }
-    for (int i_trap = serial_n_traps_standard; i_trap < serial_n_traps_instant_capture;
-         i_trap++) {
+    std::valarray<TrapSlowCapture> serial_traps_slow_capture(
+        TrapSlowCapture(0.0, 0.0, 0.0), serial_n_traps_slow_capture);
+    std::valarray<TrapContinuum> serial_traps_continuum(
+        TrapContinuum(0.0, 0.0, 0.0), serial_n_traps_continuum);
+
+    for (int i_trap = 0; i_trap < serial_n_traps_instant_capture; i_trap++) {
         serial_traps_instant_capture[i_trap] = TrapInstantCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
     }
-    std::valarray<std::valarray<Trap>> serial_traps{serial_traps_standard,
-                                                    serial_traps_instant_capture};
+    for (int i_trap = serial_n_traps_instant_capture;
+         i_trap < serial_n_traps_instant_capture + serial_n_traps_slow_capture;
+         i_trap++) {
+        serial_traps_slow_capture[i_trap] = TrapSlowCapture(
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_third_params[i_trap]);
+    }
+    for (int i_trap = serial_n_traps_instant_capture + serial_n_traps_slow_capture;
+         i_trap < serial_n_traps_instant_capture + serial_n_traps_slow_capture +
+                      serial_n_traps_continuum;
+         i_trap++) {
+        serial_traps_continuum[i_trap] = TrapContinuum(
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_third_params[i_trap]);
+    }
 
     // ========
     // Add CTI
     // ========
     std::valarray<std::valarray<double>> image_out;
     // No parallel, serial only
-    if (parallel_n_traps_standard + parallel_n_traps_instant_capture == 0) {
+    if (parallel_n_traps_slow_capture + parallel_n_traps_instant_capture == 0) {
         image_out = add_cti(
             image_in,
             // Parallel
-            nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
-            serial_window_start, serial_window_stop);
+            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
+            &serial_traps_slow_capture, &serial_traps_continuum, serial_express,
+            serial_offset, serial_window_start, serial_window_stop);
     }
     // No serial, parallel only
-    else if (serial_n_traps_standard + serial_n_traps_instant_capture == 0) {
+    else if (serial_n_traps_slow_capture + serial_n_traps_instant_capture == 0) {
         image_out = add_cti(
             image_in,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
+            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
+            &parallel_traps_slow_capture, &parallel_traps_continuum, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             // Serial
-            nullptr, nullptr, nullptr, 0, 0, 0, -1);
+            nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1);
     }
     // Parallel and serial
     else {
         image_out = add_cti(
             image_in,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
+            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
+            &parallel_traps_slow_capture, &parallel_traps_continuum, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
-            serial_window_start, serial_window_stop);
+            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
+            &serial_traps_slow_capture, &serial_traps_continuum, serial_express,
+            serial_offset, serial_window_start, serial_window_stop);
     }
 
     // Convert the output image back to modify the input image array
@@ -230,13 +254,13 @@ void add_cti(
 
 /*
     Wrapper for arctic's remove_cti() in src/cti.cpp.
-    
-    Remove CTI trails from an image by first modelling the addition of CTI, for 
+    
+    Remove CTI trails from an image by first modelling the addition of CTI, for
     parallel and/or serial clocking.
-    
-    This wrapper converts the individual numbers and arrays from the Cython 
-    wrapper into C++ variables to pass to the main arcctic library. See 
-    cy_remove_cti() in arcticpy/wrapper.pyx and remove_cti() in 
+    
+    This wrapper converts the individual numbers and arrays from the Cython
+    wrapper into C++ variables to pass to the main arcctic library. See
+    cy_remove_cti() in arcticpy/wrapper.pyx and remove_cti() in
     arcticpy/main.py.
 */
 void remove_cti(
@@ -256,8 +280,10 @@ void remove_cti(
     double* parallel_well_fill_powers,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
-    double* parallel_trap_capture_timescales, int parallel_n_traps_standard,
+    double* parallel_trap_third_params, 
     int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture,
+    int parallel_n_traps_continuum,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -275,8 +301,10 @@ void remove_cti(
     double* serial_well_fill_powers,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
-    double* serial_trap_capture_timescales, int serial_n_traps_standard,
+    double* serial_trap_third_params, 
     int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture,
+    int serial_n_traps_continuum,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
@@ -322,22 +350,32 @@ void remove_cti(
     CCD parallel_ccd(parallel_phases, parallel_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<Trap> parallel_traps_standard(
-        Trap(0.0, 0.0, 0.0), parallel_n_traps_standard);
-    std::valarray<Trap> parallel_traps_instant_capture(
+    std::valarray<TrapInstantCapture> parallel_traps_instant_capture(
         TrapInstantCapture(0.0, 0.0), parallel_n_traps_instant_capture);
-    for (int i_trap = 0; i_trap < parallel_n_traps_standard; i_trap++) {
-        parallel_traps_standard[i_trap] = Trap(
-            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
-            parallel_trap_capture_timescales[i_trap]);
-    }
-    for (int i_trap = parallel_n_traps_standard;
-         i_trap < parallel_n_traps_instant_capture; i_trap++) {
+    std::valarray<TrapSlowCapture> parallel_traps_slow_capture(
+        TrapSlowCapture(0.0, 0.0, 0.0), parallel_n_traps_slow_capture);
+    std::valarray<TrapContinuum> parallel_traps_continuum(
+        TrapContinuum(0.0, 0.0, 0.0), parallel_n_traps_continuum);
+
+    for (int i_trap = 0; i_trap < parallel_n_traps_instant_capture; i_trap++) {
         parallel_traps_instant_capture[i_trap] = TrapInstantCapture(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
     }
-    std::valarray<std::valarray<Trap>> parallel_traps{parallel_traps_standard,
-                                                      parallel_traps_instant_capture};
+    for (int i_trap = parallel_n_traps_instant_capture;
+         i_trap < parallel_n_traps_instant_capture + parallel_n_traps_slow_capture;
+         i_trap++) {
+        parallel_traps_slow_capture[i_trap] = TrapSlowCapture(
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_third_params[i_trap]);
+    }
+    for (int i_trap = parallel_n_traps_instant_capture + parallel_n_traps_slow_capture;
+         i_trap < parallel_n_traps_instant_capture + parallel_n_traps_slow_capture +
+                      parallel_n_traps_continuum;
+         i_trap++) {
+        parallel_traps_continuum[i_trap] = TrapContinuum(
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_third_params[i_trap]);
+    }
 
     // ========
     // Serial
@@ -365,57 +403,71 @@ void remove_cti(
     CCD serial_ccd(serial_phases, serial_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<Trap> serial_traps_standard(
-        Trap(0.0, 0.0, 0.0), serial_n_traps_standard);
-    std::valarray<Trap> serial_traps_instant_capture(
+    std::valarray<TrapInstantCapture> serial_traps_instant_capture(
         TrapInstantCapture(0.0, 0.0), serial_n_traps_instant_capture);
-    for (int i_trap = 0; i_trap < serial_n_traps_standard; i_trap++) {
-        serial_traps_standard[i_trap] = Trap(
-            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
-            serial_trap_capture_timescales[i_trap]);
-    }
-    for (int i_trap = serial_n_traps_standard; i_trap < serial_n_traps_instant_capture;
-         i_trap++) {
+    std::valarray<TrapSlowCapture> serial_traps_slow_capture(
+        TrapSlowCapture(0.0, 0.0, 0.0), serial_n_traps_slow_capture);
+    std::valarray<TrapContinuum> serial_traps_continuum(
+        TrapContinuum(0.0, 0.0, 0.0), serial_n_traps_continuum);
+
+    for (int i_trap = 0; i_trap < serial_n_traps_instant_capture; i_trap++) {
         serial_traps_instant_capture[i_trap] = TrapInstantCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
     }
-    std::valarray<std::valarray<Trap>> serial_traps{serial_traps_standard,
-                                                    serial_traps_instant_capture};
+    for (int i_trap = serial_n_traps_instant_capture;
+         i_trap < serial_n_traps_instant_capture + serial_n_traps_slow_capture;
+         i_trap++) {
+        serial_traps_slow_capture[i_trap] = TrapSlowCapture(
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_third_params[i_trap]);
+    }
+    for (int i_trap = serial_n_traps_instant_capture + serial_n_traps_slow_capture;
+         i_trap < serial_n_traps_instant_capture + serial_n_traps_slow_capture +
+                      serial_n_traps_continuum;
+         i_trap++) {
+        serial_traps_continuum[i_trap] = TrapContinuum(
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_third_params[i_trap]);
+    }
 
     // ========
     // Remove CTI
     // ========
     std::valarray<std::valarray<double>> image_out;
     // No parallel, serial only
-    if (parallel_n_traps_standard + parallel_n_traps_instant_capture == 0) {
+    if (parallel_n_traps_slow_capture + parallel_n_traps_instant_capture == 0) {
         image_out = remove_cti(
             image_in, n_iterations,
             // Parallel
-            nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
-            serial_window_start, serial_window_stop);
+            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
+            &serial_traps_slow_capture, &serial_traps_continuum, serial_express,
+            serial_offset, serial_window_start, serial_window_stop);
     }
     // No serial, parallel only
-    else if (serial_n_traps_standard + serial_n_traps_instant_capture == 0) {
+    else if (serial_n_traps_slow_capture + serial_n_traps_instant_capture == 0) {
         image_out = remove_cti(
             image_in, n_iterations,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
+            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
+            &parallel_traps_slow_capture, &parallel_traps_continuum, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             // Serial
-            nullptr, nullptr, nullptr, 0, 0, 0, -1);
+            nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1);
     }
     // Parallel and serial
     else {
         image_out = remove_cti(
             image_in, n_iterations,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps, parallel_express,
+            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
+            &parallel_traps_slow_capture, &parallel_traps_continuum, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps, serial_express, serial_offset,
-            serial_window_start, serial_window_stop);
+            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
+            &serial_traps_slow_capture, &serial_traps_continuum, serial_express,
+            serial_offset, serial_window_start, serial_window_stop);
     }
 
     // Convert the output image back to modify the input image array

@@ -26,8 +26,8 @@ void add_cti(
     double* parallel_well_fill_powers,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
-    double* parallel_trap_capture_timescales, int parallel_n_traps_standard,
-    int parallel_n_traps_instant_capture,
+    double* parallel_trap_third_params, int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture, int parallel_n_traps_continuum,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -45,8 +45,8 @@ void add_cti(
     double* serial_well_fill_powers,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
-    double* serial_trap_capture_timescales, int serial_n_traps_standard,
-    int serial_n_traps_instant_capture,
+    double* serial_trap_third_params, int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture, int serial_n_traps_continuum,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
@@ -70,8 +70,8 @@ void remove_cti(
     double* parallel_well_fill_powers,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
-    double* parallel_trap_capture_timescales, int parallel_n_traps_standard,
-    int parallel_n_traps_instant_capture,
+    double* parallel_trap_third_params, int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture, int parallel_n_traps_continuum,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -89,8 +89,8 @@ void remove_cti(
     double* serial_well_fill_powers,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
-    double* serial_trap_capture_timescales, int serial_n_traps_standard,
-    int serial_n_traps_instant_capture,
+    double* serial_trap_third_params, int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture, int serial_n_traps_continuum,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,

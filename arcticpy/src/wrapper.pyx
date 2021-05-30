@@ -28,9 +28,10 @@ cdef extern from "interface.hpp":
         # Traps
         double* parallel_trap_densities, 
         double* parallel_trap_release_timescales,
-        double* parallel_trap_capture_timescales, 
-        int parallel_n_traps_standard,
+        double* parallel_trap_third_params, 
         int parallel_n_traps_instant_capture,
+        int parallel_n_traps_slow_capture,
+        int parallel_n_traps_continuum,
         # Misc
         int parallel_express, 
         int parallel_offset, 
@@ -55,9 +56,10 @@ cdef extern from "interface.hpp":
         # Traps
         double* serial_trap_densities, 
         double* serial_trap_release_timescales,
-        double* serial_trap_capture_timescales, 
-        int serial_n_traps_standard,
+        double* serial_trap_third_params, 
         int serial_n_traps_instant_capture,
+        int serial_n_traps_slow_capture,
+        int serial_n_traps_continuum,
         # Misc
         int serial_express, 
         int serial_offset, 
@@ -89,9 +91,10 @@ cdef extern from "interface.hpp":
         # Traps
         double* parallel_trap_densities, 
         double* parallel_trap_release_timescales,
-        double* parallel_trap_capture_timescales, 
-        int parallel_n_traps_standard,
+        double* parallel_trap_third_params, 
         int parallel_n_traps_instant_capture,
+        int parallel_n_traps_slow_capture,
+        int parallel_n_traps_continuum,
         # Misc
         int parallel_express, 
         int parallel_offset, 
@@ -116,9 +119,10 @@ cdef extern from "interface.hpp":
         # Traps
         double* serial_trap_densities, 
         double* serial_trap_release_timescales,
-        double* serial_trap_capture_timescales, 
-        int serial_n_traps_standard,
+        double* serial_trap_third_params, 
         int serial_n_traps_instant_capture,
+        int serial_n_traps_slow_capture,
+        int serial_n_traps_continuum,
         # Misc
         int serial_express, 
         int serial_offset, 
@@ -167,9 +171,10 @@ def cy_add_cti(
     # Traps
     np.ndarray[np.double_t, ndim=1] parallel_trap_densities,
     np.ndarray[np.double_t, ndim=1] parallel_trap_release_timescales,
-    np.ndarray[np.double_t, ndim=1] parallel_trap_capture_timescales,
-    int parallel_n_traps_standard,
+    np.ndarray[np.double_t, ndim=1] parallel_trap_third_params,
     int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture,
+    int parallel_n_traps_continuum,
     # Misc
     int parallel_express,
     int parallel_offset,
@@ -192,9 +197,10 @@ def cy_add_cti(
     # Traps
     np.ndarray[np.double_t, ndim=1] serial_trap_densities,
     np.ndarray[np.double_t, ndim=1] serial_trap_release_timescales,
-    np.ndarray[np.double_t, ndim=1] serial_trap_capture_timescales,
-    int serial_n_traps_standard,
+    np.ndarray[np.double_t, ndim=1] serial_trap_third_params,
     int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture,
+    int serial_n_traps_continuum,
     # Misc
     int serial_express,
     int serial_offset,
@@ -235,9 +241,10 @@ def cy_add_cti(
         # Traps
         &parallel_trap_densities[0],
         &parallel_trap_release_timescales[0],
-        &parallel_trap_capture_timescales[0],
-        parallel_n_traps_standard,
+        &parallel_trap_third_params[0],
         parallel_n_traps_instant_capture,
+        parallel_n_traps_slow_capture,
+        parallel_n_traps_continuum,
         # Misc
         parallel_express,
         parallel_offset,
@@ -262,9 +269,10 @@ def cy_add_cti(
         # Traps
         &serial_trap_densities[0],
         &serial_trap_release_timescales[0],
-        &serial_trap_capture_timescales[0],
-        serial_n_traps_standard,
+        &serial_trap_third_params[0],
         serial_n_traps_instant_capture,
+        serial_n_traps_slow_capture,
+        serial_n_traps_continuum,
         # Misc
         serial_express,
         serial_offset,
@@ -297,9 +305,10 @@ def cy_remove_cti(
     # Traps
     np.ndarray[np.double_t, ndim=1] parallel_trap_densities,
     np.ndarray[np.double_t, ndim=1] parallel_trap_release_timescales,
-    np.ndarray[np.double_t, ndim=1] parallel_trap_capture_timescales,
-    int parallel_n_traps_standard,
+    np.ndarray[np.double_t, ndim=1] parallel_trap_third_params,
     int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture,
+    int parallel_n_traps_continuum,
     # Misc
     int parallel_express,
     int parallel_offset,
@@ -322,9 +331,10 @@ def cy_remove_cti(
     # Traps
     np.ndarray[np.double_t, ndim=1] serial_trap_densities,
     np.ndarray[np.double_t, ndim=1] serial_trap_release_timescales,
-    np.ndarray[np.double_t, ndim=1] serial_trap_capture_timescales,
-    int serial_n_traps_standard,
+    np.ndarray[np.double_t, ndim=1] serial_trap_third_params,
     int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture,
+    int serial_n_traps_continuum,
     # Misc
     int serial_express,
     int serial_offset,
@@ -366,9 +376,10 @@ def cy_remove_cti(
         # Traps
         &parallel_trap_densities[0],
         &parallel_trap_release_timescales[0],
-        &parallel_trap_capture_timescales[0],
-        parallel_n_traps_standard,
+        &parallel_trap_third_params[0],
         parallel_n_traps_instant_capture,
+        parallel_n_traps_slow_capture,
+        parallel_n_traps_continuum,
         # Misc
         parallel_express,
         parallel_offset,
@@ -393,9 +404,10 @@ def cy_remove_cti(
         # Traps
         &serial_trap_densities[0],
         &serial_trap_release_timescales[0],
-        &serial_trap_capture_timescales[0],
-        serial_n_traps_standard,
+        &serial_trap_third_params[0],
         serial_n_traps_instant_capture,
+        serial_n_traps_slow_capture,
+        serial_n_traps_continuum,
         # Misc
         serial_express,
         serial_offset,
