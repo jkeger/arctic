@@ -57,14 +57,14 @@ class TrapManagerInstantCapture : public TrapManagerBase {
 
     std::valarray<TrapInstantCapture> traps;
 
-    virtual void set_fill_probabilities();
-    virtual double n_electrons_released();
-    virtual void update_watermarks_capture(
+    void set_fill_probabilities();
+    double n_electrons_released();
+    void update_watermarks_capture(
         double cloud_fractional_volume, int i_wmk_above_cloud);
-    virtual void update_watermarks_capture_not_enough(
+    void update_watermarks_capture_not_enough(
         double cloud_fractional_volume, int i_wmk_above_cloud, double enough);
-    virtual double n_electrons_captured(double n_free_electrons);
-    virtual double n_electrons_released_and_captured(double n_free_electrons);
+    double n_electrons_captured(double n_free_electrons);
+    double n_electrons_released_and_captured(double n_free_electrons);
 };
 
 class TrapManagerSlowCapture : public TrapManagerBase {
@@ -77,8 +77,8 @@ class TrapManagerSlowCapture : public TrapManagerBase {
 
     std::valarray<TrapSlowCapture> traps;
 
-    virtual void set_fill_probabilities();
-    virtual double n_electrons_released_and_captured(double n_free_electrons);
+    void set_fill_probabilities();
+    double n_electrons_released_and_captured(double n_free_electrons);
 };
 
 class TrapManagerContinuum : public TrapManagerBase {
@@ -91,8 +91,14 @@ class TrapManagerContinuum : public TrapManagerBase {
 
     std::valarray<TrapContinuum> traps;
 
-    virtual void set_fill_probabilities();
-    virtual double n_electrons_released();
+    void set_fill_probabilities();
+    double n_electrons_released();
+    void update_watermarks_capture(
+        double cloud_fractional_volume, int i_wmk_above_cloud);
+    void update_watermarks_capture_not_enough(
+        double cloud_fractional_volume, int i_wmk_above_cloud, double enough);
+    double n_electrons_captured(double n_free_electrons);
+    double n_electrons_released_and_captured(double n_free_electrons);
 };
 
 class TrapManagerManager {
