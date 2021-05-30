@@ -11,17 +11,21 @@
 #include "util.hpp"
 
 CCDPhase ccd_phase(1e4, 0.0, 1.0);
+double dwell_time = 1.0;
 
 TEST_CASE("Test initialisation", "[trap_managers]") {
     TrapSlowCapture trap_1(1.0, 1.0, 0.0);
     TrapSlowCapture trap_2(2.0, 2.0, 0.0);
     TrapInstantCapture trap_3(3.0, 3.0);
+    TrapContinuum trap_4(10.0, -1.0 / log(0.5), 0.1);
+    TrapContinuum trap_5(8.0, -1.0 / log(0.2), 1.0);
     int max_n_transfers = 123;
 
     SECTION("Traps") {
         // Slow capture traps
         std::valarray<TrapSlowCapture> traps{trap_1, trap_2};
-        TrapManagerSlowCapture trap_manager_sc(traps, max_n_transfers, ccd_phase);
+        TrapManagerSlowCapture trap_manager_sc(
+            traps, max_n_transfers, ccd_phase, dwell_time);
 
         REQUIRE(trap_manager_sc.n_traps == 2);
         REQUIRE(trap_manager_sc.traps[0].density == trap_1.density);
@@ -31,17 +35,28 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 
         // Instant-capture traps
         std::valarray<TrapInstantCapture> traps_ic{trap_3};
-        TrapManagerInstantCapture trap_manager_ic(traps_ic, max_n_transfers, ccd_phase);
+        TrapManagerInstantCapture trap_manager_ic(
+            traps_ic, max_n_transfers, ccd_phase, dwell_time);
 
         REQUIRE(trap_manager_ic.n_traps == 1);
         REQUIRE(trap_manager_ic.traps[0].density == trap_3.density);
         REQUIRE(trap_manager_ic.trap_densities[0] == trap_3.density);
+
+        // Continuum traps
+        std::valarray<TrapContinuum> traps_co{trap_4};
+        TrapManagerContinuum trap_manager_co(
+            traps_co, max_n_transfers, ccd_phase, dwell_time);
+
+        REQUIRE(trap_manager_co.n_traps == 1);
+        REQUIRE(trap_manager_co.traps[0].density == trap_4.density);
+        REQUIRE(trap_manager_co.trap_densities[0] == trap_4.density);
     }
 
     SECTION("CCD Phase") {
         // Slow capture traps
         std::valarray<TrapSlowCapture> traps{trap_1, trap_2};
-        TrapManagerSlowCapture trap_manager_sc(traps, max_n_transfers, ccd_phase);
+        TrapManagerSlowCapture trap_manager_sc(
+            traps, max_n_transfers, ccd_phase, dwell_time);
 
         REQUIRE(trap_manager_sc.ccd_phase.full_well_depth == ccd_phase.full_well_depth);
         REQUIRE(
@@ -50,40 +65,65 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 
         // Instant-capture traps
         std::valarray<TrapInstantCapture> traps_ic{trap_3};
-        TrapManagerInstantCapture trap_manager_ic(traps_ic, max_n_transfers, ccd_phase);
+        TrapManagerInstantCapture trap_manager_ic(
+            traps_ic, max_n_transfers, ccd_phase, dwell_time);
 
         REQUIRE(trap_manager_ic.ccd_phase.full_well_depth == ccd_phase.full_well_depth);
         REQUIRE(
             trap_manager_ic.ccd_phase.well_notch_depth == ccd_phase.well_notch_depth);
         REQUIRE(trap_manager_ic.ccd_phase.well_fill_power == ccd_phase.well_fill_power);
+
+        // Continuum traps
+        std::valarray<TrapContinuum> traps_co{trap_4};
+        TrapManagerContinuum trap_manager_co(
+            traps_co, max_n_transfers, ccd_phase, dwell_time);
+
+        REQUIRE(trap_manager_co.ccd_phase.full_well_depth == ccd_phase.full_well_depth);
+        REQUIRE(
+            trap_manager_co.ccd_phase.well_notch_depth == ccd_phase.well_notch_depth);
+        REQUIRE(trap_manager_co.ccd_phase.well_fill_power == ccd_phase.well_fill_power);
     }
 
     SECTION("Misc attributes") {
         // Slow capture traps
         TrapManagerSlowCapture trap_manager_sc(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, max_n_transfers, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, max_n_transfers, ccd_phase,
+            dwell_time);
 
         REQUIRE(trap_manager_sc.max_n_transfers == 123);
         REQUIRE(trap_manager_sc.n_watermarks_per_transfer == 2);
         REQUIRE(trap_manager_sc.empty_watermark == 0.0);
         REQUIRE(trap_manager_sc.n_active_watermarks == 0);
         REQUIRE(trap_manager_sc.i_first_active_wmk == 0);
+        REQUIRE(trap_manager_sc.dwell_time == 1.0);
 
         // Instant-capture traps
         TrapManagerInstantCapture trap_manager_ic(
-            std::valarray<TrapInstantCapture>{trap_3}, max_n_transfers, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_3}, max_n_transfers, ccd_phase, 2.0);
 
         REQUIRE(trap_manager_ic.max_n_transfers == 123);
         REQUIRE(trap_manager_ic.n_watermarks_per_transfer == 1);
         REQUIRE(trap_manager_ic.empty_watermark == 0.0);
         REQUIRE(trap_manager_ic.n_active_watermarks == 0);
         REQUIRE(trap_manager_ic.i_first_active_wmk == 0);
+        REQUIRE(trap_manager_ic.dwell_time == 2.0);
+
+        // Instant-capture traps
+        TrapManagerContinuum trap_manager_co(
+            std::valarray<TrapContinuum>{trap_4}, max_n_transfers, ccd_phase, 3.0);
+
+        REQUIRE(trap_manager_co.max_n_transfers == 123);
+        REQUIRE(trap_manager_co.n_watermarks_per_transfer == 1);
+        REQUIRE(trap_manager_co.empty_watermark == 0.0);
+        REQUIRE(trap_manager_co.n_active_watermarks == 0);
+        REQUIRE(trap_manager_co.i_first_active_wmk == 0);
+        REQUIRE(trap_manager_co.dwell_time == 3.0);
     }
 
     SECTION("Initial watermarks") {
         // Slow capture traps
         TrapManagerSlowCapture trap_manager_sc(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager_sc.initialise_trap_states();
 
         REQUIRE(trap_manager_sc.n_watermarks == 7);
@@ -98,7 +138,8 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
                 trap_manager_sc.empty_watermark);
 
         TrapManagerSlowCapture trap_manager_2(
-            std::valarray<TrapSlowCapture>{trap_1}, max_n_transfers, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1}, max_n_transfers, ccd_phase,
+            dwell_time);
         trap_manager_2.initialise_trap_states();
 
         REQUIRE(trap_manager_2.n_watermarks == 247);
@@ -113,7 +154,7 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 
         // Instant-capture traps
         TrapManagerInstantCapture trap_manager_ic(
-            std::valarray<TrapInstantCapture>{trap_3}, 3, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_3}, 3, ccd_phase, dwell_time);
         trap_manager_ic.initialise_trap_states();
 
         REQUIRE(trap_manager_ic.n_watermarks == 4);
@@ -125,6 +166,22 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(
             trap_manager_ic.watermark_fills.sum() ==
             trap_manager_ic.n_watermarks * trap_manager_ic.empty_watermark);
+
+        // Continuum traps
+        TrapManagerContinuum trap_manager_co(
+            std::valarray<TrapContinuum>{trap_4, trap_5}, 3, ccd_phase, dwell_time);
+        trap_manager_co.initialise_trap_states();
+
+        REQUIRE(trap_manager_co.n_watermarks == 4);
+        REQUIRE(trap_manager_co.watermark_volumes.size() == 4);
+        REQUIRE(trap_manager_co.watermark_fills.size() == 8);
+        REQUIRE(
+            trap_manager_co.watermark_volumes.sum() ==
+            trap_manager_co.n_watermarks * trap_manager_co.empty_watermark);
+        REQUIRE(
+            trap_manager_co.watermark_fills.sum() ==
+            trap_manager_co.n_traps * trap_manager_co.n_watermarks *
+                trap_manager_co.empty_watermark);
     }
 }
 
@@ -133,13 +190,14 @@ TEST_CASE("Test utilities", "[trap_managers]") {
     TrapSlowCapture trap_2(8.0, -1.0 / log(0.2), 0.0);
     TrapInstantCapture trap_3(10.0, -1.0 / log(0.5));
     TrapInstantCapture trap_4(8.0, -1.0 / log(0.2));
+    TrapContinuum trap_5(10.0, -1.0 / log(0.5), 0.1);
 
     SECTION("Number of trapped electrons") {
         double n_trapped_electrons;
 
         // Slow capture traps
         TrapManagerSlowCapture trap_manager_sc(
-            std::valarray<TrapSlowCapture>{trap_1}, 2, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1}, 2, ccd_phase, dwell_time);
         trap_manager_sc.initialise_trap_states();
         trap_manager_sc.n_active_watermarks = 3;
         trap_manager_sc.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
@@ -151,7 +209,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
             Approx((0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_1.density));
 
         TrapManagerSlowCapture trap_manager_2(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 2, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 2, ccd_phase, dwell_time);
         trap_manager_2.initialise_trap_states();
         trap_manager_2.n_active_watermarks = 3;
         trap_manager_2.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
@@ -196,7 +254,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
 
         // Instant-capture traps
         TrapManagerInstantCapture trap_manager_ic(
-            std::valarray<TrapInstantCapture>{trap_3}, 3, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_3}, 3, ccd_phase, dwell_time);
         trap_manager_ic.initialise_trap_states();
         trap_manager_ic.n_active_watermarks = 3;
         trap_manager_ic.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
@@ -206,17 +264,28 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         REQUIRE(
             n_trapped_electrons ==
             Approx((0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_3.density));
+
+        // Continuum traps
+        TrapManagerContinuum trap_manager_co(
+            std::valarray<TrapContinuum>{trap_5}, 3, ccd_phase, dwell_time);
+        trap_manager_co.initialise_trap_states();
+        trap_manager_co.n_active_watermarks = 3;
+        trap_manager_co.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
+        trap_manager_co.watermark_fills = {0.8 * 10, 0.4 * 10, 0.2 * 10, 0.0, 0.0};
+        n_trapped_electrons = trap_manager_co.n_trapped_electrons_from_watermarks(
+            trap_manager_co.watermark_volumes, trap_manager_co.watermark_fills);
+        REQUIRE(
+            n_trapped_electrons ==
+            Approx((0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_5.density));
     }
 
     SECTION("Fill probabilities") {
-        // Slow capture traps
-        //## todo, including non-zero capture times
-
         // Instant-capture traps
         TrapManagerInstantCapture trap_manager_ic(
-            std::valarray<TrapInstantCapture>{trap_3, trap_4}, 3, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_3, trap_4}, 3, ccd_phase,
+            dwell_time);
 
-        trap_manager_ic.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager_ic.set_fill_probabilities();
 
         REQUIRE(trap_manager_ic.fill_probabilities_from_release[0] == Approx(0.5));
         REQUIRE(trap_manager_ic.empty_probabilities_from_release[0] == Approx(0.5));
@@ -224,18 +293,31 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         REQUIRE(trap_manager_ic.fill_probabilities_from_release[1] == Approx(0.2));
         REQUIRE(trap_manager_ic.empty_probabilities_from_release[1] == Approx(0.8));
 
-        trap_manager_ic.set_fill_probabilities_from_dwell_time(2.0);
+        trap_manager_ic.dwell_time = 2.0;
+        trap_manager_ic.set_fill_probabilities();
 
         REQUIRE(trap_manager_ic.fill_probabilities_from_release[0] == Approx(0.25));
         REQUIRE(trap_manager_ic.empty_probabilities_from_release[0] == Approx(0.75));
 
         REQUIRE(trap_manager_ic.fill_probabilities_from_release[1] == Approx(0.04));
         REQUIRE(trap_manager_ic.empty_probabilities_from_release[1] == Approx(0.96));
+
+        // Slow capture traps
+        //## todo, including non-zero capture times
+
+        // Continuum traps
+        TrapManagerContinuum trap_manager_co(
+            std::valarray<TrapContinuum>{trap_5}, 3, ccd_phase, dwell_time);
+
+        trap_manager_co.set_fill_probabilities();
+
+        REQUIRE(trap_manager_co.fill_probabilities_from_release[0] == Approx(0.5));
+        REQUIRE(trap_manager_co.empty_probabilities_from_release[0] == Approx(0.5));
     }
 
     SECTION("Watermark index above cloud") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
         int i_wmk_above_cloud;
 
         // First watermark
@@ -280,7 +362,7 @@ TEST_CASE("Test utilities", "[trap_managers]") {
 
     SECTION("Store, reset, and restore trap states") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 1;
@@ -366,10 +448,11 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         TrapManagerManager trap_manager_manager(
             traps_ic, traps_sc, max_n_transfers, ccd, roe.dwell_times);
 
-        // TrapSlowCapture managers
+        // Trap managers
         REQUIRE(trap_manager_manager.n_slow_capture_traps == 2);
         REQUIRE(trap_manager_manager.trap_managers_slow_capture.size() == 1);
         REQUIRE(trap_manager_manager.trap_managers_slow_capture[0].traps.size() == 2);
+        REQUIRE(trap_manager_manager.trap_managers_slow_capture[0].dwell_time == 1.0);
 
         REQUIRE(trap_manager_manager.n_instant_capture_traps == 0);
     }
@@ -383,15 +466,18 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         TrapManagerManager trap_manager_manager(
             traps_ic, traps_sc, max_n_transfers, ccd, roe.dwell_times);
 
-        // TrapSlowCapture managers
+        // Trap managers
         REQUIRE(trap_manager_manager.n_slow_capture_traps == 2);
         REQUIRE(trap_manager_manager.trap_managers_slow_capture.size() == 1);
         REQUIRE(trap_manager_manager.trap_managers_slow_capture[0].traps.size() == 2);
+        REQUIRE(trap_manager_manager.trap_managers_slow_capture[0].dwell_time == 1.0);
 
         REQUIRE(trap_manager_manager.n_instant_capture_traps == 1);
         REQUIRE(trap_manager_manager.trap_managers_instant_capture.size() == 1);
         REQUIRE(
             trap_manager_manager.trap_managers_instant_capture[0].traps.size() == 1);
+        REQUIRE(
+            trap_manager_manager.trap_managers_instant_capture[0].dwell_time == 1.0);
     }
 
     SECTION("Initialisation, multiphase, two types of traps") {
@@ -407,15 +493,24 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         TrapManagerManager trap_manager_manager(
             traps_ic, traps_sc, max_n_transfers, ccd, roe.dwell_times);
 
-        // TrapSlowCapture managers
+        // Trap managers
         REQUIRE(trap_manager_manager.n_slow_capture_traps == 2);
         REQUIRE(trap_manager_manager.trap_managers_slow_capture.size() == 3);
         REQUIRE(trap_manager_manager.trap_managers_slow_capture[0].traps.size() == 2);
+        REQUIRE(trap_manager_manager.trap_managers_slow_capture[0].dwell_time == 0.8);
+        REQUIRE(trap_manager_manager.trap_managers_slow_capture[1].dwell_time == 0.1);
+        REQUIRE(trap_manager_manager.trap_managers_slow_capture[2].dwell_time == 0.1);
 
         REQUIRE(trap_manager_manager.n_instant_capture_traps == 1);
         REQUIRE(trap_manager_manager.trap_managers_instant_capture.size() == 3);
         REQUIRE(
             trap_manager_manager.trap_managers_instant_capture[0].traps.size() == 1);
+        REQUIRE(
+            trap_manager_manager.trap_managers_instant_capture[0].dwell_time == 0.8);
+        REQUIRE(
+            trap_manager_manager.trap_managers_instant_capture[1].dwell_time == 0.1);
+        REQUIRE(
+            trap_manager_manager.trap_managers_instant_capture[2].dwell_time == 0.1);
 
         // Initial watermarks, accounting for number of clock-sequence steps
         int n_levels = max_n_transfers * 3 * 2 + 1;
@@ -437,6 +532,15 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         REQUIRE(
             trap_manager_manager.trap_managers_slow_capture[1].watermark_fills.size() ==
             n_levels * 2);
+        REQUIRE(
+            trap_manager_manager.trap_managers_slow_capture[2].n_watermarks ==
+            n_levels);
+        REQUIRE(
+            trap_manager_manager.trap_managers_slow_capture[2]
+                .watermark_volumes.size() == n_levels);
+        REQUIRE(
+            trap_manager_manager.trap_managers_slow_capture[2].watermark_fills.size() ==
+            n_levels * 2);
 
         n_levels = max_n_transfers * 3 + 1;
         REQUIRE(
@@ -449,7 +553,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
             trap_manager_manager.trap_managers_instant_capture[0]
                 .watermark_fills.size() == n_levels);
 
-        // TrapSlowCapture densities modified by the CCD's fraction_of_traps_per_phase
+        // Trap densities modified by the CCD's fraction_of_traps_per_phase
         answer = {trap_1.density * 0.5, trap_2.density * 0.5};
         test.assign(
             std::begin(
@@ -709,7 +813,8 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
 
     SECTION("Empty release") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
 
         n_electrons_released = trap_manager.n_electrons_released();
@@ -737,9 +842,9 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
 
     SECTION("Single trap release") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1}, 4, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1}, 4, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {0.8 * 10, 0.4 * 10, 0.2 * 10, 0.0, 0.0};
@@ -760,9 +865,9 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
 
     SECTION("Single trap release, longer dwell time") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1}, 4, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1}, 4, ccd_phase, 2.0);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(2.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {0.8 * 10, 0.4 * 10, 0.2 * 10, 0.0, 0.0};
@@ -785,9 +890,9 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
         // Should be same end result
         TrapInstantCapture trap(10.0, -0.5 / log(0.5));
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap}, 4, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap}, 4, ccd_phase, 0.5);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(0.5);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {0.8 * 10, 0.4 * 10, 0.2 * 10, 0.0, 0.0};
@@ -808,9 +913,10 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
 
     SECTION("Multiple traps release") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -848,9 +954,10 @@ TEST_CASE("Test instant-capture traps: release", "[trap_managers]") {
 
     SECTION("Multiple traps release, non-zero first active watermark") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 2;
         trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1};
@@ -899,9 +1006,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Multiple traps capture, first watermark") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 0;
         n_electrons_captured = trap_manager.n_electrons_captured(6e3);
 
@@ -932,9 +1040,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud below watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -976,9 +1085,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud above watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1025,9 +1135,9 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Single traps capture, cloud between watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1}, 5, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {0.8 * 10, 0.4 * 10, 0.3 * 10, 0.0, 0.0, 0.0};
@@ -1051,9 +1161,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud between watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1097,9 +1208,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud between watermarks 2") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1144,9 +1256,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud between watermarks 3") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1192,9 +1305,10 @@ TEST_CASE("Test instant-capture traps: capture A", "[trap_managers]") {
 
     SECTION("Same cloud volume as existing watermark") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1248,9 +1362,10 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Capture, non-zero first active watermark, cloud below watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 2;
         trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1, 0.0};
@@ -1293,9 +1408,10 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Capture, non-zero first active watermark, cloud between watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.i_first_active_wmk = 2;
         trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1, 0.1};
@@ -1343,9 +1459,9 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Not-enough capture, first watermark") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1}, 5, ccd_phase_2);
+            std::valarray<TrapInstantCapture>{trap_1}, 5, ccd_phase_2, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 0;
         n_electrons_captured = trap_manager.n_electrons_captured(2.5e-3);
         // --> cloud_fractional_volume = 4.9999e-4, enough = 0.50001
@@ -1367,9 +1483,10 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud below watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase_2);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1415,9 +1532,10 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud above watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase_2);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 2;
         trap_manager.watermark_volumes = {2e-4, 1e-4, 0.0, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1465,9 +1583,10 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud between watermarks") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase_2);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {2e-4, 1e-4, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1517,9 +1636,10 @@ TEST_CASE("Test instant-capture traps: capture B", "[trap_managers]") {
 
     SECTION("Not-enough capture, non-zero first active watermark, cloud between") {
         TrapManagerInstantCapture trap_manager(
-            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 6, ccd_phase_2);
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 6, ccd_phase_2,
+            dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.i_first_active_wmk = 2;
         trap_manager.watermark_volumes = {0.3, 0.2, 2e-4, 1e-4, 0.2, 0.1, 0.0};
@@ -1578,7 +1698,7 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Empty traps, no cloud") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
 
         n_released_and_captured = trap_manager.n_electrons_released_and_captured(0.0);
@@ -1608,9 +1728,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Multiple traps, no cloud") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1652,9 +1772,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Empty traps, first cloud") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 0;
         n_released_and_captured = trap_manager.n_electrons_released_and_captured(6e3);
 
@@ -1686,9 +1806,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Multiple traps, cloud below watermarks") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1732,9 +1852,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Multiple traps, cloud above watermarks") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1779,9 +1899,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Single traps, cloud between watermarks") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1}, 5, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1}, 5, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {0.8 * 10, 0.4 * 10, 0.3 * 10, 0.0, 0.0, 0.0};
@@ -1806,9 +1926,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Multiple traps, cloud between watermarks") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1852,9 +1972,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Multiple traps, cloud between watermarks 2") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1898,9 +2018,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Multiple traps, cloud between watermarks 3") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -1946,9 +2066,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, first watermark") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1}, 3, ccd_phase_2);
+            std::valarray<TrapSlowCapture>{trap_1}, 3, ccd_phase_2, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 0;
         n_released_and_captured =
             trap_manager.n_electrons_released_and_captured(2.5e-3);
@@ -1971,9 +2091,9 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud between watermarks") {
         TrapManagerSlowCapture trap_manager(
-            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase_2);
+            std::valarray<TrapSlowCapture>{trap_1, trap_2}, 3, ccd_phase_2, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {2e-4, 1e-4, 0.2, 0.1, 0.0, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -2017,55 +2137,6 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
     }
 }
 
-TEST_CASE("Test continuum traps: utilities", "[trap_managers]") {
-    TrapContinuum trap_1(10.0, -1.0 / log(0.5), 0.1);
-    TrapContinuum trap_2(8.0, -1.0 / log(0.2), 1.0);
-
-    SECTION("Initial watermarks") {
-        TrapManagerContinuum trap_manager(
-            std::valarray<TrapContinuum>{trap_1, trap_2}, 3, ccd_phase);
-        trap_manager.initialise_trap_states();
-
-        REQUIRE(trap_manager.n_watermarks == 4);
-        REQUIRE(trap_manager.watermark_volumes.size() == 4);
-        REQUIRE(trap_manager.watermark_fills.size() == 8);
-        REQUIRE(
-            trap_manager.watermark_volumes.sum() ==
-            trap_manager.n_watermarks * trap_manager.empty_watermark);
-        REQUIRE(
-            trap_manager.watermark_fills.sum() == trap_manager.n_traps *
-                                                      trap_manager.n_watermarks *
-                                                      trap_manager.empty_watermark);
-    }
-
-    SECTION("Number of trapped electrons") {
-        double n_trapped_electrons;
-
-        TrapManagerContinuum trap_manager(
-            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase);
-        trap_manager.initialise_trap_states();
-        trap_manager.n_active_watermarks = 3;
-        trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
-        trap_manager.watermark_fills = {
-            // clang-format off
-            0.8 * 10, 0.3 * 8, 
-            0.4 * 10, 0.2 * 8,
-            0.2 * 10, 0.1 * 8,
-            0.0 * 10, 0.0 * 8,
-            0.0 * 10, 0.0 * 8,
-            // clang-format on
-        };
-
-        n_trapped_electrons = trap_manager.n_trapped_electrons_from_watermarks(
-            trap_manager.watermark_volumes, trap_manager.watermark_fills);
-        REQUIRE(
-            n_trapped_electrons ==
-            Approx(
-                (0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_1.density +
-                (0.5 * 0.3 + 0.2 * 0.2 + 0.1 * 0.1) * trap_2.density));
-    }
-}
-
 TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
     TrapContinuum trap_1(10.0, -1.0 / log(0.5), 0.01);
     TrapContinuum trap_2(8.0, -1.0 / log(0.2), 0.01);
@@ -2075,7 +2146,7 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
 
     SECTION("Empty release") {
         TrapManagerContinuum trap_manager(
-            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
 
         n_electrons_released = trap_manager.n_electrons_released();
@@ -2103,9 +2174,9 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
 
     SECTION("Multiple traps release") {
         TrapManagerContinuum trap_manager(
-            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
         trap_manager.watermark_fills = {
@@ -2143,9 +2214,9 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
 
     SECTION("Multiple traps release, non-zero first active watermark") {
         TrapManagerContinuum trap_manager(
-            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase);
+            std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
         trap_manager.initialise_trap_states();
-        trap_manager.set_fill_probabilities_from_dwell_time(1.0);
+        trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 2;
         trap_manager.watermark_volumes = {0.3, 0.2, 0.5, 0.2, 0.1};

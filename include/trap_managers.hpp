@@ -10,11 +10,12 @@
 class TrapManagerBase {
    public:
     TrapManagerBase(){};
-    TrapManagerBase(int max_n_transfers, CCDPhase ccd_phase);
+    TrapManagerBase(int max_n_transfers, CCDPhase ccd_phase, double dwell_time);
     ~TrapManagerBase(){};
 
     int max_n_transfers;
     CCDPhase ccd_phase;
+    double dwell_time;
 
     std::valarray<double> watermark_volumes;
     std::valarray<double> watermark_fills;
@@ -51,12 +52,12 @@ class TrapManagerInstantCapture : public TrapManagerBase {
     TrapManagerInstantCapture(){};
     TrapManagerInstantCapture(
         std::valarray<TrapInstantCapture> traps, int max_n_transfers,
-        CCDPhase ccd_phase);
+        CCDPhase ccd_phase, double dwell_time);
     ~TrapManagerInstantCapture(){};
 
     std::valarray<TrapInstantCapture> traps;
 
-    virtual void set_fill_probabilities_from_dwell_time(double dwell_time);
+    virtual void set_fill_probabilities();
     virtual double n_electrons_released();
     virtual void update_watermarks_capture(
         double cloud_fractional_volume, int i_wmk_above_cloud);
@@ -70,12 +71,13 @@ class TrapManagerSlowCapture : public TrapManagerBase {
    public:
     TrapManagerSlowCapture(){};
     TrapManagerSlowCapture(
-        std::valarray<TrapSlowCapture> traps, int max_n_transfers, CCDPhase ccd_phase);
+        std::valarray<TrapSlowCapture> traps, int max_n_transfers, CCDPhase ccd_phase,
+        double dwell_time);
     ~TrapManagerSlowCapture(){};
 
     std::valarray<TrapSlowCapture> traps;
 
-    virtual void set_fill_probabilities_from_dwell_time(double dwell_time);
+    virtual void set_fill_probabilities();
     virtual double n_electrons_released_and_captured(double n_free_electrons);
 };
 
@@ -83,13 +85,13 @@ class TrapManagerContinuum : public TrapManagerBase {
    public:
     TrapManagerContinuum(){};
     TrapManagerContinuum(
-        std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase);
+        std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
+        double dwell_time);
     ~TrapManagerContinuum(){};
 
     std::valarray<TrapContinuum> traps;
-    double dwell_time;
 
-    virtual void set_fill_probabilities_from_dwell_time(double dwell_time_in);
+    virtual void set_fill_probabilities();
     virtual double n_electrons_released();
 };
 
