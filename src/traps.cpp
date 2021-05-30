@@ -35,8 +35,7 @@
         The emission rate (Lindegren (1998) section 3.2).
 */
 TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
-    : density(density),
-      release_timescale(release_timescale) {
+    : density(density), release_timescale(release_timescale) {
 
     emission_rate = 1.0 / release_timescale;
 }
@@ -118,11 +117,6 @@ TrapSlowCapture::TrapSlowCapture(
 
     release_timescale_sigma : double
         The sigma of release lifetimes of the traps.
-
-    Attributes
-    ----------
-    emission_rate : double
-        The emission rate (Lindegren (1998) section 3.2).
 */
 TrapContinuum::TrapContinuum(
     double density, double release_timescale, double release_timescale_sigma)
@@ -134,7 +128,7 @@ TrapContinuum::TrapContinuum(
 
     Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
     trap density distribution with trap release timescales.
-    
+    
     (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
     Parameters
@@ -164,6 +158,11 @@ double ff_from_te_integrand(double tau, void* params) {
 }
 
 double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
+    // Completely full, or unset watermark
+    if (time_elapsed == 0.0) return 1.0;
+    if (time_elapsed >= std::numeric_limits<double>::max()) return 0.0;
+    if (time_elapsed == -1.0) return 0.0;
+
     // Prep the integration
     double result, error;
     const double min = 0.0;
@@ -176,7 +175,7 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
     gsl_function F;
     F.function = &ff_from_te_integrand;
     F.params = &params;
-    
+
     // Integrate F.function from min to +infinity
     int status = gsl_integration_qagiu(
         &F, min, epsabs, epsrel, limit, workspace, &result, &error);
@@ -188,10 +187,10 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
 
 /*
     Calculate the amount of elapsed time from the fraction of filled traps.
-    
+    
     Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
     equal to the required fill_fraction, using a root finder.
-    
+    
     (www.gnu.org/software/gsl/doc/html/roots.html)
 
     Parameters
@@ -218,9 +217,10 @@ double te_from_ff_root_function(double time_elapsed, void* params) {
 }
 
 double TrapContinuum::time_elapsed_from_fill_fraction(double fill_fraction) {
-    // Completely full or empty
+    // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0) return 0.0;
     if (fill_fraction == 0.0) return std::numeric_limits<double>::max();
+    if (fill_fraction == -1.0) return 0.0;
 
     // Prep the root finder
     double root;

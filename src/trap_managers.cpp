@@ -13,7 +13,7 @@
 // ========
 /*
     Class TrapManagerBase.
-    
+    
     Abstract base class for the trap manager of one or multiple trap species
     that are able to use watermarks in the same way as each other.
 
@@ -33,7 +33,7 @@
     ccd_phase : CCDPhase
         Parameters to describe how electrons fill the volume inside (one phase
         of) a pixel in a CCD detector.
-    
+    
     Attributes
     ----------
     n_traps : int
@@ -105,7 +105,7 @@ TrapManagerBase::TrapManagerBase(int max_n_transfers, CCDPhase ccd_phase)
         The total number of available watermarks.
 
     watermark_volumes, watermark_fills : std::valarray<double>
-        The initial empty watermark arrays. See TrapManagerSlowCapture().
+        The initial empty watermark arrays.
 */
 void TrapManagerBase::initialise_trap_states() {
     n_watermarks = max_n_transfers * n_watermarks_per_transfer + 1;
@@ -153,7 +153,7 @@ void TrapManagerBase::restore_trap_states() {
     Parameters
     ----------
     wmk_volumes, wmk_fills : std::valarray<double>
-        Watermark arrays. See TrapManagerSlowCapture().
+        The watermark arrays.
 
     Returns
     -------
@@ -218,7 +218,7 @@ int TrapManagerBase::watermark_index_above_cloud(double cloud_fractional_volume)
 /*
     Class TrapManagerInstantCapture.
 
-    For the old-standard, release-then-instant-capture algorithm.
+    For the standard release-then-instant-capture algorithm.
 */
 TrapManagerInstantCapture::TrapManagerInstantCapture(
     std::valarray<TrapInstantCapture> traps, int max_n_transfers, CCDPhase ccd_phase)
@@ -274,7 +274,7 @@ void TrapManagerInstantCapture::set_fill_probabilities_from_dwell_time(
     Updates
     -------
     watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManagerSlowCapture().
+        The updated watermarks.
 */
 double TrapManagerInstantCapture::n_electrons_released() {
     double n_released = 0.0;
@@ -318,7 +318,7 @@ double TrapManagerInstantCapture::n_electrons_released() {
     Updates
     -------
     watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManagerSlowCapture().
+        The updated watermarks.
 */
 void TrapManagerInstantCapture::update_watermarks_capture(
     double cloud_fractional_volume, int i_wmk_above_cloud) {
@@ -429,7 +429,7 @@ void TrapManagerInstantCapture::update_watermarks_capture(
     Updates
     -------
     watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManagerSlowCapture().
+        The updated watermarks.
 */
 void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
     double cloud_fractional_volume, int i_wmk_above_cloud, double enough) {
@@ -564,7 +564,7 @@ void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
     Updates
     -------
     watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManagerSlowCapture().
+        The updated watermarks.
 */
 double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) {
     // The fractional volume the electron cloud reaches in the pixel well
@@ -578,7 +578,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     // Count the number of electrons that can be captured by each watermark
     // ========
     double n_captured = 0.0;
-    double n_captured_this_wmk = 0.0;
+    double n_captured_this_wmk;
     double cumulative_volume = 0.0;
     double next_cumulative_volume = 0.0;
 
@@ -586,7 +586,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk; i_wmk <= i_wmk_above_cloud; i_wmk++) {
-        n_captured_this_wmk = 0;
+        n_captured_this_wmk = 0.0;
 
         // Total volume at the bottom and top of this watermark
         cumulative_volume = next_cumulative_volume;
@@ -633,7 +633,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
 
 
 
@@ -661,7 +661,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     Updates
     -------
     watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManagerSlowCapture().
+        The updated watermarks.
 */
 double TrapManagerInstantCapture::n_electrons_released_and_captured(
     double n_free_electrons) {
@@ -757,7 +757,7 @@ void TrapManagerSlowCapture::set_fill_probabilities_from_dwell_time(double dwell
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
     + First any previously filled traps that are not within the cloud volume
@@ -781,7 +781,7 @@ void TrapManagerSlowCapture::set_fill_probabilities_from_dwell_time(double dwell
     Updates
     -------
     watermark_volumes, watermark_fills : std::valarray<double>
-        The updated watermarks. See TrapManagerSlowCapture().
+        The updated watermarks.
 */
 double TrapManagerSlowCapture::n_electrons_released_and_captured(
     double n_free_electrons) {
@@ -1004,12 +1004,11 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
 /*
     Class TrapManagerContinuum.
 
-    For trap species with continous distributions of release timesacles, and
-    the old-standard, release-then-instant-capture algorithm.
-
-    In this case, the watermark_fills array tracks the total time elapsed since
-    the traps were filled, instead of the fill fractions. Empty watermarks are
-    set by -1 instead of 0.
+    For trap species with continous distributions of release timescales, and
+    the standard release-then-instant-capture algorithm.
+    
+    For release, the watermark fill fractions are converted into the total time
+    elapsed since the traps were filled in order to update them.
 */
 TrapManagerContinuum::TrapManagerContinuum(
     std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase)
@@ -1020,53 +1019,65 @@ TrapManagerContinuum::TrapManagerContinuum(
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
         trap_densities[i_trap] = traps[i_trap].density;
     }
-
-    // Overwrite default parameter values
-    empty_watermark = -1.0;
 }
 
 /*
-    Sum the total number of electrons currently held in traps.
-
-    Parameters
-    ----------
-    wmk_volumes, wmk_fills : std::valarray<double>
-        Watermark arrays. See TrapManagerContinuum().
-
-    Returns
-    -------
-    n_trapped_electrons : double
-        The number of electrons stored in traps.
+    Same as TrapManagerInstantCapture.
 */
-double TrapManagerContinuum::n_trapped_electrons_from_watermarks(
-    std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills) {
+void TrapManagerContinuum::set_fill_probabilities_from_dwell_time(
+    double dwell_time_in) {
+    fill_probabilities_from_release = std::valarray<double>(0.0, n_traps);
+    empty_probabilities_from_release = std::valarray<double>(0.0, n_traps);
 
-    // No watermarks
-    if (n_active_watermarks == 0) return 0.0;
+    dwell_time = dwell_time_in;
 
-    double n_trapped_electrons = 0.0;
-    double n_trapped_electrons_this_wmk;
-    double fill_fraction;
+    // Set probabilities for each trap species
+    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+        // Resulting fill fraction from release
+        fill_probabilities_from_release[i_trap] =
+            exp(-traps[i_trap].emission_rate * dwell_time);
+        empty_probabilities_from_release[i_trap] =
+            1.0 - fill_probabilities_from_release[i_trap];
+    }
+}
+
+/*
+    Same as TrapManagerInstantCapture, except for the conversion between fill
+    fractions and elapsed times to update the trap states.
+*/
+double TrapManagerContinuum::n_electrons_released() {
+    double n_released = 0.0;
+    double n_released_this_wmk;
+    double fill_initial;
+    double time_initial;
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk;
          i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
-        n_trapped_electrons_this_wmk = 0.0;
+        n_released_this_wmk = 0.0;
 
         // Each trap species
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-            // Fraction of trapped electrons
-            fill_fraction = traps[i_trap].fill_fraction_from_time_elapsed(
-                wmk_fills[i_wmk * n_traps + i_trap]);
+            // Initial fill and conversion to elapsed time
+            fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
+            time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
+                fill_initial / trap_densities[i_trap]);
 
-            n_trapped_electrons_this_wmk += fill_fraction * traps[i_trap].density;
+            // New fill fraction from updated elapsed time
+            watermark_fills[i_wmk * n_traps + i_trap] =
+                trap_densities[i_trap] * traps[i_trap].fill_fraction_from_time_elapsed(
+                                             time_initial + dwell_time);
+
+            // Number released from difference in fill fractions
+            n_released_this_wmk +=
+                fill_initial - watermark_fills[i_wmk * n_traps + i_trap];
         }
 
-        // Multiply by the fractional volume
-        n_trapped_electrons += n_trapped_electrons_this_wmk * wmk_volumes[i_wmk];
+        // Multiply by the watermark volume
+        n_released += n_released_this_wmk * watermark_volumes[i_wmk];
     }
 
-    return n_trapped_electrons;
+    return n_released;
 }
 
 // ========
@@ -1121,18 +1132,18 @@ double TrapManagerContinuum::n_trapped_electrons_from_watermarks(
         phase. Ignored if the corresponding n_*_traps is 0.
 */
 TrapManagerManager::TrapManagerManager(
-    std::valarray<TrapSlowCapture>& slow_capture_traps,
     std::valarray<TrapInstantCapture>& instant_capture_traps,
+    std::valarray<TrapSlowCapture>& slow_capture_traps,
     // std::valarray<TrapContinuum>& continuum_traps,
     int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times)
-    : slow_capture_traps(slow_capture_traps),
-      instant_capture_traps(instant_capture_traps),
+    : instant_capture_traps(instant_capture_traps),
+      slow_capture_traps(slow_capture_traps),
       max_n_transfers(max_n_transfers),
       ccd(ccd) {
 
     // The number of trap species (if any) of each watermark type
-    n_slow_capture_traps = slow_capture_traps.size();
     n_instant_capture_traps = instant_capture_traps.size();
+    n_slow_capture_traps = slow_capture_traps.size();
 
     // Account for the number of clock-sequence steps for the maximum transfers
     max_n_transfers *= dwell_times.size();
@@ -1140,6 +1151,24 @@ TrapManagerManager::TrapManagerManager(
     // ========
     // Set up the trap manager for each phase, for each watermark type
     // ========
+    if (n_instant_capture_traps > 0) {
+        trap_managers_instant_capture.resize(ccd.n_phases);
+
+        // Initialise manager and watermarks for each phase
+        for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
+            trap_managers_instant_capture[phase_index] = TrapManagerInstantCapture(
+                instant_capture_traps, max_n_transfers, ccd.phases[phase_index]);
+
+            // Modify the trap densities in different phases
+            trap_managers_instant_capture[phase_index].trap_densities *=
+                ccd.fraction_of_traps_per_phase[phase_index];
+
+            trap_managers_instant_capture[phase_index].initialise_trap_states();
+            trap_managers_instant_capture[phase_index]
+                .set_fill_probabilities_from_dwell_time(dwell_times[phase_index]);
+        }
+    }
+
     if (n_slow_capture_traps > 0) {
         trap_managers_slow_capture.resize(ccd.n_phases);
 
@@ -1156,24 +1185,6 @@ TrapManagerManager::TrapManagerManager(
             //## This assumes dwell times are the same in each phase even in
             // e.g. trap-pumping clock sequences with n_steps > n_phases
             trap_managers_slow_capture[phase_index]
-                .set_fill_probabilities_from_dwell_time(dwell_times[phase_index]);
-        }
-    }
-
-    if (n_instant_capture_traps > 0) {
-        trap_managers_instant_capture.resize(ccd.n_phases);
-
-        // Initialise manager and watermarks for each phase
-        for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            trap_managers_instant_capture[phase_index] = TrapManagerInstantCapture(
-                instant_capture_traps, max_n_transfers, ccd.phases[phase_index]);
-
-            // Modify the trap densities in different phases
-            trap_managers_instant_capture[phase_index].trap_densities *=
-                ccd.fraction_of_traps_per_phase[phase_index];
-
-            trap_managers_instant_capture[phase_index].initialise_trap_states();
-            trap_managers_instant_capture[phase_index]
                 .set_fill_probabilities_from_dwell_time(dwell_times[phase_index]);
         }
     }

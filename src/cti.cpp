@@ -38,7 +38,7 @@
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
-        
+        
         For trap pumping, it is currently assumed that only a single pixel is
         active and contains traps, so row_stop must be row_start + 1. See
         ROETrapPumping for more detail.
@@ -106,7 +106,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the trap managers
     TrapManagerManager trap_manager_manager(
-        *slow_capture_traps, *instant_capture_traps, row_stop - row_start, *ccd,
+        *instant_capture_traps, *slow_capture_traps, row_stop - row_start, *ccd,
         roe->dwell_times);
 
     unsigned int column_index;
