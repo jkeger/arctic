@@ -350,16 +350,19 @@ Trap species
 ------------
 The parameters for a trap species.
 
-See the `Trap` and child class docstrings in `traps.cpp` for the full 
-documentation.
-
-### Standard
-Combined release and capture, allowing for non-zero capture times, following 
-Lindegren (1998) section 3.2.
+See the `Trap` class docstrings in `traps.cpp` for the full documentation.
 
 ### Instant capture
-For the slightly simpler algorithm of release first then instant capture. This 
+For the relatively simple algorithm of release first then instant capture. This 
 is the primary model used by previous versions of ArCTIC.
+
+### Slow capture
+For combined release and non-instant capture, following Lindegren (1998), 
+section 3.2.
+
+### Continuum lifetime distribution
+For a trap species with a continuum (log-normal distribution) of release
+timescales, and instant capture.
 
 
 
