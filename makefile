@@ -24,6 +24,15 @@
 # 	all
 # 		All of the above.
 # 
+# 	clean
+# 		Remove compiled files.
+# 
+# 	gsl
+# 		The GNU Scientific Library (www.gnu.org/software/gsl/). See get_gsl.sh.
+# 
+# 	clean-gsl
+# 		Remove GSL (not done by `clean`).
+# 
 
 # ========
 # Set up
@@ -76,7 +85,7 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath=$(DIR_ROOT) -l$(TARGET)
 default: $(TARGET) $(LIB_TARGET)
 
 # Ignore any files with these names
-.PHONY: all default test lib lib_test wrapper clean
+.PHONY: all default test lib lib_test wrapper clean gsl clean-gsl
 
 # Main program, unit tests, library, library test, and wrapper
 all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) wrapper
@@ -84,6 +93,8 @@ all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) wrapper
 # Main program
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
+
+$(OBJECTS): gsl
 
 -include $(DEPENDS)
 
@@ -122,3 +133,13 @@ clean:
 	@rm -fv $(DIR_WRAPPER)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
 	@rm -rfv $(DIR_ROOT)build/temp.*/ $(DIR_WRAPPER)__pycache__/ \
 		$(DIR_WRAPPER_SRC)__pycache__/ $(DIR_TEST)__pycache__/
+
+# GSL
+GSL_VERSION := 2.6
+gsl:
+	@if ! [ -d $(DIR_GSL) ]; then \
+		./get_gsl.sh $(DIR_ROOT) $(DIR_GSL) $(GSL_VERSION); \
+	fi
+
+clean-gsl:
+	@rm -rfv gsl*

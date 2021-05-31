@@ -23,6 +23,7 @@ Contents
 --------
 + Installation
     + Python wrapper
+    + GSL
 + Usage
 + Unit Tests
 + Files
@@ -46,7 +47,6 @@ See the `makefile` header documentation for all the options.
 See the sections below for testing and running the code.
 
 
-
 Python wrapper
 --------------
 ArCTIC is a standalone C++ library, but can also be used via the `arcticpy` 
@@ -56,6 +56,14 @@ python module, using Cython to interface with the precompiled core library.
     Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`
 + Import the python module, e.g. `import arcticpy as ac`.  
     The `test/test_arcticpy.py` file contains some tests and a basic example.
+
+
+GSL
+---
+The code uses a few functions from the GNU Scientific Library. The makefile will
+automatically attempt to download and install the library in the local directory
+if required. If your system already has GSL installed, then feel free to edit 
+`DIR_GSL` in the makefile to point to it (e.g. /usr/local/include/gsl/).
 
 
 
@@ -118,6 +126,7 @@ Files
 A quick summary of the code files and their contents:
 
 + `makefile`                The makefile for compiling the code. See its header.
+    + `get_gsl.sh`          The script called by the makefile to install GSL.
 + `arctic`, `test_arctic`   The program and unit-test executables.
 + `libarctic.so`            The shared object library.
 + `src/`                    Source code files.
