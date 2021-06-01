@@ -16,7 +16,10 @@ dir_wrapper = os.path.dirname(os.path.realpath(__file__)) + "/"
 dir_src = dir_wrapper + "src/"
 dir_arctic = os.path.abspath(os.path.join(dir_wrapper, os.pardir)) + "/"
 dir_include = dir_arctic + "include/"
-dir_link = dir_arctic
+dir_lib = dir_arctic
+dir_gsl = dir_arctic + "gsl/"
+dir_include_gsl = dir_gsl + "include/"
+dir_lib_gsl = dir_gsl + "lib/"
 
 # Clean
 for root, dirs, files in os.walk(dir_wrapper, topdown=False):
@@ -39,11 +42,10 @@ setup(
                 sources=[dir_src + "wrapper.pyx", dir_src + "interface.cpp"],
                 language="c++",
                 libraries=["arctic"],
-                library_dirs=[dir_link],
-                runtime_library_dirs=[dir_link],
-                include_dirs=[dir_include, np.get_include()],
+                library_dirs=[dir_lib, dir_lib_gsl],
+                runtime_library_dirs=[dir_lib, dir_lib_gsl],
+                include_dirs=[dir_include, np.get_include(), dir_include_gsl],
                 extra_compile_args=["-std=c++11", "-O3"],
-                # extra_compile_args=["-std=c++11", "-g"],
                 define_macros=[('NPY_NO_DEPRECATED_API', 0)],
             )
         ],
