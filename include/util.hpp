@@ -3,6 +3,7 @@
 #define ARCTIC_UTIL_HPP
 
 #include <stdio.h>
+#include <string.h>
 #include <valarray>
 #include <vector>
 
@@ -11,7 +12,7 @@
 // ========
 /*
     Global verbosity parameter to control the amount of printed information:
-    
+    
     0       No printing (except errors etc).
     1       Standard.
     2       Extra details.
@@ -21,27 +22,28 @@ void set_verbosity(int v);
 
 /*
     Print if the global verbosity parameter is >= verbosity_min.
-    
+    
     If verbosity >= 2, also print the origin of the message.
 */
-#define print_v(verbosity_min, message, ...)                              \
-    ({                                                                    \
-        if (verbosity >= 2)                                               \
-            printf("%s:%i: " message, __FILE__, __LINE__, ##__VA_ARGS__); \
-        else if (verbosity >= verbosity_min)                              \
-            printf(message, ##__VA_ARGS__);                               \
+#define __FILENAME__ strrchr("/" __FILE__, '/') + 1
+#define print_v(verbosity_min, message, ...)                                  \
+    ({                                                                        \
+        if (verbosity >= 2)                                                   \
+            printf("%s:%i: " message, __FILENAME__, __LINE__, ##__VA_ARGS__); \
+        else if (verbosity >= verbosity_min)                                  \
+            printf(message, ##__VA_ARGS__);                                   \
     })
 
 /*
     Print an error message, including its origin, and exit.
 */
-#define error(message, ...)                                                        \
-    ({                                                                             \
-        fflush(stdout);                                                            \
-        fprintf(                                                                   \
-            stderr, "%s:%s():%i: " message "\n", __FILE__, __FUNCTION__, __LINE__, \
-            ##__VA_ARGS__);                                                        \
-        exit(1);                                                                   \
+#define error(message, ...)                                                            \
+    ({                                                                                 \
+        fflush(stdout);                                                                \
+        fprintf(                                                                       \
+            stderr, "%s:%s():%i: " message "\n", __FILENAME__, __FUNCTION__, __LINE__, \
+            ##__VA_ARGS__);                                                            \
+        exit(1);                                                                       \
     })
 
 void print_array(std::valarray<double>& array);
@@ -65,7 +67,8 @@ std::valarray<std::valarray<double>> transpose(
 // ========
 std::valarray<std::valarray<double>> load_image_from_txt(const char* filename);
 
-void save_image_to_txt(const char* filename, std::valarray<std::valarray<double>> image);
+void save_image_to_txt(
+    const char* filename, std::valarray<std::valarray<double>> image);
 
 // ========
 // Misc
