@@ -1045,6 +1045,10 @@ double TrapManagerContinuum::n_electrons_released() {
     double n_released_this_wmk;
     double fill_initial;
     double time_initial;
+    
+    // Prep for the GSL integration
+    const int limit = 100;
+    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk;
@@ -1052,16 +1056,17 @@ double TrapManagerContinuum::n_electrons_released() {
         n_released_this_wmk = 0.0;
 
         // Each trap species
-        for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+        for (int i_trap = 0; i_trap < n_traps; i_trap++) {        
             // Initial fill and conversion to elapsed time
             fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
             time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
-                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time);
+                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time,
+                workspace);
 
             // New fill fraction from updated elapsed time
             watermark_fills[i_wmk * n_traps + i_trap] =
                 trap_densities[i_trap] * traps[i_trap].fill_fraction_from_time_elapsed(
-                                             time_initial + dwell_time);
+                                             time_initial + dwell_time, workspace);
 
             // Number released from difference in fill fractions
             n_released_this_wmk +=

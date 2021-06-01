@@ -128,7 +128,7 @@ TrapContinuum::TrapContinuum(
 
     Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
     trap density distribution with trap release timescales.
-    
+    
     (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
     Parameters
@@ -136,6 +136,10 @@ TrapContinuum::TrapContinuum(
     time_elapsed : double
         The total time elapsed since the traps were filled, in the same
         units as the trap timescales.
+    
+    workspace : gsl_integration_workspace* (opt.)
+        An existing GSL workspace memory handler for the integration, or nullptr
+        to create a new one.
 
     Returns
     -------
@@ -157,8 +161,9 @@ double ff_from_te_integrand(double tau, void* params) {
            (tau * p->sigma * sqrt(2 * M_PI));
 }
 
-double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
-    // Completely full, or unset watermark
+double TrapContinuum::fill_fraction_from_time_elapsed(
+    double time_elapsed, gsl_integration_workspace* workspace) {
+    // Completely full or empty, or unset watermark
     if (time_elapsed == 0.0) return 1.0;
     if (time_elapsed >= std::numeric_limits<double>::max()) return 0.0;
     if (time_elapsed == -1.0) return 0.0;
@@ -169,7 +174,9 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+    if (!workspace) {
+        workspace = gsl_integration_workspace_alloc(limit);
+    }
     struct ff_from_te_params params = {time_elapsed, release_timescale,
                                        release_timescale_sigma};
     gsl_function F;
@@ -187,20 +194,24 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
 
 /*
     Calculate the amount of elapsed time from the fraction of filled traps.
-    
+    
     Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
     equal to the required fill_fraction, using a root finder.
-    
+    
     (www.gnu.org/software/gsl/doc/html/roots.html)
 
     Parameters
     ----------
     fill_fraction : double
         The fraction of filled traps.
-    
+    
     time_max : double
         The maximum possible time, used to initialise the root finder. e.g. the
         cumulative dwell time over all transfers.
+    
+    workspace : gsl_integration_workspace* (opt.)
+        An existing GSL workspace memory handler for the integration, or nullptr
+        to create a new one.
 
     Returns
     -------
@@ -211,38 +222,48 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
 struct te_from_ff_params {
     TrapContinuum* trap;
     double fill_fraction;
+    gsl_integration_workspace* workspace;
 };
 
 double te_from_ff_root_function(double time_elapsed, void* params) {
     struct te_from_ff_params* p = (struct te_from_ff_params*)params;
 
     // To find time such that: fill_fraction(time) - fill_fraction = 0
-    return p->trap->fill_fraction_from_time_elapsed(time_elapsed) - p->fill_fraction;
+    return p->trap->fill_fraction_from_time_elapsed(time_elapsed, p->workspace) -
+           p->fill_fraction;
 }
 
 double TrapContinuum::time_elapsed_from_fill_fraction(
-    double fill_fraction, double time_max) {
+    double fill_fraction, double time_max, gsl_integration_workspace* workspace) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0) return 0.0;
     if (fill_fraction == 0.0) return std::numeric_limits<double>::max();
     if (fill_fraction == -1.0) return 0.0;
 
+    // Prep for the integration
+    if (!workspace) {
+        const int limit = 100;
+        workspace = gsl_integration_workspace_alloc(limit);
+    }
+
     // Prep the root finder
     double root;
     int status;
     const int max_iter = 100;
-    const double epsabs = 0.0, epsrel = 1e-6;
+    const double epsabs = 0.0;
+    const double epsrel = 1e-6;
     const gsl_root_fsolver_type* T;
     gsl_root_fsolver* s;
     T = gsl_root_fsolver_brent;
     s = gsl_root_fsolver_alloc(T);
-    struct te_from_ff_params params = {this, fill_fraction};
+    struct te_from_ff_params params = {this, fill_fraction, workspace};
     gsl_function F;
     F.function = &te_from_ff_root_function;
     F.params = &params;
 
     // Bounding values
-    double x_lo = 0.0, x_hi = time_max;
+    double x_lo = 0.0;
+    double x_hi = time_max;
 
     // Iterate the root finder
     int iter = 0;
