@@ -128,7 +128,7 @@ TrapContinuum::TrapContinuum(
 
     Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
     trap density distribution with trap release timescales.
-    
+    
     (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
     Parameters
@@ -187,16 +187,20 @@ double TrapContinuum::fill_fraction_from_time_elapsed(double time_elapsed) {
 
 /*
     Calculate the amount of elapsed time from the fraction of filled traps.
-    
+    
     Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
     equal to the required fill_fraction, using a root finder.
-    
+    
     (www.gnu.org/software/gsl/doc/html/roots.html)
 
     Parameters
     ----------
     fill_fraction : double
         The fraction of filled traps.
+    
+    time_max : double
+        The maximum possible time, used to initialise the root finder. e.g. the
+        cumulative dwell time over all transfers.
 
     Returns
     -------
@@ -216,7 +220,8 @@ double te_from_ff_root_function(double time_elapsed, void* params) {
     return p->trap->fill_fraction_from_time_elapsed(time_elapsed) - p->fill_fraction;
 }
 
-double TrapContinuum::time_elapsed_from_fill_fraction(double fill_fraction) {
+double TrapContinuum::time_elapsed_from_fill_fraction(
+    double fill_fraction, double time_max) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0) return 0.0;
     if (fill_fraction == 0.0) return std::numeric_limits<double>::max();
@@ -237,7 +242,7 @@ double TrapContinuum::time_elapsed_from_fill_fraction(double fill_fraction) {
     F.params = &params;
 
     // Bounding values
-    double x_lo = 0.0, x_hi = 999.0;  //## set using dwell time etc
+    double x_lo = 0.0, x_hi = time_max;
 
     // Iterate the root finder
     int iter = 0;

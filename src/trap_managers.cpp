@@ -1056,7 +1056,7 @@ double TrapManagerContinuum::n_electrons_released() {
             // Initial fill and conversion to elapsed time
             fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
             time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
-                fill_initial / trap_densities[i_trap]);
+                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time);
 
             // New fill fraction from updated elapsed time
             watermark_fills[i_wmk * n_traps + i_trap] =
