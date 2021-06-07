@@ -1415,7 +1415,8 @@ double TrapManagerContinuum::n_electrons_released_and_captured(
         The arrays of trap species, one for each type (which can be empty).
 
     max_n_transfers : int
-        Same as TrapManagerSlowCapture.
+        Same as TrapManagerBase. Is modified internally to include any extra 
+        intra-pixel transfers for multiphase clocking.
 
     ccd : CCD
         Parameters to describe how electrons fill the volume inside (all phases

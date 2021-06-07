@@ -679,6 +679,42 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
             std::begin(trap_manager_manager.trap_managers_continuum[2].trap_densities),
             std::end(trap_manager_manager.trap_managers_continuum[2].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
+
+        // Continuum interpolation tables
+        // Limits set by each phase's dwell time
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[0].traps[0].time_min ==
+            dwell_times[0]);
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[1].traps[0].time_min ==
+            dwell_times[1]);
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[2].traps[0].time_min ==
+            dwell_times[2]);
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[0].traps[0].time_max ==
+            max_n_transfers * dwell_times.size() * dwell_times[0]);
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[1].traps[0].time_max ==
+            max_n_transfers * dwell_times.size() * dwell_times[1]);
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[2].traps[0].time_max ==
+            max_n_transfers * dwell_times.size() * dwell_times[2]);
+        // Longer dwell time sets smaller tabulated fill fractions
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[0]
+                .traps[0]
+                .fill_fraction_table[0] <
+            trap_manager_manager.trap_managers_continuum[1]
+                .traps[0]
+                .fill_fraction_table[0]);
+        REQUIRE(
+            trap_manager_manager.trap_managers_continuum[1]
+                .traps[0]
+                .fill_fraction_table[0] ==
+            trap_manager_manager.trap_managers_continuum[2]
+                .traps[0]
+                .fill_fraction_table[0]);
     }
 
     SECTION("Store, reset, and restore all trap states") {
