@@ -91,6 +91,10 @@ class TrapManagerContinuum : public TrapManagerBase {
 
     std::valarray<TrapContinuum> traps;
 
+    double time_min;
+    double time_max;
+    int n_intp;
+
     void set_fill_probabilities();
     double n_electrons_released();
     void update_watermarks_capture(

@@ -315,6 +315,9 @@ TEST_CASE("Test utilities", "[trap_managers]") {
 
         REQUIRE(trap_manager_co.fill_probabilities_from_release[0] == Approx(0.5));
         REQUIRE(trap_manager_co.empty_probabilities_from_release[0] == Approx(0.5));
+        REQUIRE(
+            trap_manager_co.traps[0].fill_fraction_table.size() ==
+            trap_manager_co.n_intp);
     }
 
     SECTION("Watermark index above cloud") {
@@ -2302,6 +2305,8 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
     SECTION("Multiple traps release") {
         TrapManagerContinuum trap_manager(
             std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
+        // Reduce time_min to get high test fill fractions within the table
+        trap_manager.time_min /= 10.0;
         trap_manager.initialise_trap_states();
         trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;
@@ -2342,6 +2347,8 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
     SECTION("Multiple traps release, non-zero first active watermark") {
         TrapManagerContinuum trap_manager(
             std::valarray<TrapContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
+        // Reduce time_min to get high test fill fractions within the table
+        trap_manager.time_min /= 10.0;
         trap_manager.initialise_trap_states();
         trap_manager.set_fill_probabilities();
         trap_manager.n_active_watermarks = 3;

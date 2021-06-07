@@ -13,7 +13,7 @@
 // ========
 /*
     Class TrapManagerBase.
-    
+    
     Abstract base class for the trap manager of one or multiple trap species
     that are able to use watermarks in the same way as each other.
 
@@ -21,7 +21,7 @@
     ----------
     traps : std::valarray<Trap>
         A list of one or more trap species of the specific trap manager's type.
-        
+        
         Not included in this base class, since the different managers require
         different class types for the array.
 
@@ -34,11 +34,11 @@
     ccd_phase : CCDPhase
         Parameters to describe how electrons fill the volume inside (one phase
         of) a pixel in a CCD detector.
-    
+    
     dwell_time : double
         The time spent in this pixel or phase, in the same units as the trap
         timescales.
-    
+    
     Attributes
     ----------
     n_traps : int
@@ -633,7 +633,7 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
 
 
 
@@ -752,7 +752,7 @@ void TrapManagerSlowCapture::set_fill_probabilities() {
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
+    
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
     + First any previously filled traps that are not within the cloud volume
@@ -1001,11 +1001,22 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
 
     For trap species with continous distributions of release timescales, and
     the standard release-then-instant-capture algorithm.
-    
+    
     For release, the watermark fill fractions are converted into the total time
     elapsed since the traps were filled in order to update them.
-    
+    
     Capture is identical to instant-capture traps.
+    
+    Attributes (in addition to TrapManagerBase)
+    ----------
+    time_min : double
+    time_max : double
+        The minimum and maximum elapsed times to set the interpolation table
+        limits. See prep_fill_fraction_and_time_elapsed_tables().
+    
+    n_intp : int
+        The number of interpolation values in the arrays. Currently set here
+        manually. See prep_fill_fraction_and_time_elapsed_tables().
 */
 TrapManagerContinuum::TrapManagerContinuum(
     std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
@@ -1017,10 +1028,15 @@ TrapManagerContinuum::TrapManagerContinuum(
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
         trap_densities[i_trap] = traps[i_trap].density;
     }
+
+    time_min = dwell_time;
+    time_max = max_n_transfers * dwell_time;
+    n_intp = 1000;
 }
 
 /*
-    Same as TrapManagerInstantCapture.
+    Same as TrapManagerInstantCapture. In addition, set the interpolation table
+    values for converting between fill fractions and elapsed times.
 */
 void TrapManagerContinuum::set_fill_probabilities() {
     fill_probabilities_from_release = std::valarray<double>(0.0, n_traps);
@@ -1033,6 +1049,10 @@ void TrapManagerContinuum::set_fill_probabilities() {
             exp(-traps[i_trap].emission_rate * dwell_time);
         empty_probabilities_from_release[i_trap] =
             1.0 - fill_probabilities_from_release[i_trap];
+
+        // Prepare interpolation tables
+        traps[i_trap].prep_fill_fraction_and_time_elapsed_tables(
+            time_min, time_max, n_intp);
     }
 }
 
@@ -1045,10 +1065,6 @@ double TrapManagerContinuum::n_electrons_released() {
     double n_released_this_wmk;
     double fill_initial;
     double time_initial;
-    
-    // Prep for the GSL integration
-    const int limit = 100;
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk;
@@ -1056,17 +1072,17 @@ double TrapManagerContinuum::n_electrons_released() {
         n_released_this_wmk = 0.0;
 
         // Each trap species
-        for (int i_trap = 0; i_trap < n_traps; i_trap++) {        
+        for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             // Initial fill and conversion to elapsed time
             fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
-            time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
-                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time,
-                workspace);
+            time_initial = traps[i_trap].time_elapsed_from_fill_fraction_table(
+                fill_initial / trap_densities[i_trap]);
 
             // New fill fraction from updated elapsed time
             watermark_fills[i_wmk * n_traps + i_trap] =
-                trap_densities[i_trap] * traps[i_trap].fill_fraction_from_time_elapsed(
-                                             time_initial + dwell_time, workspace);
+                trap_densities[i_trap] *
+                traps[i_trap].fill_fraction_from_time_elapsed_table(
+                    time_initial + dwell_time);
 
             // Number released from difference in fill fractions
             n_released_this_wmk +=
@@ -1408,7 +1424,7 @@ double TrapManagerContinuum::n_electrons_released_and_captured(
     dwell_times : std::valarray<double>
         The time between steps in the clocking sequence, as stored by an ROE
         object.
-        
+        
         Note: currently assumes the dwell time in each phase is the same for all
         steps, which might not be true in sequences with n_steps > n_phases.
 
