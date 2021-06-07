@@ -3,6 +3,7 @@
 #define ARCTIC_TRAPS_HPP
 
 #include <gsl/gsl_integration.h>
+#include <valarray>
 
 class TrapInstantCapture {
    public:
@@ -39,6 +40,19 @@ class TrapContinuum : public TrapInstantCapture {
     double time_elapsed_from_fill_fraction(
         double fill_fraction, double time_max,
         gsl_integration_workspace* workspace = nullptr);
+
+    std::valarray<double> fill_fraction_table;
+    int n_intp;
+    double time_min;
+    double time_max;
+    double fill_min;
+    double fill_max;
+    double d_log_time;
+
+    void prep_fill_fraction_and_time_elapsed_tables(
+        double time_min, double time_max, int n_intp = 1000);
+    double fill_fraction_from_time_elapsed_table(double time_elapsed);
+    double time_elapsed_from_fill_fraction_table(double fill_fraction);
 };
 
 #endif  // ARCTIC_TRAPS_HPP

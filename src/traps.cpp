@@ -4,6 +4,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
 #include <math.h>
+#include <valarray>
 
 #include "traps.hpp"
 #include "util.hpp"
@@ -128,15 +129,15 @@ TrapContinuum::TrapContinuum(
 
     Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
     trap density distribution with trap release timescales.
-    
+    
     (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
     Parameters
     ----------
     time_elapsed : double
-        The total time elapsed since the traps were filled, in the same
-        units as the trap timescales.
-    
+        The total time elapsed since the traps were filled, in the same units
+        as the trap timescales.
+    
     workspace : gsl_integration_workspace* (opt.)
         An existing GSL workspace memory handler for the integration, or nullptr
         to create a new one.
@@ -164,9 +165,12 @@ double ff_from_te_integrand(double tau, void* params) {
 double TrapContinuum::fill_fraction_from_time_elapsed(
     double time_elapsed, gsl_integration_workspace* workspace) {
     // Completely full or empty, or unset watermark
-    if (time_elapsed == 0.0) return 1.0;
-    if (time_elapsed >= std::numeric_limits<double>::max()) return 0.0;
-    if (time_elapsed == -1.0) return 0.0;
+    if (time_elapsed == 0.0)
+        return 1.0;
+    else if (time_elapsed >= std::numeric_limits<double>::max())
+        return 0.0;
+    else if (time_elapsed == -1.0)
+        return 0.0;
 
     // Prep the integration
     double result, error;
@@ -194,21 +198,21 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
 
 /*
     Calculate the amount of elapsed time from the fraction of filled traps.
-    
+    
     Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
     equal to the required fill_fraction, using a root finder.
-    
+    
     (www.gnu.org/software/gsl/doc/html/roots.html)
 
     Parameters
     ----------
     fill_fraction : double
         The fraction of filled traps.
-    
+    
     time_max : double
         The maximum possible time, used to initialise the root finder. e.g. the
         cumulative dwell time over all transfers.
-    
+    
     workspace : gsl_integration_workspace* (opt.)
         An existing GSL workspace memory handler for the integration, or nullptr
         to create a new one.
@@ -216,8 +220,8 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
     Returns
     -------
     time_elapsed : double
-        The total time elapsed since the traps were filled, in the same
-        units as the trap timescales.
+        The total time elapsed since the traps were filled, in the same units
+        as the trap timescales.
 */
 struct te_from_ff_params {
     TrapContinuum* trap;
@@ -236,9 +240,12 @@ double te_from_ff_root_function(double time_elapsed, void* params) {
 double TrapContinuum::time_elapsed_from_fill_fraction(
     double fill_fraction, double time_max, gsl_integration_workspace* workspace) {
     // Completely full or empty, or unset watermark
-    if (fill_fraction == 1.0) return 0.0;
-    if (fill_fraction == 0.0) return std::numeric_limits<double>::max();
-    if (fill_fraction == -1.0) return 0.0;
+    if (fill_fraction == 1.0)
+        return 0.0;
+    else if (fill_fraction == 0.0)
+        return std::numeric_limits<double>::max();
+    else if (fill_fraction == -1.0)
+        return 0.0;
 
     // Prep for the integration
     if (!workspace) {
@@ -278,4 +285,146 @@ double TrapContinuum::time_elapsed_from_fill_fraction(
     } while (status == GSL_CONTINUE && iter < max_iter);
 
     return root;
+}
+
+/*
+    Prepare tables of fill fractions and elapsed times for interpolation.
+    
+    Use logarithmically spaced (decreasing) times to calculate the corresponding
+    (monotonically increasing) table of fill fractions. So no need to actually
+    store the elapsed times.
+
+    Parameters
+    ----------
+    time_min : double
+    time_max : double
+        The minimum and maximum elapsed times to set the table limits, e.g. a
+        single dwell time and the cumulative dwell time over all transfers.
+    
+    n_intp : int
+        The number of interpolation values in the arrays.
+    
+    Sets
+    ----
+    fill_fraction_table : std::valarray<double>
+        The array of fill fractions.
+    
+    fill_min : double
+    fill_max : double
+        The fill fractions corresponding to the maximum and minimum times.
+    
+    d_log_time : double
+        The logarithmic interval between successive (decreasing) times.
+*/
+void TrapContinuum::prep_fill_fraction_and_time_elapsed_tables(
+    double time_min, double time_max, int n_intp) {
+
+    // Prep for the GSL integration
+    const int limit = 100;
+    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+
+    // Set up the arrays and limits
+    fill_fraction_table = std::valarray<double>(0.0, n_intp);
+    this->n_intp = n_intp;
+    this->time_min = time_min;
+    this->time_max = time_max;
+    fill_min = fill_fraction_from_time_elapsed(time_max, workspace);
+    fill_max = fill_fraction_from_time_elapsed(time_min, workspace);
+    d_log_time = (log(time_max) - log(time_min)) / (n_intp - 1);
+    double time_i;
+
+    // Tabulate the values corresponding to the equally log-spaced inputs
+    for (int i = 0; i < n_intp; i++) {
+        time_i = exp(log(time_max) - i * d_log_time);
+        fill_fraction_table[i] = fill_fraction_from_time_elapsed(time_i, workspace);
+    }
+}
+
+/*
+    Calculate the fraction of filled traps after an amount of elapsed time,
+    using previously tabulated values for interpolation.
+
+    Parameters
+    ----------
+    time_elapsed : double
+        The total time elapsed since the traps were filled, in the same units
+        as the trap timescales.
+
+    Returns
+    -------
+    fill_fraction : double
+        The fraction of filled traps.
+*/
+double TrapContinuum::fill_fraction_from_time_elapsed_table(double time_elapsed) {
+    // Completely full or empty, or unset watermark
+    if (time_elapsed == 0.0)
+        return 1.0;
+    else if (time_elapsed >= std::numeric_limits<double>::max())
+        return 0.0;
+    else if (time_elapsed == -1.0)
+        return 0.0;
+
+    // Get the index and interpolation factor
+    double intp = (log(time_max) - log(time_elapsed)) / d_log_time;
+    int idx = (int)std::floor(intp);
+    intp = intp - idx;
+
+    // Extrapolate if outside the table
+    if (idx < 0) {
+        intp += idx;
+        idx = 0;
+    } else if (idx >= n_intp - 1) {
+        intp += idx - (n_intp - 2);
+        idx = n_intp - 2;
+    }
+
+    // Interpolate
+    double fill =
+        (1.0 - intp) * fill_fraction_table[idx] + intp * fill_fraction_table[idx + 1];
+
+    return clamp(fill, 0.0, 1.0);
+}
+
+/*
+    Calculate the amount of elapsed time from the fraction of filled traps,
+    using previously tabulated values for interpolation.
+    
+    Parameters
+    ----------
+    fill_fraction : double
+        The fraction of filled traps.
+
+    Returns
+    -------
+    time_elapsed : double
+        The total time elapsed since the traps were filled, in the same units
+        as the trap timescales.
+*/
+double TrapContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction) {
+    // Completely full or empty, or unset watermark
+    if (fill_fraction == 1.0)
+        return 0.0;
+    else if (fill_fraction == 0.0)
+        return std::numeric_limits<double>::max();
+    else if (fill_fraction == -1.0)
+        return 0.0;
+
+    // Find the index by searching the table
+    int idx = std::upper_bound(
+                  std::begin(fill_fraction_table), std::end(fill_fraction_table),
+                  fill_fraction) -
+              std::begin(fill_fraction_table) - 1;
+
+    // Extrapolate if outside the table
+    if (idx < 0)
+        idx = 0;
+    else if (idx == n_intp - 1)
+        idx = n_intp - 2;
+
+    // Interpolation factor
+    double intp = (fill_fraction - fill_fraction_table[idx]) /
+                  (fill_fraction_table[idx + 1] - fill_fraction_table[idx]);
+
+    // Interpolate
+    return exp(log(time_max) - (idx + intp) * d_log_time);
 }
