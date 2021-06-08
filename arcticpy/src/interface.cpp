@@ -33,10 +33,10 @@ void print_array_2D(double* array, int n_rows, int n_columns) {
 
 /*
     Wrapper for arctic's add_cti() in src/cti.cpp.
-    
+    
     Add CTI trails to an image by trapping, releasing, and moving electrons
     along their independent columns, for parallel and/or serial clocking.
-    
+    
     This wrapper converts the individual numbers and arrays from the Cython
     wrapper into C++ variables to pass to the main arcctic library. See
     cy_add_cti() in arcticpy/wrapper.pyx and add_cti() in arcticpy/main.py.
@@ -209,7 +209,9 @@ void add_cti(
     // ========
     std::valarray<std::valarray<double>> image_out;
     // No parallel, serial only
-    if (parallel_n_traps_slow_capture + parallel_n_traps_instant_capture == 0) {
+    if (parallel_n_traps_slow_capture + parallel_n_traps_instant_capture +
+            parallel_n_traps_continuum ==
+        0) {
         image_out = add_cti(
             image_in,
             // Parallel
@@ -220,7 +222,10 @@ void add_cti(
             serial_offset, serial_window_start, serial_window_stop);
     }
     // No serial, parallel only
-    else if (serial_n_traps_slow_capture + serial_n_traps_instant_capture == 0) {
+    else if (
+        serial_n_traps_slow_capture + serial_n_traps_instant_capture +
+            serial_n_traps_continuum ==
+        0) {
         image_out = add_cti(
             image_in,
             // Parallel
@@ -254,10 +259,10 @@ void add_cti(
 
 /*
     Wrapper for arctic's remove_cti() in src/cti.cpp.
-    
+    
     Remove CTI trails from an image by first modelling the addition of CTI, for
     parallel and/or serial clocking.
-    
+    
     This wrapper converts the individual numbers and arrays from the Cython
     wrapper into C++ variables to pass to the main arcctic library. See
     cy_remove_cti() in arcticpy/wrapper.pyx and remove_cti() in
@@ -280,10 +285,8 @@ void remove_cti(
     double* parallel_well_fill_powers,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
-    double* parallel_trap_third_params, 
-    int parallel_n_traps_instant_capture,
-    int parallel_n_traps_slow_capture,
-    int parallel_n_traps_continuum,
+    double* parallel_trap_third_params, int parallel_n_traps_instant_capture,
+    int parallel_n_traps_slow_capture, int parallel_n_traps_continuum,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -301,10 +304,8 @@ void remove_cti(
     double* serial_well_fill_powers,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
-    double* serial_trap_third_params, 
-    int serial_n_traps_instant_capture,
-    int serial_n_traps_slow_capture,
-    int serial_n_traps_continuum,
+    double* serial_trap_third_params, int serial_n_traps_instant_capture,
+    int serial_n_traps_slow_capture, int serial_n_traps_continuum,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,

@@ -573,6 +573,104 @@ class TestCompareOldArCTIC:
             plt.show()
 
 
+class TestCompareTrapTypes:
+    def test__add_cti__all_trap_types_broadly_similar_results(self):
+
+        # Manually set True to make the plot
+        do_plot = False
+        # do_plot = True
+
+        image_pre_cti = np.zeros((20, 1))
+        image_pre_cti[2, 0] = 800
+
+        trap_ic = ac.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))
+        trap_sc = ac.TrapSlowCapture(
+            density=10, release_timescale=-1 / np.log(0.5), capture_timescale=0.1
+        )
+        trap_co = ac.TrapContinuum(
+            density=10, release_timescale=-1 / np.log(0.5), release_timescale_sigma=0.05
+        )
+
+        ccd = ac.CCD(
+            phases=[
+                ac.CCDPhase(well_fill_power=1, full_well_depth=1000, well_notch_depth=0)
+            ]
+        )
+        roe = ac.ROE(
+            empty_traps_between_columns=True,
+            empty_traps_for_first_transfers=False,
+            use_integer_express_matrix=True,
+        )
+        express = 5
+
+        # Standard instant-capture traps
+        image_post_cti_ic = ac.add_cti(
+            image=image_pre_cti,
+            parallel_roe=roe,
+            parallel_ccd=ccd,
+            parallel_traps=[trap_ic],
+            parallel_express=express,
+            verbosity=0,
+        ).T[0]
+
+        if do_plot:
+            pixels = np.arange(len(image_pre_cti))
+            colours = ["#1199ff", "#ee4400", "#7711dd"]
+            plt.figure(figsize=(10, 6))
+            ax1 = plt.gca()
+            ax2 = ax1.twinx()
+
+            ax1.plot(
+                pixels,
+                image_post_cti_ic,
+                alpha=0.8,
+                c=colours[0],
+                label="Instant Capture",
+            )
+
+        # Other trap types
+        for i, (trap, label) in enumerate(
+            zip([trap_sc, trap_co], ["Slow Capture", "Continuum"])
+        ):
+            image_post_cti = ac.add_cti(
+                image=image_pre_cti,
+                parallel_roe=roe,
+                parallel_ccd=ccd,
+                parallel_traps=[trap],
+                parallel_express=express,
+                verbosity=0,
+            ).T[0]
+
+            if do_plot:
+                c = colours[i + 1]
+
+                ax1.plot(
+                    pixels,
+                    image_post_cti,
+                    alpha=0.8,
+                    c=c,
+                    label=label,
+                )
+                ax2.plot(
+                    pixels,
+                    (image_post_cti - image_post_cti_ic) / image_post_cti_ic,
+                    alpha=0.8,
+                    ls=":",
+                    c=c,
+                )
+
+            assert image_post_cti == pytest.approx(image_post_cti_ic, rel=0.1)
+
+        if do_plot:
+            ax1.legend(loc="lower left")
+            ax1.set_yscale("log")
+            ax1.set_xlabel("Pixel")
+            ax1.set_ylabel("Counts")
+            ax2.set_ylabel("Fractional Difference (dotted)")
+            plt.tight_layout()
+            plt.show()
+
+
 if __name__ == "__main__":
     # Add CTI to a test image
     image_pre_cti = np.array(
@@ -585,7 +683,7 @@ if __name__ == "__main__":
             [0.0, 0.0, 0.0, 0.0],
         ]
     )
-    
+
     roe = ac.ROE(
         dwell_times=[1.0],
         empty_traps_between_columns=True,
@@ -604,9 +702,9 @@ if __name__ == "__main__":
     offset = 0
     start = 0
     stop = -1
-    
+
     ac.print_array_2D(image_pre_cti)
-    
+
     image_post_cti = ac.add_cti(
         image=image_pre_cti,
         parallel_roe=roe,
@@ -625,5 +723,5 @@ if __name__ == "__main__":
         serial_window_stop=stop,
         verbosity=1,
     )
-    
+
     ac.print_array_2D(image_post_cti)
