@@ -186,8 +186,8 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 TEST_CASE("Test utilities", "[trap_managers]") {
     TrapInstantCapture trap_1(10.0, -1.0 / log(0.5));
     TrapInstantCapture trap_2(8.0, -1.0 / log(0.2));
-    TrapSlowCapture trap_3(10.0, -1.0 / log(0.5), 0.0);
-    TrapSlowCapture trap_4(8.0, -1.0 / log(0.2), 0.0);
+    TrapSlowCapture trap_3(10.0, -1.0 / log(0.5), 0.1);
+    TrapSlowCapture trap_4(8.0, -1.0 / log(0.2), 1.0);
     TrapContinuum trap_5(10.0, -1.0 / log(0.5), 0.1);
 
     SECTION("Number of trapped electrons") {
@@ -285,7 +285,6 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         TrapManagerInstantCapture trap_manager_ic(
             std::valarray<TrapInstantCapture>{trap_1, trap_2}, 4, ccd_phase,
             dwell_time);
-
         trap_manager_ic.set_fill_probabilities();
 
         REQUIRE(trap_manager_ic.fill_probabilities_from_release[0] == Approx(0.5));
@@ -305,12 +304,23 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         REQUIRE(trap_manager_ic.empty_probabilities_from_release[1] == Approx(0.96));
 
         // Slow capture traps
-        //##todo
+        TrapManagerSlowCapture trap_manager_sc(
+            std::valarray<TrapSlowCapture>{trap_3, trap_4}, 4, ccd_phase, dwell_time);
+        trap_manager_sc.set_fill_probabilities();
+
+        REQUIRE(trap_manager_sc.fill_probabilities_from_empty[0] == Approx(0.935157));
+        REQUIRE(trap_manager_sc.fill_probabilities_from_full[0] == Approx(0.935180));
+        REQUIRE(trap_manager_sc.fill_probabilities_from_release[0] == Approx(0.5));
+        REQUIRE(trap_manager_sc.empty_probabilities_from_release[0] == Approx(0.5));
+
+        REQUIRE(trap_manager_sc.fill_probabilities_from_empty[1] == Approx(0.355028));
+        REQUIRE(trap_manager_sc.fill_probabilities_from_full[1] == Approx(0.428604));
+        REQUIRE(trap_manager_sc.fill_probabilities_from_release[1] == Approx(0.2));
+        REQUIRE(trap_manager_sc.empty_probabilities_from_release[1] == Approx(0.8));
 
         // Continuum traps
         TrapManagerContinuum trap_manager_co(
             std::valarray<TrapContinuum>{trap_5}, 4, ccd_phase, dwell_time);
-
         trap_manager_co.set_fill_probabilities();
 
         REQUIRE(trap_manager_co.fill_probabilities_from_release[0] == Approx(0.5));
