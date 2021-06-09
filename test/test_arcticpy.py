@@ -590,6 +590,12 @@ class TestCompareTrapTypes:
         trap_co = ac.TrapContinuum(
             density=10, release_timescale=-1 / np.log(0.5), release_timescale_sigma=0.05
         )
+        trap_sc_co = ac.TrapSlowCaptureContinuum(
+            density=10,
+            release_timescale=-1 / np.log(0.5),
+            release_timescale_sigma=0.05,
+            capture_timescale=0.1,
+        )
 
         ccd = ac.CCD(
             phases=[
@@ -615,7 +621,7 @@ class TestCompareTrapTypes:
 
         if do_plot:
             pixels = np.arange(len(image_pre_cti))
-            colours = ["#1199ff", "#ee4400", "#7711dd"]
+            colours = ["#1199ff", "#ee4400", "#7711dd", "#44dd44"]
             plt.figure(figsize=(10, 6))
             ax1 = plt.gca()
             ax2 = ax1.twinx()
@@ -630,6 +636,10 @@ class TestCompareTrapTypes:
 
         # Other trap types
         for i, (trap, label) in enumerate(
+            # zip(  ### WIP ###
+            #     [trap_sc, trap_co, trap_sc_co],
+            #     ["Slow Capture", "Continuum", "Slow Capture Continuum"],
+            # )
             zip([trap_sc, trap_co], ["Slow Capture", "Continuum"])
         ):
             image_post_cti = ac.add_cti(

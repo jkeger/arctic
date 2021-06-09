@@ -33,3 +33,17 @@ class TrapContinuum(TrapInstantCapture):
         super().__init__(density, release_timescale)
 
         self.release_timescale_sigma = release_timescale_sigma
+
+
+class TrapSlowCaptureContinuum(TrapInstantCapture):
+    def __init__(
+        self,
+        density=1.0,
+        release_timescale=1.0,
+        release_timescale_sigma=0.0,
+        capture_timescale=0.0,
+    ):
+        super().__init__(density, release_timescale)
+
+        self.release_timescale_sigma = release_timescale_sigma
+        self.capture_timescale = capture_timescale

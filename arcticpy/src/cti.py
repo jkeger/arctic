@@ -2,7 +2,12 @@ import numpy as np
 import arcticpy.wrapper as w
 from arcticpy.src.ccd import CCDPhase, CCD
 from arcticpy.src.roe import ROE
-from arcticpy.src.traps import TrapInstantCapture, TrapSlowCapture, TrapContinuum
+from arcticpy.src.traps import (
+    TrapInstantCapture,
+    TrapSlowCapture,
+    TrapContinuum,
+    TrapSlowCaptureContinuum,
+)
 
 
 def _extract_trap_parameters(traps):
@@ -15,22 +20,38 @@ def _extract_trap_parameters(traps):
     traps_instant_capture = [trap for trap in traps if type(trap) == TrapInstantCapture]
     traps_slow_capture = [trap for trap in traps if type(trap) == TrapSlowCapture]
     traps_continuum = [trap for trap in traps if type(trap) == TrapContinuum]
+    traps_slow_capture_continuum = [
+        trap for trap in traps if type(trap) == TrapSlowCaptureContinuum
+    ]
     n_traps_instant_capture = len(traps_instant_capture)
     n_traps_slow_capture = len(traps_slow_capture)
     n_traps_continuum = len(traps_continuum)
-    if n_traps_slow_capture + n_traps_instant_capture + n_traps_continuum != len(traps):
+    n_traps_slow_capture_continuum = len(traps_slow_capture_continuum)
+    if (
+        n_traps_slow_capture
+        + n_traps_instant_capture
+        + n_traps_continuum
+        + n_traps_slow_capture_continuum
+        != len(traps)
+    ):
         raise Exception(
-            "Not all traps extracted successfully (%d instant capture, %d slow capture, %d continuum, %d total)"
+            "Not all traps extracted successfully (%d instant capture, %d slow capture, %d continuum, %d slow_capture_continuum, %d total)"
             % (
                 n_traps_instant_capture,
                 n_traps_slow_capture,
                 n_traps_continuum,
+                n_traps_slow_capture_continuum,
                 len(traps),
             )
         )
 
     # Make sure the order is correct
-    traps = traps_instant_capture + traps_slow_capture + traps_continuum
+    traps = (
+        traps_instant_capture
+        + traps_slow_capture
+        + traps_continuum
+        + traps_slow_capture_continuum
+    )
     trap_densities = np.array([trap.density for trap in traps], dtype=np.double)
     trap_release_timescales = np.array(
         [trap.release_timescale for trap in traps], dtype=np.double
@@ -44,15 +65,31 @@ def _extract_trap_parameters(traps):
             trap_third_params.append(trap.capture_timescale)
         elif type(trap) == TrapContinuum:
             trap_third_params.append(trap.release_timescale_sigma)
+        elif type(trap) == TrapSlowCaptureContinuum:
+            trap_third_params.append(trap.release_timescale_sigma)
     trap_third_params = np.array(trap_third_params, dtype=np.double)
+    # Fourth parameter for some trap types
+    trap_fourth_params = []
+    for trap in traps:
+        if type(trap) == TrapInstantCapture:
+            trap_fourth_params.append(0.0)
+        elif type(trap) == TrapSlowCapture:
+            trap_fourth_params.append(0.0)
+        elif type(trap) == TrapContinuum:
+            trap_fourth_params.append(0.0)
+        elif type(trap) == TrapSlowCaptureContinuum:
+            trap_fourth_params.append(trap.capture_timescale)
+    trap_fourth_params = np.array(trap_fourth_params, dtype=np.double)
 
     return (
         trap_densities,
         trap_release_timescales,
         trap_third_params,
+        trap_fourth_params,
         n_traps_instant_capture,
         n_traps_slow_capture,
         n_traps_continuum,
+        n_traps_slow_capture_continuum,
     )
 
 
@@ -68,9 +105,11 @@ def _set_dummy_parameters():
     trap_densities = np.array([0.0], dtype=np.double)
     trap_release_timescales = np.array([0.0], dtype=np.double)
     trap_third_params = np.array([0.0], dtype=np.double)
+    trap_fourth_params = np.array([0.0], dtype=np.double)
     n_traps_instant_capture = 0
     n_traps_slow_capture = 0
     n_traps_continuum = 0
+    n_traps_slow_capture_continuum = 0
     express = 0
     offset = 0
     window_start = 0
@@ -82,9 +121,11 @@ def _set_dummy_parameters():
         trap_densities,
         trap_release_timescales,
         trap_third_params,
+        trap_fourth_params,
         n_traps_instant_capture,
         n_traps_slow_capture,
         n_traps_continuum,
+        n_traps_slow_capture_continuum,
         express,
         offset,
         window_start,
@@ -120,8 +161,8 @@ def add_cti(
     along their independent columns, for parallel and/or serial clocking.
 
     This wrapper extracts individual numbers and arrays from the user-input
-    objects to pass to the C++ via Cython. See cy_add_cti() in
-    arcticpy/wrapper.pyx and add_cti() in arcticpy/interface.cpp.
+    objects to pass to the C++ via Cython. See cy_add_cti() in wrapper.pyx and
+    add_cti() in interface.cpp.
 
     Parameters (where different to add_cti() in src/cti.cpp)
     ----------
@@ -149,9 +190,11 @@ def add_cti(
             parallel_trap_densities,
             parallel_trap_release_timescales,
             parallel_trap_third_params,
+            parallel_trap_fourth_params,
             parallel_n_traps_instant_capture,
             parallel_n_traps_slow_capture,
             parallel_n_traps_continuum,
+            parallel_n_traps_slow_capture_continuum,
         ) = _extract_trap_parameters(parallel_traps)
     else:
         # No parallel clocking, set dummy variables instead
@@ -161,9 +204,11 @@ def add_cti(
             parallel_trap_densities,
             parallel_trap_release_timescales,
             parallel_trap_third_params,
+            parallel_trap_fourth_params,
             parallel_n_traps_instant_capture,
             parallel_n_traps_slow_capture,
             parallel_n_traps_continuum,
+            parallel_n_traps_slow_capture_continuum,
             parallel_express,
             parallel_offset,
             parallel_window_start,
@@ -176,9 +221,11 @@ def add_cti(
             serial_trap_densities,
             serial_trap_release_timescales,
             serial_trap_third_params,
+            serial_trap_fourth_params,
             serial_n_traps_instant_capture,
             serial_n_traps_slow_capture,
             serial_n_traps_continuum,
+            serial_n_traps_slow_capture_continuum,
         ) = _extract_trap_parameters(serial_traps)
     else:
         # No serial clocking, set dummy variables instead
@@ -188,9 +235,11 @@ def add_cti(
             serial_trap_densities,
             serial_trap_release_timescales,
             serial_trap_third_params,
+            serial_trap_fourth_params,
             serial_n_traps_instant_capture,
             serial_n_traps_slow_capture,
             serial_n_traps_continuum,
+            serial_n_traps_slow_capture_continuum,
             serial_express,
             serial_offset,
             serial_window_start,
@@ -221,9 +270,11 @@ def add_cti(
         parallel_trap_densities,
         parallel_trap_release_timescales,
         parallel_trap_third_params,
+        parallel_trap_fourth_params,
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
         parallel_n_traps_continuum,
+        parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
         parallel_offset,
@@ -247,9 +298,11 @@ def add_cti(
         serial_trap_densities,
         serial_trap_release_timescales,
         serial_trap_third_params,
+        serial_trap_fourth_params,
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
         serial_n_traps_continuum,
+        serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
         serial_offset,
@@ -289,8 +342,8 @@ def remove_cti(
     parallel and/or serial clocking.
 
     This wrapper extracts individual numbers and arrays from the user-input
-    objects to pass to the C++ via Cython. See cy_remove_cti() in
-    arcticpy/wrapper.pyx and remove_cti() in arcticpy/interface.cpp.
+    objects to pass to the C++ via Cython. See cy_remove_cti() in wrapper.pyx
+    and remove_cti() in interface.cpp.
 
     Parameters (where different to remove_cti() in src/cti.cpp)
     ----------
@@ -318,6 +371,7 @@ def remove_cti(
             parallel_trap_densities,
             parallel_trap_release_timescales,
             parallel_trap_third_params,
+            parallel_trap_fourth_params,
             parallel_n_traps_slow_capture,
             parallel_n_traps_instant_capture,
         ) = _extract_trap_parameters(parallel_traps)
@@ -329,6 +383,7 @@ def remove_cti(
             parallel_trap_densities,
             parallel_trap_release_timescales,
             parallel_trap_third_params,
+            parallel_trap_fourth_params,
             parallel_n_traps_slow_capture,
             parallel_n_traps_instant_capture,
             parallel_express,
@@ -343,6 +398,7 @@ def remove_cti(
             serial_trap_densities,
             serial_trap_release_timescales,
             serial_trap_third_params,
+            serial_trap_fourth_params,
             serial_n_traps_slow_capture,
             serial_n_traps_instant_capture,
         ) = _extract_trap_parameters(serial_traps)
@@ -354,6 +410,7 @@ def remove_cti(
             serial_trap_densities,
             serial_trap_release_timescales,
             serial_trap_third_params,
+            serial_trap_fourth_params,
             serial_n_traps_slow_capture,
             serial_n_traps_instant_capture,
             serial_express,
@@ -387,9 +444,11 @@ def remove_cti(
         parallel_trap_densities,
         parallel_trap_release_timescales,
         parallel_trap_third_params,
+        parallel_trap_fourth_params,
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
         parallel_n_traps_continuum,
+        parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
         parallel_offset,
@@ -413,9 +472,11 @@ def remove_cti(
         serial_trap_densities,
         serial_trap_release_timescales,
         serial_trap_third_params,
+        serial_trap_fourth_params,
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
         serial_n_traps_continuum,
+        serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
         serial_offset,

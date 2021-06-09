@@ -29,9 +29,11 @@ cdef extern from "interface.hpp":
         double* parallel_trap_densities, 
         double* parallel_trap_release_timescales,
         double* parallel_trap_third_params, 
+        double* parallel_trap_fourth_params, 
         int parallel_n_traps_instant_capture,
         int parallel_n_traps_slow_capture,
         int parallel_n_traps_continuum,
+        int parallel_n_traps_slow_capture_continuum,
         # Misc
         int parallel_express, 
         int parallel_offset, 
@@ -57,9 +59,11 @@ cdef extern from "interface.hpp":
         double* serial_trap_densities, 
         double* serial_trap_release_timescales,
         double* serial_trap_third_params, 
+        double* serial_trap_fourth_params, 
         int serial_n_traps_instant_capture,
         int serial_n_traps_slow_capture,
         int serial_n_traps_continuum,
+        int serial_n_traps_slow_capture_continuum,
         # Misc
         int serial_express, 
         int serial_offset, 
@@ -92,9 +96,11 @@ cdef extern from "interface.hpp":
         double* parallel_trap_densities, 
         double* parallel_trap_release_timescales,
         double* parallel_trap_third_params, 
+        double* parallel_trap_fourth_params, 
         int parallel_n_traps_instant_capture,
         int parallel_n_traps_slow_capture,
         int parallel_n_traps_continuum,
+        int parallel_n_traps_slow_capture_continuum,
         # Misc
         int parallel_express, 
         int parallel_offset, 
@@ -120,9 +126,11 @@ cdef extern from "interface.hpp":
         double* serial_trap_densities, 
         double* serial_trap_release_timescales,
         double* serial_trap_third_params, 
+        double* serial_trap_fourth_params, 
         int serial_n_traps_instant_capture,
         int serial_n_traps_slow_capture,
         int serial_n_traps_continuum,
+        int serial_n_traps_slow_capture_continuum,
         # Misc
         int serial_express, 
         int serial_offset, 
@@ -172,9 +180,11 @@ def cy_add_cti(
     np.ndarray[np.double_t, ndim=1] parallel_trap_densities,
     np.ndarray[np.double_t, ndim=1] parallel_trap_release_timescales,
     np.ndarray[np.double_t, ndim=1] parallel_trap_third_params,
+    np.ndarray[np.double_t, ndim=1] parallel_trap_fourth_params,
     int parallel_n_traps_instant_capture,
     int parallel_n_traps_slow_capture,
     int parallel_n_traps_continuum,
+    int parallel_n_traps_slow_capture_continuum,
     # Misc
     int parallel_express,
     int parallel_offset,
@@ -198,9 +208,11 @@ def cy_add_cti(
     np.ndarray[np.double_t, ndim=1] serial_trap_densities,
     np.ndarray[np.double_t, ndim=1] serial_trap_release_timescales,
     np.ndarray[np.double_t, ndim=1] serial_trap_third_params,
+    np.ndarray[np.double_t, ndim=1] serial_trap_fourth_params,
     int serial_n_traps_instant_capture,
     int serial_n_traps_slow_capture,
     int serial_n_traps_continuum,
+    int serial_n_traps_slow_capture_continuum,
     # Misc
     int serial_express,
     int serial_offset,
@@ -213,8 +225,8 @@ def cy_add_cti(
     Cython wrapper for arctic's add_cti() in src/cti.cpp.
     
     This wrapper passes the individual numbers and arrays extracted by the 
-    python wrapper to the C++ interface. See add_cti() in arcticpy/main.py and 
-    add_cti() in arcticpy/interface.cpp.
+    python wrapper to the C++ interface. See add_cti() in cti.py and add_cti() 
+    in interface.cpp.
     """
     image = check_contiguous(image)
     
@@ -242,9 +254,11 @@ def cy_add_cti(
         &parallel_trap_densities[0],
         &parallel_trap_release_timescales[0],
         &parallel_trap_third_params[0],
+        &parallel_trap_fourth_params[0],
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
         parallel_n_traps_continuum,
+        parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
         parallel_offset,
@@ -270,9 +284,11 @@ def cy_add_cti(
         &serial_trap_densities[0],
         &serial_trap_release_timescales[0],
         &serial_trap_third_params[0],
+        &serial_trap_fourth_params[0],
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
         serial_n_traps_continuum,
+        serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
         serial_offset,
@@ -306,9 +322,11 @@ def cy_remove_cti(
     np.ndarray[np.double_t, ndim=1] parallel_trap_densities,
     np.ndarray[np.double_t, ndim=1] parallel_trap_release_timescales,
     np.ndarray[np.double_t, ndim=1] parallel_trap_third_params,
+    np.ndarray[np.double_t, ndim=1] parallel_trap_fourth_params,
     int parallel_n_traps_instant_capture,
     int parallel_n_traps_slow_capture,
     int parallel_n_traps_continuum,
+    int parallel_n_traps_slow_capture_continuum,
     # Misc
     int parallel_express,
     int parallel_offset,
@@ -332,9 +350,11 @@ def cy_remove_cti(
     np.ndarray[np.double_t, ndim=1] serial_trap_densities,
     np.ndarray[np.double_t, ndim=1] serial_trap_release_timescales,
     np.ndarray[np.double_t, ndim=1] serial_trap_third_params,
+    np.ndarray[np.double_t, ndim=1] serial_trap_fourth_params,
     int serial_n_traps_instant_capture,
     int serial_n_traps_slow_capture,
     int serial_n_traps_continuum,
+    int serial_n_traps_slow_capture_continuum,
     # Misc
     int serial_express,
     int serial_offset,
@@ -347,8 +367,8 @@ def cy_remove_cti(
     Cython wrapper for arctic's remove_cti() in src/cti.cpp.
     
     This wrapper passes the individual numbers and arrays extracted by the 
-    python wrapper to the C++ interface. See remove_cti() in arcticpy/main.py 
-    and remove_cti() in arcticpy/interface.cpp.
+    python wrapper to the C++ interface. See remove_cti() in cti.py and 
+    remove_cti() in interface.cpp.
     """
     image = check_contiguous(image)
     
@@ -377,9 +397,11 @@ def cy_remove_cti(
         &parallel_trap_densities[0],
         &parallel_trap_release_timescales[0],
         &parallel_trap_third_params[0],
+        &parallel_trap_fourth_params[0],
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
         parallel_n_traps_continuum,
+        parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
         parallel_offset,
@@ -405,9 +427,11 @@ def cy_remove_cti(
         &serial_trap_densities[0],
         &serial_trap_release_timescales[0],
         &serial_trap_third_params[0],
+        &serial_trap_fourth_params[0],
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
         serial_n_traps_continuum,
+        serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
         serial_offset,
