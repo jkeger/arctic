@@ -32,13 +32,13 @@
 
     Attributes
     ----------
-    emission_rate : double
-        The emission rate (Lindegren (1998) section 3.2).
+    release_rate : double
+        The release (or emission) rate (Lindegren (1998) section 3.2).
 */
 TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
     : density(density), release_timescale(release_timescale) {
 
-    emission_rate = 1.0 / release_timescale;
+    release_rate = 1.0 / release_timescale;
 }
 
 /*
@@ -77,12 +77,12 @@ double TrapInstantCapture::fill_fraction_from_time_elapsed(double time_elapsed) 
         spent in each pixel or phase.
 
     capture_timescale : double
-        The capture timescale of the trap. Default 0 for instant capture.
+        The capture timescale of the trap.
 
     Attributes
     ----------
-    emission_rate, capture_rate : double
-        The emission and capture rates (Lindegren (1998) section 3.2).
+    release_rate, capture_rate : double
+        The release and capture rates (Lindegren (1998) section 3.2).
 */
 TrapSlowCapture::TrapSlowCapture(
     double density, double release_timescale, double capture_timescale)
@@ -129,7 +129,7 @@ TrapContinuum::TrapContinuum(
 
     Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
     trap density distribution with trap release timescales.
-    
+
     (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
     Parameters
@@ -137,7 +137,7 @@ TrapContinuum::TrapContinuum(
     time_elapsed : double
         The total time elapsed since the traps were filled, in the same units
         as the trap timescales.
-    
+
     workspace : gsl_integration_workspace* (opt.)
         An existing GSL workspace memory handler for the integration, or nullptr
         to create a new one.
@@ -147,14 +147,14 @@ TrapContinuum::TrapContinuum(
     fill_fraction : double
         The fraction of filled traps.
 */
-struct ff_from_te_params {
+struct TrCo_ff_from_te_params {
     double time_elapsed;
     double mu;
     double sigma;
 };
 
-double ff_from_te_integrand(double tau, void* params) {
-    struct ff_from_te_params* p = (struct ff_from_te_params*)params;
+double TrCo_ff_from_te_integrand(double tau, void* params) {
+    struct TrCo_ff_from_te_params* p = (struct TrCo_ff_from_te_params*)params;
 
     // To integrate: e^(-time_elapsed / tau) * fill_fraction(tau) dtau
     return exp(-p->time_elapsed / tau) *
@@ -181,10 +181,10 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
     if (!workspace) {
         workspace = gsl_integration_workspace_alloc(limit);
     }
-    struct ff_from_te_params params = {time_elapsed, release_timescale,
-                                       release_timescale_sigma};
+    struct TrCo_ff_from_te_params params = {time_elapsed, release_timescale,
+                                            release_timescale_sigma};
     gsl_function F;
-    F.function = &ff_from_te_integrand;
+    F.function = &TrCo_ff_from_te_integrand;
     F.params = &params;
 
     // Integrate F.function from min to +infinity
@@ -198,21 +198,21 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
 
 /*
     Calculate the amount of elapsed time from the fraction of filled traps.
-    
+
     Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
     equal to the required fill_fraction, using a root finder.
-    
+
     (www.gnu.org/software/gsl/doc/html/roots.html)
 
     Parameters
     ----------
     fill_fraction : double
         The fraction of filled traps.
-    
+
     time_max : double
         The maximum possible time, used to initialise the root finder. e.g. the
         cumulative dwell time over all transfers.
-    
+
     workspace : gsl_integration_workspace* (opt.)
         An existing GSL workspace memory handler for the integration, or nullptr
         to create a new one.
@@ -223,14 +223,14 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
         The total time elapsed since the traps were filled, in the same units
         as the trap timescales.
 */
-struct te_from_ff_params {
+struct TrCo_te_from_ff_params {
     TrapContinuum* trap;
     double fill_fraction;
     gsl_integration_workspace* workspace;
 };
 
-double te_from_ff_root_function(double time_elapsed, void* params) {
-    struct te_from_ff_params* p = (struct te_from_ff_params*)params;
+double TrCo_te_from_ff_root_function(double time_elapsed, void* params) {
+    struct TrCo_te_from_ff_params* p = (struct TrCo_te_from_ff_params*)params;
 
     // To find time such that: fill_fraction(time) - fill_fraction = 0
     return p->trap->fill_fraction_from_time_elapsed(time_elapsed, p->workspace) -
@@ -263,9 +263,9 @@ double TrapContinuum::time_elapsed_from_fill_fraction(
     gsl_root_fsolver* s;
     T = gsl_root_fsolver_brent;
     s = gsl_root_fsolver_alloc(T);
-    struct te_from_ff_params params = {this, fill_fraction, workspace};
+    struct TrCo_te_from_ff_params params = {this, fill_fraction, workspace};
     gsl_function F;
-    F.function = &te_from_ff_root_function;
+    F.function = &TrCo_te_from_ff_root_function;
     F.params = &params;
 
     // Bounding values
@@ -289,7 +289,7 @@ double TrapContinuum::time_elapsed_from_fill_fraction(
 
 /*
     Prepare tables of fill fractions and elapsed times for interpolation.
-    
+
     Use logarithmically spaced (decreasing) times to calculate the corresponding
     (monotonically increasing) table of fill fractions. So no need to actually
     store the elapsed times.
@@ -300,19 +300,19 @@ double TrapContinuum::time_elapsed_from_fill_fraction(
     time_max : double
         The minimum and maximum elapsed times to set the table limits, e.g. a
         single dwell time and the cumulative dwell time over all transfers.
-    
+
     n_intp : int
         The number of interpolation values in the arrays.
-    
+
     Sets
     ----
     fill_fraction_table : std::valarray<double>
         The array of fill fractions.
-    
+
     fill_min : double
     fill_max : double
         The fill fractions corresponding to the maximum and minimum times.
-    
+
     d_log_time : double
         The logarithmic interval between successive (decreasing) times.
 */
@@ -388,7 +388,7 @@ double TrapContinuum::fill_fraction_from_time_elapsed_table(double time_elapsed)
 /*
     Calculate the amount of elapsed time from the fraction of filled traps,
     using previously tabulated values for interpolation.
-    
+
     Parameters
     ----------
     fill_fraction : double
@@ -427,4 +427,117 @@ double TrapContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction
 
     // Interpolate
     return exp(log(time_max) - (idx + intp) * d_log_time);
+}
+
+// ========
+// TrapSlowCaptureContinuum::
+// ========
+/*
+    Class TrapSlowCaptureContinuum.
+
+    For traps with a non-instant capture time, and a continuum (log-normal
+    distribution) of release timescales.
+
+    i.e. A combination of the TrapSlowCapture and TrapContinuum types.
+    
+    ### WIP ###
+
+    Parameters
+    ----------
+    density : double
+        The density of the trap species in a pixel.
+
+    release_timescale : double
+        The median release timescale of the traps, in the same units as the time
+        spent in each pixel or phase.
+
+    release_timescale_sigma : double
+        The sigma of release lifetimes of the traps.
+
+    capture_timescale : double
+        The capture timescale of the trap.
+*/
+TrapSlowCaptureContinuum::TrapSlowCaptureContinuum(
+    double density, double release_timescale, double release_timescale_sigma,
+    double capture_timescale)
+    : TrapInstantCapture(density, release_timescale),
+      release_timescale_sigma(release_timescale_sigma),
+      capture_timescale(capture_timescale) {
+
+    if (capture_timescale != 0.0)
+        capture_rate = 1.0 / capture_timescale;
+    else
+        capture_rate = 0.0;
+}
+
+/*
+    Calculate the fraction of filled traps after an amount of elapsed time.
+
+    Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
+    trap density distribution with trap release timescales.
+
+    (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
+
+    Parameters
+    ----------
+    time_elapsed : double
+        The total time elapsed since the traps were filled, in the same units
+        as the trap timescales.
+
+    workspace : gsl_integration_workspace* (opt.)
+        An existing GSL workspace memory handler for the integration, or nullptr
+        to create a new one.
+
+    Returns
+    -------
+    fill_fraction : double
+        The fraction of filled traps.
+*/
+struct TrSCCo_ff_from_te_params {
+    double time_elapsed;
+    double mu;
+    double sigma;
+};
+
+double TrSCCo_ff_from_te_integrand(double tau, void* params) {
+    struct TrSCCo_ff_from_te_params* p = (struct TrSCCo_ff_from_te_params*)params;
+
+    // To integrate: e^(-time_elapsed / tau) * fill_fraction(tau) dtau
+    return exp(-p->time_elapsed / tau) *
+           exp(-pow(log(tau) - log(p->mu), 2) / (2 * p->sigma * p->sigma)) /
+           (tau * p->sigma * sqrt(2 * M_PI));
+}
+
+double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
+    double time_elapsed, gsl_integration_workspace* workspace) {
+    // Completely full or empty, or unset watermark
+    if (time_elapsed == 0.0)
+        return 1.0;
+    else if (time_elapsed >= std::numeric_limits<double>::max())
+        return 0.0;
+    else if (time_elapsed == -1.0)
+        return 0.0;
+
+    // Prep the integration
+    double result, error;
+    const double min = 0.0;
+    const double epsabs = 0.0;
+    const double epsrel = 1e-6;
+    const int limit = 100;
+    if (!workspace) {
+        workspace = gsl_integration_workspace_alloc(limit);
+    }
+    struct TrSCCo_ff_from_te_params params = {time_elapsed, release_timescale,
+                                              release_timescale_sigma};
+    gsl_function F;
+    F.function = &TrSCCo_ff_from_te_integrand;
+    F.params = &params;
+
+    // Integrate F.function from min to +infinity
+    int status = gsl_integration_qagiu(
+        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
+
+    if (status) error("Integration failed, status %d", status);
+
+    return result;
 }

@@ -14,18 +14,18 @@ TEST_CASE("Test instant-capture and slow-capture traps", "[traps]") {
     SECTION("Initialisation") {
         REQUIRE(trap_1.density == 10.0);
         REQUIRE(trap_1.release_timescale == 2.0);
-        REQUIRE(trap_1.emission_rate == 0.5);
+        REQUIRE(trap_1.release_rate == 0.5);
 
         REQUIRE(trap_2.density == 10.0);
         REQUIRE(trap_2.release_timescale == 1.0);
         REQUIRE(trap_2.capture_timescale == 0.0);
-        REQUIRE(trap_2.emission_rate == 1.0);
+        REQUIRE(trap_2.release_rate == 1.0);
         REQUIRE(trap_2.capture_rate == 0.0);
 
         REQUIRE(trap_3.density == 8.0);
         REQUIRE(trap_3.release_timescale == 1.0);
         REQUIRE(trap_3.capture_timescale == 0.1);
-        REQUIRE(trap_3.emission_rate == 1.0);
+        REQUIRE(trap_3.release_rate == 1.0);
         REQUIRE(trap_3.capture_rate == 10.0);
     }
 
