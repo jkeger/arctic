@@ -9,11 +9,11 @@
 #include "traps.hpp"
 #include "util.hpp"
 
-static bool custom_mode = false;
+static bool demo_mode = false;
 static bool benchmark_mode = false;
 
 /*
-    Run arctic with --custom or -c to execute this manually-editable code.
+    Run arctic with --demo or -d to execute this editable demo code.
 
     A good place to run your own quick tests or use arctic without any wrappers.
     Remember to call make to recompile after editing.
@@ -24,7 +24,7 @@ static bool benchmark_mode = false;
         + Add parallel and serial CTI.
         + Remove the CTI and save the result to file.
 */
-int run_custom_code() {
+int run_demo() {
 
     // Write an example image to a txt file
     save_image_to_txt(
@@ -63,10 +63,9 @@ int run_custom_code() {
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &instant_capture_traps, &slow_capture_traps,
-        &continuum_traps, &slow_capture_continuum_traps, express, offset, start, stop, &roe, &ccd,
-        &instant_capture_traps, &slow_capture_traps, &continuum_traps, 
-        &slow_capture_continuum_traps, express, offset,
-        start, stop);
+        &continuum_traps, &slow_capture_continuum_traps, express, offset, start, stop,
+        &roe, &ccd, &instant_capture_traps, &slow_capture_traps, &continuum_traps,
+        &slow_capture_continuum_traps, express, offset, start, stop);
     print_v(1, "Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
@@ -74,9 +73,9 @@ int run_custom_code() {
     int n_iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, &roe, &ccd, &instant_capture_traps,
-        &slow_capture_traps, &continuum_traps, &slow_capture_continuum_traps, express, offset, start, stop, &roe, &ccd,
-        &instant_capture_traps, &slow_capture_traps, &continuum_traps, &slow_capture_continuum_traps, express, offset,
-        start, stop);
+        &slow_capture_traps, &continuum_traps, &slow_capture_continuum_traps, express,
+        offset, start, stop, &roe, &ccd, &instant_capture_traps, &slow_capture_traps,
+        &continuum_traps, &slow_capture_continuum_traps, express, offset, start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 
@@ -89,7 +88,7 @@ int run_custom_code() {
 
 /*
     Run arctic with --benchmark or -b for this simple test, e.g. for profiling.
-    
+    
     Add CTI to a 10-column extract of an HST ACS image. Takes ~0.02 s.
 */
 int run_benchmark() {
@@ -112,7 +111,6 @@ int run_benchmark() {
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<TrapInstantCapture> traps = {trap};
-
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times, true, false, true, false);
     CCD ccd(CCDPhase(1e4, 0.0, 1.0));
@@ -123,8 +121,8 @@ int run_benchmark() {
 
     // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset, start,
-        stop);
+        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
+        start, stop);
 
     return 0;
 }
@@ -149,10 +147,10 @@ void print_help() {
         "        0       No printing (except errors etc). \n"
         "        1       Standard. \n"
         "        2       Extra details. \n"
-        "-c, --custom \n"
-        "    Execute the custom code in the run_custom_code() function at the very \n"
-        "    top of main.cpp. For manual editing to test or run arctic without using \n"
-        "    any wrappers. The demo version adds then removes CTI from a test image. \n"
+        "-d, --demo \n"
+        "    Execute the demo code in the run_demo() function at the very top of \n"
+        "    main.cpp. For manual editing to test or run arctic without using any \n"
+        "    wrappers. The demo version adds then removes CTI from a test image. \n"
         "-b, --benchmark \n"
         "    Execute the run_benchmark() function in main.cpp, e.g. for profiling. \n"
         "\n"
@@ -164,11 +162,11 @@ void print_help() {
 */
 void parse_parameters(int argc, char** argv) {
     // Short options
-    const char* const short_opts = ":hv:cb";
+    const char* const short_opts = ":hv:db";
     // Full options
     const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                 {"verbosity", required_argument, nullptr, 'v'},
-                                {"custom", no_argument, nullptr, 'c'},
+                                {"demo", no_argument, nullptr, 'd'},
                                 {"benchmark", no_argument, nullptr, 'b'},
                                 {0, 0, 0, 0}};
 
@@ -185,8 +183,8 @@ void parse_parameters(int argc, char** argv) {
             case 'v':
                 set_verbosity(atoi(optarg));
                 break;
-            case 'c':
-                custom_mode = true;
+            case 'd':
+                demo_mode = true;
                 break;
             case 'b':
                 benchmark_mode = true;
@@ -224,10 +222,10 @@ void parse_parameters(int argc, char** argv) {
             1       Standard.
             2       Extra details.
 
-    -c, --custom
-        Execute the custom code in the run_custom_code() function at the very
-        top of this file. For manual editing to test or run arctic without using
-        any wrappers. The demo version adds then removes CTI from a test image.
+    -d, --demo
+        Execute the demo code in the run_demo() function at the very top of this
+        file. For easy manual editing to test or run arctic without using any
+        wrappers. The demo version adds then removes CTI from a test image.
 
     -b, --benchmark
         Execute the run_benchmark() function above, e.g. for profiling.
@@ -236,9 +234,9 @@ int main(int argc, char** argv) {
 
     parse_parameters(argc, argv);
 
-    if (custom_mode) {
-        print_v(1, "# ArCTIC: Running custom code! \n\n");
-        return run_custom_code();
+    if (demo_mode) {
+        print_v(1, "# ArCTIC: Running demo code! \n\n");
+        return run_demo();
     }
     if (benchmark_mode) {
         print_v(1, "# ArCTIC: Running benchmark code \n\n");

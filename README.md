@@ -53,9 +53,8 @@ ArCTIC is a standalone C++ library, but can also be used via the `arcticpy`
 python module, using Cython to interface with the precompiled core library.
 
 + `make wrapper` (or `make all`) in the root directory.  
-    Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`
-+ Import the python module, e.g. `import arcticpy as ac`.  
-    The `test/test_arcticpy.py` file contains some tests and a basic example.
+    Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`.
++ Import the python module, e.g. `import arcticpy as ac`.
 
 
 GSL
@@ -80,10 +79,10 @@ run directly as `./arctic` with the following command-line options:
     + `0`   No printing (except errors etc).
     + `1`   Standard.
     + `2`   Extra details.
-+ `-c`, `--custom`  
-    Execute the custom code in the `run_custom_code()` function at the very
-    top of `src/main.cpp`. A good place to run your own quick tests or use 
-    arctic without any wrappers. The demo version adds then removes CTI from a 
++ `-d`, `--demo`  
+    Execute the editable demo code in the `run_demo()` function at the very top 
+    of `src/main.cpp`. A good place to run your own quick tests or use arctic 
+    without any wrappers. The demo version adds then removes CTI from a 
     test image.
 + `-b`, `--benchmark`  
     Execute the simple test `run_benchmark()` function in `src/main.cpp`, 
@@ -91,6 +90,10 @@ run directly as `./arctic` with the following command-line options:
 
 The code can also be used as a library for other C++ programs, as in the 
 `lib_test` example.
+
+The python wrapper also has demo and benchmark functions provided.
+Run `python3 test/test_arcticpy.py` with `-d` or `-b` (or the long versions) 
+as above, or with anything else to print help information.
 
 
 
@@ -118,6 +121,7 @@ object library (`libarctic.so`), which is run with `./lib_test`.
 A few python tests of the primary functions are included for the arcticpy 
 wrapper. Compile the wrapper with `make wrapper` (or `make all`) in the top 
 directory, then run with `pytest test/test_arcticpy.py`.
+
 
 
 

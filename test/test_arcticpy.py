@@ -1,7 +1,9 @@
 import os
 import sys
+from urllib.request import urlretrieve
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(path, ".."))
 import arcticpy as ac
 import numpy as np
 import pytest
@@ -681,7 +683,7 @@ class TestCompareTrapTypes:
             plt.show()
 
 
-if __name__ == "__main__":
+def run_demo():
     # Add CTI to a test image
     image_pre_cti = np.array(
         [
@@ -735,3 +737,81 @@ if __name__ == "__main__":
     )
 
     ac.print_array_2D(image_post_cti)
+
+
+def run_benchmark():
+    # Download the test image
+    filename = os.path.join(os.path.join(path, ".."), "hst_acs_10_col.txt")
+    if not os.path.isfile(filename):
+        url_path = "http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt"
+        urlretrieve(url_path, filename)
+
+    # Load the image
+    image_pre_cti = np.loadtxt(filename, skiprows=1)
+
+    # CTI model parameters
+    roe = ac.ROE(
+        dwell_times=[1.0],
+        empty_traps_between_columns=True,
+        empty_traps_for_first_transfers=False,
+        force_release_away_from_readout=True,
+        use_integer_express_matrix=False,
+    )
+    ccd = ac.CCD(
+        phases=[
+            ac.CCDPhase(full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=1.0)
+        ],
+        fraction_of_traps_per_phase=[1.0],
+    )
+    traps = [ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))]
+    express = 5
+    offset = 0
+    start = 0
+    stop = -1
+
+    image_post_cti = ac.add_cti(
+        image=image_pre_cti,
+        parallel_roe=roe,
+        parallel_ccd=ccd,
+        parallel_traps=traps,
+        parallel_express=express,
+        parallel_offset=offset,
+        parallel_window_start=start,
+        parallel_window_stop=stop,
+    )
+
+
+def print_help():
+    print(
+        "ArCTICpy \n"
+        "======== \n"
+        "AlgoRithm for Charge Transfer Inefficiency (CTI) Correction: python wrapper \n"
+        "--------------------------------------------------------------------------- \n"
+        "Add or remove image trails due to charge transfer inefficiency in CCD "
+        "detectors by modelling the trapping, releasing, and moving of charge along "
+        "pixels. \n"
+        "\n"
+        "Run with pytest to perform some unit tests using the python wrapper. \n"
+        "\n"
+        "-d, --demo \n"
+        "    Execute the demo code in the run_demo() function in this file, which adds \n"
+        "    then removes CTI from a test image. \n"
+        "-b, --benchmark \n"
+        "    Execute the run_benchmark() function in this file, e.g. for profiling. \n"
+        "\n"
+        "See README.md for more information.  https://github.com/jkeger/arctic \n\n"
+    )
+
+
+if __name__ == "__main__":
+    try:
+        if sys.argv[1] in ["-d", "--demo"]:
+            print("# ArCTIC: Running demo code! \n");
+            run_demo()
+        elif sys.argv[1] in ["-b", "--benchmark"]:
+            print("# ArCTIC: Running benchmark code \n");
+            run_benchmark()
+        else:
+            print_help()
+    except IndexError:
+        print_help()
