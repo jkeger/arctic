@@ -105,7 +105,7 @@ TrapSlowCapture::TrapSlowCapture(
     timescales, and instant capture.
 
     i.e. Density as function of release timecsale is set by:
-        exp[-(log(tau) - log(mu))^2 / (2*sigma^2)] / (tau * sigma * sqrt(2*pi))
+    n(tau) = exp[-(log(tau) - log(mu))^2 / (2*sigma^2)] / (tau * sigma * sqrt(2*pi))
 
     Parameters
     ----------
@@ -156,10 +156,12 @@ struct TrCo_ff_from_te_params {
 double TrCo_ff_from_te_integrand(double tau, void* params) {
     struct TrCo_ff_from_te_params* p = (struct TrCo_ff_from_te_params*)params;
 
-    // To integrate: e^(-time_elapsed / tau) * fill_fraction(tau) dtau
-    return exp(-p->time_elapsed / tau) *
-           exp(-pow(log(tau) - log(p->mu), 2) / (2 * p->sigma * p->sigma)) /
-           (tau * p->sigma * sqrt(2 * M_PI));
+    // Distribution density
+    double n = exp(-pow(log(tau) - log(p->mu), 2.0) / (2.0 * p->sigma * p->sigma)) /
+               (tau * p->sigma * sqrt(2.0 * M_PI));
+
+    // To integrate: n(tau) * fill_frac(tau) dtau
+    return n * exp(-p->time_elapsed / tau);
 }
 
 double TrapContinuum::fill_fraction_from_time_elapsed(
@@ -438,9 +440,7 @@ double TrapContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction
     For traps with a non-instant capture time, and a continuum (log-normal
     distribution) of release timescales.
 
-    i.e. A combination of the TrapSlowCapture and TrapContinuum types.
-    
-    ### WIP ###
+    i.e. A combination of the TrapSlowCapture and TrapContinuum models.
 
     Parameters
     ----------
@@ -471,73 +471,7 @@ TrapSlowCaptureContinuum::TrapSlowCaptureContinuum(
 }
 
 /*
-    Calculate the fraction of filled traps after an amount of elapsed time.
-
-    Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
-    trap density distribution with trap release timescales.
-
-    (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
-
-    Parameters
-    ----------
-    time_elapsed : double
-        The total time elapsed since the traps were filled, in the same units
-        as the trap timescales.
-
-    workspace : gsl_integration_workspace* (opt.)
-        An existing GSL workspace memory handler for the integration, or nullptr
-        to create a new one.
-
-    Returns
-    -------
-    fill_fraction : double
-        The fraction of filled traps.
+    ### WIP ###
 */
-struct TrSCCo_ff_from_te_params {
-    double time_elapsed;
-    double mu;
-    double sigma;
-};
-
-double TrSCCo_ff_from_te_integrand(double tau, void* params) {
-    struct TrSCCo_ff_from_te_params* p = (struct TrSCCo_ff_from_te_params*)params;
-
-    // To integrate: e^(-time_elapsed / tau) * fill_fraction(tau) dtau
-    return exp(-p->time_elapsed / tau) *
-           exp(-pow(log(tau) - log(p->mu), 2) / (2 * p->sigma * p->sigma)) /
-           (tau * p->sigma * sqrt(2 * M_PI));
-}
-
 double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
-    double time_elapsed, gsl_integration_workspace* workspace) {
-    // Completely full or empty, or unset watermark
-    if (time_elapsed == 0.0)
-        return 1.0;
-    else if (time_elapsed >= std::numeric_limits<double>::max())
-        return 0.0;
-    else if (time_elapsed == -1.0)
-        return 0.0;
-
-    // Prep the integration
-    double result, error;
-    const double min = 0.0;
-    const double epsabs = 0.0;
-    const double epsrel = 1e-6;
-    const int limit = 100;
-    if (!workspace) {
-        workspace = gsl_integration_workspace_alloc(limit);
-    }
-    struct TrSCCo_ff_from_te_params params = {time_elapsed, release_timescale,
-                                              release_timescale_sigma};
-    gsl_function F;
-    F.function = &TrSCCo_ff_from_te_integrand;
-    F.params = &params;
-
-    // Integrate F.function from min to +infinity
-    int status = gsl_integration_qagiu(
-        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
-
-    if (status) error("Integration failed, status %d", status);
-
-    return result;
-}
+    double time_elapsed, gsl_integration_workspace* workspace) {}

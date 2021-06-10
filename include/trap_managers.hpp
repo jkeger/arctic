@@ -32,15 +32,12 @@ class TrapManagerBase {
     int stored_i_first_active_wmk;
 
     std::valarray<double> trap_densities;
-    std::valarray<double> fill_probabilities_from_empty;
-    std::valarray<double> fill_probabilities_from_full;
-    std::valarray<double> fill_probabilities_from_release;
-    std::valarray<double> empty_probabilities_from_release;
 
     void initialise_trap_states();
     void reset_trap_states();
     void store_trap_states();
     void restore_trap_states();
+    virtual void setup();
 
     virtual double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
@@ -57,7 +54,11 @@ class TrapManagerInstantCapture : public TrapManagerBase {
 
     std::valarray<TrapInstantCapture> traps;
 
+    std::valarray<double> empty_probabilities_from_release;
+
     void set_fill_probabilities();
+    void setup();
+
     double n_electrons_released();
     void update_watermarks_capture(
         double cloud_fractional_volume, int i_wmk_above_cloud);
@@ -77,7 +78,13 @@ class TrapManagerSlowCapture : public TrapManagerBase {
 
     std::valarray<TrapSlowCapture> traps;
 
+    std::valarray<double> fill_probabilities_from_empty;
+    std::valarray<double> fill_probabilities_from_full;
+    std::valarray<double> empty_probabilities_from_release;
+
     void set_fill_probabilities();
+    void setup();
+
     double n_electrons_released_and_captured(double n_free_electrons);
 };
 
@@ -95,7 +102,9 @@ class TrapManagerContinuum : public TrapManagerBase {
     double time_max;
     int n_intp;
 
-    void set_fill_probabilities();
+    void prepare_interpolation_tables();
+    void setup();
+
     double n_electrons_released();
     void update_watermarks_capture(
         double cloud_fractional_volume, int i_wmk_above_cloud);
@@ -115,7 +124,8 @@ class TrapManagerSlowCaptureContinuum : public TrapManagerBase {
 
     std::valarray<TrapSlowCaptureContinuum> traps;
 
-    void set_fill_probabilities();
+    void setup();
+
     double n_electrons_released_and_captured(double n_free_electrons);
 };
 

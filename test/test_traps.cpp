@@ -210,3 +210,24 @@ TEST_CASE("Test continuum traps", "[traps]") {
             std::numeric_limits<double>::max());
     }
 }
+
+TEST_CASE("Test slow-capture continuum traps", "[traps]") {
+    TrapSlowCaptureContinuum trap_1(10.0, -1.0 / log(0.5), 0.05, 0.1);
+    TrapSlowCaptureContinuum trap_2(8.0, -1.0 / log(0.2), 0.5, 1.0);
+
+    SECTION("Initialisation") {
+        REQUIRE(trap_1.density == 10.0);
+        REQUIRE(trap_1.release_timescale == -1.0 / log(0.5));
+        REQUIRE(trap_1.release_rate == -log(0.5));
+        REQUIRE(trap_1.release_timescale_sigma == 0.05);
+        REQUIRE(trap_1.capture_timescale == 0.1);
+        REQUIRE(trap_1.capture_rate == 10.0);
+
+        REQUIRE(trap_2.density == 8.0);
+        REQUIRE(trap_2.release_timescale == -1.0 / log(0.2));
+        REQUIRE(trap_2.release_rate == -log(0.2));
+        REQUIRE(trap_2.release_timescale_sigma == 0.5);
+        REQUIRE(trap_2.capture_timescale == 1.0);
+        REQUIRE(trap_2.capture_rate == 1.0);
+    }
+}

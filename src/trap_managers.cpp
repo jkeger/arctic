@@ -13,7 +13,7 @@
 // ========
 /*
     Class TrapManagerBase.
-    
+    
     Abstract base class for the trap manager of one or multiple trap species
     that are able to use watermarks in the same way as each other.
 
@@ -21,7 +21,7 @@
     ----------
     traps : std::valarray<Trap>
         A list of one or more trap species of the specific trap manager's type.
-        
+        
         Not included in this base class, since the different managers require
         different class types for the array.
 
@@ -34,11 +34,11 @@
     ccd_phase : CCDPhase
         Parameters to describe how electrons fill the volume inside (one phase
         of) a pixel in a CCD detector.
-    
+    
     dwell_time : double
         The time spent in this pixel or phase, in the same units as the trap
         timescales.
-    
+    
     Attributes
     ----------
     n_traps : int
@@ -154,6 +154,11 @@ void TrapManagerBase::restore_trap_states() {
 }
 
 /*
+    Call any necessary initialisation functions, etc.
+*/
+void TrapManagerBase::setup() { initialise_trap_states(); }
+
+/*
     Sum the total number of electrons currently held in traps.
 
     Parameters
@@ -243,24 +248,26 @@ TrapManagerInstantCapture::TrapManagerInstantCapture(
 
     Sets
     ----
-    fill_probabilities_from_release : std::valarray<double>
-        The fraction of traps that were full that stay full after release.
-
     empty_probabilities_from_release : std::valarray<double>
         The fraction of traps that were full that become empty after release.
 */
 void TrapManagerInstantCapture::set_fill_probabilities() {
-    fill_probabilities_from_release = std::valarray<double>(0.0, n_traps);
     empty_probabilities_from_release = std::valarray<double>(0.0, n_traps);
 
     // Set probabilities for each trap species
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-        // Resulting fill fraction from release
-        fill_probabilities_from_release[i_trap] =
-            exp(-traps[i_trap].release_rate * dwell_time);
+        // Resulting empty fraction from release
         empty_probabilities_from_release[i_trap] =
-            1.0 - fill_probabilities_from_release[i_trap];
+            1.0 - exp(-traps[i_trap].release_rate * dwell_time);
     }
+}
+
+/*
+    Call any necessary initialisation functions, etc.
+*/
+void TrapManagerInstantCapture::setup() {
+    initialise_trap_states();
+    set_fill_probabilities();
 }
 
 /*
@@ -633,11 +640,6 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 
 /*
     Release and capture electrons and update the trap watermarks.
-    
-
-
-
-
 
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
@@ -711,9 +713,6 @@ TrapManagerSlowCapture::TrapManagerSlowCapture(
     fill_probabilities_from_full : std::valarray<double>
         The fraction of traps that were full that stay full.
 
-    fill_probabilities_from_release : std::valarray<double>
-        The fraction of traps that were full that stay full after release.
-
     empty_probabilities_from_release : std::valarray<double>
         The fraction of traps that were full that become empty after release.
 */
@@ -721,7 +720,6 @@ void TrapManagerSlowCapture::set_fill_probabilities() {
     double total_rate, exponential_factor;
     fill_probabilities_from_empty = std::valarray<double>(0.0, n_traps);
     fill_probabilities_from_full = std::valarray<double>(0.0, n_traps);
-    fill_probabilities_from_release = std::valarray<double>(0.0, n_traps);
     empty_probabilities_from_release = std::valarray<double>(0.0, n_traps);
 
     // Set probabilities for each trap species
@@ -742,17 +740,23 @@ void TrapManagerSlowCapture::set_fill_probabilities() {
         fill_probabilities_from_full[i_trap] =
             1.0 - traps[i_trap].release_rate * exponential_factor;
 
-        // Resulting fill fraction from only release
-        fill_probabilities_from_release[i_trap] =
-            exp(-traps[i_trap].release_rate * dwell_time);
+        // Resulting empty fraction from only release
         empty_probabilities_from_release[i_trap] =
-            1.0 - fill_probabilities_from_release[i_trap];
+            1.0 - exp(-traps[i_trap].release_rate * dwell_time);
     }
 }
 
 /*
+    Call any necessary initialisation functions, etc.
+*/
+void TrapManagerSlowCapture::setup() {
+    initialise_trap_states();
+    set_fill_probabilities();
+}
+
+/*
     Release and capture electrons and update the trap watermarks.
-    
+    
     The interaction between traps and the charge cloud during its dwell time in
     this pixel (and phase) is modelled as follows:
     + First any previously filled traps that are not within the cloud volume
@@ -1001,19 +1005,19 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
 
     For trap species with continous distributions of release timescales, and
     the standard release-then-instant-capture algorithm.
-    
+    
     For release, the watermark fill fractions are converted into the total time
     elapsed since the traps were filled in order to update them.
-    
+    
     Capture is identical to instant-capture traps.
-    
+    
     Attributes (in addition to TrapManagerBase)
     ----------
     time_min : double
     time_max : double
         The minimum and maximum elapsed times to set the interpolation table
         limits. See prep_fill_fraction_and_time_elapsed_tables().
-    
+    
     n_intp : int
         The number of interpolation values in the arrays. Currently set here
         manually. See prep_fill_fraction_and_time_elapsed_tables().
@@ -1035,25 +1039,25 @@ TrapManagerContinuum::TrapManagerContinuum(
 }
 
 /*
-    Same as TrapManagerInstantCapture. In addition, set the interpolation table
-    values for converting between fill fractions and elapsed times.
+    Set the interpolation table values for converting between fill fractions
+    and elapsed times.
+    
+    See TrapContinuum.prep_fill_fraction_and_time_elapsed_tables().
 */
-void TrapManagerContinuum::set_fill_probabilities() {
-    fill_probabilities_from_release = std::valarray<double>(0.0, n_traps);
-    empty_probabilities_from_release = std::valarray<double>(0.0, n_traps);
-
-    // Set probabilities for each trap species
+void TrapManagerContinuum::prepare_interpolation_tables() {
+    // Prepare interpolation tables for each trap species
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-        // Resulting fill fraction from release
-        fill_probabilities_from_release[i_trap] =
-            exp(-traps[i_trap].release_rate * dwell_time);
-        empty_probabilities_from_release[i_trap] =
-            1.0 - fill_probabilities_from_release[i_trap];
-
-        // Prepare interpolation tables
         traps[i_trap].prep_fill_fraction_and_time_elapsed_tables(
             time_min, time_max, n_intp);
     }
+}
+
+/*
+    Call any necessary initialisation functions, etc.
+*/
+void TrapManagerContinuum::setup() {
+    initialise_trap_states();
+    prepare_interpolation_tables();
 }
 
 /*
@@ -1393,7 +1397,7 @@ double TrapManagerContinuum::n_electrons_released_and_captured(
 
     For traps with a non-instant capture time, and a continuum (log-normal
     distribution) of release timescales.
-    
+    
     ### WIP ###
 */
 TrapManagerSlowCaptureContinuum::TrapManagerSlowCaptureContinuum(
@@ -1409,9 +1413,9 @@ TrapManagerSlowCaptureContinuum::TrapManagerSlowCaptureContinuum(
 }
 
 /*
-    ### WIP ###
+    Call any necessary initialisation functions, etc.
 */
-void TrapManagerSlowCaptureContinuum::set_fill_probabilities() {}
+void TrapManagerSlowCaptureContinuum::setup() { initialise_trap_states(); }
 
 /*
     ### WIP ###
@@ -1460,7 +1464,7 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
     dwell_times : std::valarray<double>
         The time between steps in the clocking sequence, as stored by an ROE
         object.
-        
+        
         Note: currently assumes the dwell time in each phase is the same for all
         steps, which might not be true in sequences with n_steps > n_phases.
 
@@ -1518,8 +1522,7 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_instant_capture[phase_index].trap_densities *=
                 ccd.fraction_of_traps_per_phase[phase_index];
 
-            trap_managers_instant_capture[phase_index].initialise_trap_states();
-            trap_managers_instant_capture[phase_index].set_fill_probabilities();
+            trap_managers_instant_capture[phase_index].setup();
         }
     }
 
@@ -1536,8 +1539,7 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_slow_capture[phase_index].trap_densities *=
                 ccd.fraction_of_traps_per_phase[phase_index];
 
-            trap_managers_slow_capture[phase_index].initialise_trap_states();
-            trap_managers_slow_capture[phase_index].set_fill_probabilities();
+            trap_managers_slow_capture[phase_index].setup();
         }
     }
 
@@ -1554,8 +1556,7 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_continuum[phase_index].trap_densities *=
                 ccd.fraction_of_traps_per_phase[phase_index];
 
-            trap_managers_continuum[phase_index].initialise_trap_states();
-            trap_managers_continuum[phase_index].set_fill_probabilities();
+            trap_managers_continuum[phase_index].setup();
         }
     }
 
@@ -1573,8 +1574,7 @@ TrapManagerManager::TrapManagerManager(
             trap_managers_slow_capture_continuum[phase_index].trap_densities *=
                 ccd.fraction_of_traps_per_phase[phase_index];
 
-            trap_managers_slow_capture_continuum[phase_index].initialise_trap_states();
-            trap_managers_slow_capture_continuum[phase_index].set_fill_probabilities();
+            trap_managers_slow_capture_continuum[phase_index].setup();
         }
     }
 }
