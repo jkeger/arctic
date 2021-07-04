@@ -15,3 +15,4 @@ gmon.out
 callgrind.out.*
 hst_acs_10_col.txt
 dev/
+*.lnk
