@@ -1,38 +1,38 @@
-# 
+#
 # 	Makefile for ArCTIC
-# 
+#
 # 	Options
 # 	-------
 # 	arctic
 # 		The main program. See src/main.cpp.
-# 
+#
 # 	test, test_arctic
 # 		The unit tests. See test/*.cpp.
-# 
+#
 # 	lib, libarctic.so
 # 		The dynamic library shared object.
-# 
+#
 # 	lib_test
 # 		A simple test for using the shared library. See test/test_lib.cpp.
-# 
+#
 # 	wrapper
 # 		The cython wrapper for the arcticpy python module.
-# 
+#
 # 	default
 # 		The main program and the library.
-# 
+#
 # 	all
 # 		All of the above.
-# 
+#
 # 	clean
 # 		Remove compiled files.
-# 
+#
 # 	gsl
 # 		The GNU Scientific Library (www.gnu.org/software/gsl/). See get_gsl.sh.
-# 
+#
 # 	clean-gsl
 # 		Remove GSL (not done by `clean`).
-# 
+#
 
 # ========
 # Set up
@@ -94,7 +94,7 @@ all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) wrapper
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
-$(OBJECTS): gsl
+$(OBJECTS): $(DIR_GSL)
 
 -include $(DEPENDS)
 
