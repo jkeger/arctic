@@ -211,9 +211,12 @@ TEST_CASE("Test continuum traps", "[traps]") {
     }
 }
 
-TEST_CASE("Test slow-capture continuum traps", "[traps]") {
+TEST_CASE("Test slow-capture continuum traps asdf", "[traps]") {
+    // Narrow and wide distributions, and fast and slow capture
     TrapSlowCaptureContinuum trap_1(10.0, -1.0 / log(0.5), 0.05, 0.1);
     TrapSlowCaptureContinuum trap_2(8.0, -1.0 / log(0.2), 0.5, 1.0);
+    // Close to single-lifetime and instant-capture
+    TrapSlowCaptureContinuum trap_3(10.0, -1.0 / log(0.5), 0.01, 0.01);
 
     SECTION("Initialisation") {
         REQUIRE(trap_1.density == 10.0);
@@ -229,5 +232,58 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
         REQUIRE(trap_2.release_timescale_sigma == 0.5);
         REQUIRE(trap_2.capture_timescale == 1.0);
         REQUIRE(trap_2.capture_rate == 1.0);
+    }
+
+    SECTION("Fill fraction from slow capture") {
+        double dwell_time = 1.0;
+
+        // Almost-instant capture
+        REQUIRE(
+            trap_3.fill_fraction_after_slow_capture(1.0, dwell_time) ==
+            Approx(1.0).epsilon(0.01));
+
+        // Fairly fast capture
+        REQUIRE(
+            trap_1.fill_fraction_after_slow_capture(1.0, dwell_time) ==
+            Approx(1.0).epsilon(0.1));
+
+        // Larger final fill from longer dwell time
+        REQUIRE(
+            trap_1.fill_fraction_after_slow_capture(1.0, 0.5) <
+            trap_1.fill_fraction_after_slow_capture(1.0, 1.0));
+        REQUIRE(
+            trap_1.fill_fraction_after_slow_capture(1.0, 1.0) <
+            trap_1.fill_fraction_after_slow_capture(1.0, 2.0));
+
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture(1.0, 0.5) <
+            trap_2.fill_fraction_after_slow_capture(1.0, 1.0));
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture(1.0, 1.0) <
+            trap_2.fill_fraction_after_slow_capture(1.0, 2.0));
+
+        // Converges for long dwell times
+        REQUIRE(
+            trap_1.fill_fraction_after_slow_capture(1.0, 10.0) ==
+            Approx(trap_1.fill_fraction_after_slow_capture(1.0, 20.0)));
+
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture(1.0, 10.0) ==
+            Approx(trap_2.fill_fraction_after_slow_capture(1.0, 20.0)));
+
+        // Larger final fill from shorter elapsed time (i.e. larger initial fill)
+        REQUIRE(
+            trap_1.fill_fraction_after_slow_capture(0.0, dwell_time) >
+            trap_1.fill_fraction_after_slow_capture(1.0, dwell_time));
+        REQUIRE(
+            trap_1.fill_fraction_after_slow_capture(10.0, dwell_time) >
+            trap_1.fill_fraction_after_slow_capture(20.0, dwell_time));
+
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture(0.0, dwell_time) >
+            trap_2.fill_fraction_after_slow_capture(1.0, dwell_time));
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture(10.0, dwell_time) >
+            trap_2.fill_fraction_after_slow_capture(20.0, dwell_time));
     }
 }

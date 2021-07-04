@@ -1,12 +1,14 @@
 
+#include "traps.hpp"
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_roots.h>
 #include <math.h>
+
 #include <valarray>
 
-#include "traps.hpp"
 #include "util.hpp"
 
 // ========
@@ -127,8 +129,9 @@ TrapContinuum::TrapContinuum(
 /*
     Calculate the fraction of filled traps after an amount of elapsed time.
 
-    Found by integrating the trap fill fraction (exp[-t/tau]) multiplied by the
-    trap density distribution with trap release timescales.
+    Found by integrating the trap fill fraction multiplied by the trap density
+    distribution with trap release timescales:
+        f = int_0^inf n(tau) exp(-t_e/tau) dtau
 
     (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
 
@@ -183,8 +186,8 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
     if (!workspace) {
         workspace = gsl_integration_workspace_alloc(limit);
     }
-    struct TrCo_ff_from_te_params params = {time_elapsed, release_timescale,
-                                            release_timescale_sigma};
+    struct TrCo_ff_from_te_params params = {
+        time_elapsed, release_timescale, release_timescale_sigma};
     gsl_function F;
     F.function = &TrCo_ff_from_te_integrand;
     F.params = &params;
@@ -202,7 +205,8 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
     Calculate the amount of elapsed time from the fraction of filled traps.
 
     Found by finding where fill_fraction_from_time_elapsed(time_elapsed) is
-    equal to the required fill_fraction, using a root finder.
+    equal to the required fill_fraction, using a root finder:
+        f(t_e) - f' = 0
 
     (www.gnu.org/software/gsl/doc/html/roots.html)
 
@@ -471,7 +475,95 @@ TrapSlowCaptureContinuum::TrapSlowCaptureContinuum(
 }
 
 /*
-    ### WIP ###
+    Calculate the fraction of filled traps after slow-capture (and release).
+
+    Found by integrating the trap density distribution multiplied by the final
+    fill fraction, which must be calculated accounting for the dependency of
+    both the initial fill fraction and the fill probabilities on the release
+    lifetime distribution:
+        f(tau) = f_0(tau) f_f(tau) + (1 - f_0(tau)) f_e(tau)
+        f = int_0^inf n(tau) f(tau) dtau
+
+    (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
+
+    Parameters
+    ----------
+    time_elapsed : double
+        The approximate, effective time elapsed since the traps were filled, in
+        the same units as the trap timescales.
+
+    dwell_time : double
+        The time spent in this pixel or phase, in the same units as the trap
+        timescales.
+
+    workspace : gsl_integration_workspace* (opt.)
+        An existing GSL workspace memory handler for the integration, or nullptr
+        to create a new one.
+
+    Returns
+    -------
+    fill_fraction : double
+        The fraction of filled traps.
 */
-double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
-    double time_elapsed, gsl_integration_workspace* workspace) {}
+struct TrSCCo_ff_after_sc_params {
+    double time_elapsed;
+    double mu;
+    double sigma;
+    double capture_rate;
+    double dwell_time;
+};
+
+double TrSCCo_ff_after_sc_integrand(double tau, void* params) {
+    struct TrSCCo_ff_after_sc_params* p = (struct TrSCCo_ff_after_sc_params*)params;
+
+    // Distribution density
+    double n = exp(-pow(log(tau) - log(p->mu), 2.0) / (2.0 * p->sigma * p->sigma)) /
+               (tau * p->sigma * sqrt(2.0 * M_PI));
+
+    // Rates and fill probabilities
+    double release_rate = 1.0 / tau;
+    double total_rate = p->capture_rate + release_rate;
+    double exponential_factor = (1 - exp(-total_rate * p->dwell_time)) / total_rate;
+    double fill_probability_from_empty = p->capture_rate * exponential_factor;
+    double fill_probability_from_full = 1.0 - release_rate * exponential_factor;
+
+    // Initial fill fraction
+    double f_0;
+    if (p->time_elapsed == 0.0)
+        f_0 = 1.0;
+    else if (p->time_elapsed >= std::numeric_limits<double>::max())
+        f_0 = 0.0;
+    else
+        f_0 = exp(-p->time_elapsed * release_rate);
+
+    // To integrate: n(tau) * new_fill(tau) dtau
+    return n * (f_0 * fill_probability_from_full +
+                (1.0 - f_0) * fill_probability_from_empty);
+}
+
+double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
+    double time_elapsed, double dwell_time, gsl_integration_workspace* workspace) {
+    // Prep the integration
+    double result, error;
+    const double min = 0.0;
+    const double epsabs = 0.0;
+    const double epsrel = 1e-6;
+    const int limit = 100;
+    if (!workspace) {
+        workspace = gsl_integration_workspace_alloc(limit);
+    }
+    struct TrSCCo_ff_after_sc_params params = {
+        time_elapsed, release_timescale, release_timescale_sigma, capture_rate,
+        dwell_time};
+    gsl_function F;
+    F.function = &TrSCCo_ff_after_sc_integrand;
+    F.params = &params;
+
+    // Integrate F.function from min to +infinity
+    int status = gsl_integration_qagiu(
+        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
+
+    if (status) error("Integration failed, status %d", status);
+
+    return result;
+}
