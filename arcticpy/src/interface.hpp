@@ -27,8 +27,8 @@ void add_cti(
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
     double* parallel_trap_third_params, double* parallel_trap_fourth_params,
-    int parallel_n_traps_instant_capture, int parallel_n_traps_slow_capture,
-    int parallel_n_traps_instant_capture_continuum, int parallel_n_traps_slow_capture_continuum,
+    int parallel_n_traps_ic, int parallel_n_traps_sc,
+    int parallel_n_traps_ic_co, int parallel_n_traps_sc_co,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -47,8 +47,8 @@ void add_cti(
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
     double* serial_trap_third_params, double* serial_trap_fourth_params,
-    int serial_n_traps_instant_capture, int serial_n_traps_slow_capture,
-    int serial_n_traps_instant_capture_continuum, int serial_n_traps_slow_capture_continuum,
+    int serial_n_traps_ic, int serial_n_traps_sc,
+    int serial_n_traps_ic_co, int serial_n_traps_sc_co,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
@@ -73,8 +73,8 @@ void remove_cti(
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
     double* parallel_trap_third_params, double* parallel_trap_fourth_params,
-    int parallel_n_traps_instant_capture, int parallel_n_traps_slow_capture,
-    int parallel_n_traps_instant_capture_continuum, int parallel_n_traps_slow_capture_continuum,
+    int parallel_n_traps_ic, int parallel_n_traps_sc,
+    int parallel_n_traps_ic_co, int parallel_n_traps_sc_co,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -93,8 +93,8 @@ void remove_cti(
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
     double* serial_trap_third_params, double* serial_trap_fourth_params,
-    int serial_n_traps_instant_capture, int serial_n_traps_slow_capture,
-    int serial_n_traps_instant_capture_continuum, int serial_n_traps_slow_capture_continuum,
+    int serial_n_traps_ic, int serial_n_traps_sc,
+    int serial_n_traps_ic_co, int serial_n_traps_sc_co,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,

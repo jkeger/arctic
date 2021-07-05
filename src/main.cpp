@@ -48,10 +48,10 @@ int run_demo() {
 
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<TrapInstantCapture> instant_capture_traps = {trap};
-    std::valarray<TrapSlowCapture> slow_capture_traps = {};
-    std::valarray<TrapInstantCaptureContinuum> instant_capture_continuum_traps = {};
-    std::valarray<TrapSlowCaptureContinuum> slow_capture_continuum_traps = {};
+    std::valarray<TrapInstantCapture> traps_ic = {trap};
+    std::valarray<TrapSlowCapture> traps_sc = {};
+    std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
+    std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -62,20 +62,20 @@ int run_demo() {
 
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &instant_capture_traps, &slow_capture_traps,
-        &instant_capture_continuum_traps, &slow_capture_continuum_traps, express, offset, start, stop,
-        &roe, &ccd, &instant_capture_traps, &slow_capture_traps, &instant_capture_continuum_traps,
-        &slow_capture_continuum_traps, express, offset, start, stop);
+        image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc,
+        &traps_ic_co, &traps_sc_co, express, offset, start, stop,
+        &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
+        &traps_sc_co, express, offset, start, stop);
     print_v(1, "Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
     // Remove CTI
     int n_iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
-        image_post_cti, n_iterations, &roe, &ccd, &instant_capture_traps,
-        &slow_capture_traps, &instant_capture_continuum_traps, &slow_capture_continuum_traps, express,
-        offset, start, stop, &roe, &ccd, &instant_capture_traps, &slow_capture_traps,
-        &instant_capture_continuum_traps, &slow_capture_continuum_traps, express, offset, start, stop);
+        image_post_cti, n_iterations, &roe, &ccd, &traps_ic,
+        &traps_sc, &traps_ic_co, &traps_sc_co, express,
+        offset, start, stop, &roe, &ccd, &traps_ic, &traps_sc,
+        &traps_ic_co, &traps_sc_co, express, offset, start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 

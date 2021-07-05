@@ -133,28 +133,28 @@ class TrapManagerManager {
    public:
     TrapManagerManager(){};
     TrapManagerManager(
-        std::valarray<TrapInstantCapture>& instant_capture_traps,
-        std::valarray<TrapSlowCapture>& slow_capture_traps,
-        std::valarray<TrapInstantCaptureContinuum>& instant_capture_continuum_traps,
-        std::valarray<TrapSlowCaptureContinuum>& slow_capture_continuum_traps,
+        std::valarray<TrapInstantCapture>& traps_ic,
+        std::valarray<TrapSlowCapture>& traps_sc,
+        std::valarray<TrapInstantCaptureContinuum>& traps_ic_co,
+        std::valarray<TrapSlowCaptureContinuum>& traps_sc_co,
         int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
-    std::valarray<TrapInstantCapture> instant_capture_traps;
-    std::valarray<TrapSlowCapture> slow_capture_traps;
-    std::valarray<TrapInstantCaptureContinuum> instant_capture_continuum_traps;
-    std::valarray<TrapSlowCaptureContinuum> slow_capture_continuum_traps;
+    std::valarray<TrapInstantCapture> traps_ic;
+    std::valarray<TrapSlowCapture> traps_sc;
+    std::valarray<TrapInstantCaptureContinuum> traps_ic_co;
+    std::valarray<TrapSlowCaptureContinuum> traps_sc_co;
     int max_n_transfers;
     CCD ccd;
 
-    int n_slow_capture_traps;
-    int n_instant_capture_traps;
-    int n_instant_capture_continuum_traps;
-    int n_slow_capture_continuum_traps;
-    std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
-    std::valarray<TrapManagerSlowCapture> trap_managers_slow_capture;
-    std::valarray<TrapManagerInstantCaptureContinuum> trap_managers_instant_capture_continuum;
-    std::valarray<TrapManagerSlowCaptureContinuum> trap_managers_slow_capture_continuum;
+    int n_traps_ic;
+    int n_traps_sc;
+    int n_traps_ic_co;
+    int n_traps_sc_co;
+    std::valarray<TrapManagerInstantCapture> trap_managers_ic;
+    std::valarray<TrapManagerSlowCapture> trap_managers_sc;
+    std::valarray<TrapManagerInstantCaptureContinuum> trap_managers_ic_co;
+    std::valarray<TrapManagerSlowCaptureContinuum> trap_managers_sc_co;
 
     void reset_trap_states();
     void store_trap_states();

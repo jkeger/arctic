@@ -59,8 +59,8 @@ void add_cti(
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
     double* parallel_trap_third_params, double* parallel_trap_fourth_params,
-    int parallel_n_traps_instant_capture, int parallel_n_traps_slow_capture,
-    int parallel_n_traps_instant_capture_continuum, int parallel_n_traps_slow_capture_continuum,
+    int parallel_n_traps_ic, int parallel_n_traps_sc,
+    int parallel_n_traps_ic_co, int parallel_n_traps_sc_co,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -79,8 +79,8 @@ void add_cti(
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
     double* serial_trap_third_params, double* serial_trap_fourth_params,
-    int serial_n_traps_instant_capture, int serial_n_traps_slow_capture,
-    int serial_n_traps_instant_capture_continuum, int serial_n_traps_slow_capture_continuum,
+    int serial_n_traps_ic, int serial_n_traps_sc,
+    int serial_n_traps_ic_co, int serial_n_traps_sc_co,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
@@ -126,45 +126,45 @@ void add_cti(
     CCD parallel_ccd(parallel_phases, parallel_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<TrapInstantCapture> parallel_traps_instant_capture(
-        TrapInstantCapture(0.0, 0.0), parallel_n_traps_instant_capture);
-    std::valarray<TrapSlowCapture> parallel_traps_slow_capture(
-        TrapSlowCapture(0.0, 0.0, 0.0), parallel_n_traps_slow_capture);
+    std::valarray<TrapInstantCapture> parallel_traps_ic(
+        TrapInstantCapture(0.0, 0.0), parallel_n_traps_ic);
+    std::valarray<TrapSlowCapture> parallel_traps_sc(
+        TrapSlowCapture(0.0, 0.0, 0.0), parallel_n_traps_sc);
     std::valarray<TrapInstantCaptureContinuum> parallel_traps_continuum(
-        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), parallel_n_traps_instant_capture_continuum);
-    std::valarray<TrapSlowCaptureContinuum> parallel_traps_slow_capture_continuum(
+        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), parallel_n_traps_ic_co);
+    std::valarray<TrapSlowCaptureContinuum> parallel_traps_sc_co(
         TrapSlowCaptureContinuum(0.0, 0.0, 0.0, 0.0),
-        parallel_n_traps_slow_capture_continuum);
+        parallel_n_traps_sc_co);
 
     int n_traps_parallel = 0;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_instant_capture; i_trap++) {
-        parallel_traps_instant_capture[i_trap] = TrapInstantCapture(
+         i_trap < n_traps_parallel + parallel_n_traps_ic; i_trap++) {
+        parallel_traps_ic[i_trap] = TrapInstantCapture(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_instant_capture;
+    n_traps_parallel += parallel_n_traps_ic;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_slow_capture; i_trap++) {
-        parallel_traps_slow_capture[i_trap] = TrapSlowCapture(
+         i_trap < n_traps_parallel + parallel_n_traps_sc; i_trap++) {
+        parallel_traps_sc[i_trap] = TrapSlowCapture(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
             parallel_trap_third_params[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_slow_capture;
+    n_traps_parallel += parallel_n_traps_sc;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_instant_capture_continuum; i_trap++) {
+         i_trap < n_traps_parallel + parallel_n_traps_ic_co; i_trap++) {
         parallel_traps_continuum[i_trap] = TrapInstantCaptureContinuum(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
             parallel_trap_third_params[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_instant_capture_continuum;
+    n_traps_parallel += parallel_n_traps_ic_co;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_slow_capture_continuum;
+         i_trap < n_traps_parallel + parallel_n_traps_sc_co;
          i_trap++) {
-        parallel_traps_slow_capture_continuum[i_trap] = TrapSlowCaptureContinuum(
+        parallel_traps_sc_co[i_trap] = TrapSlowCaptureContinuum(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
             parallel_trap_third_params[i_trap], parallel_trap_fourth_params[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_slow_capture_continuum;
+    n_traps_parallel += parallel_n_traps_sc_co;
 
     // ========
     // Serial
@@ -192,44 +192,44 @@ void add_cti(
     CCD serial_ccd(serial_phases, serial_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<TrapInstantCapture> serial_traps_instant_capture(
-        TrapInstantCapture(0.0, 0.0), serial_n_traps_instant_capture);
-    std::valarray<TrapSlowCapture> serial_traps_slow_capture(
-        TrapSlowCapture(0.0, 0.0, 0.0), serial_n_traps_slow_capture);
+    std::valarray<TrapInstantCapture> serial_traps_ic(
+        TrapInstantCapture(0.0, 0.0), serial_n_traps_ic);
+    std::valarray<TrapSlowCapture> serial_traps_sc(
+        TrapSlowCapture(0.0, 0.0, 0.0), serial_n_traps_sc);
     std::valarray<TrapInstantCaptureContinuum> serial_traps_continuum(
-        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), serial_n_traps_instant_capture_continuum);
-    std::valarray<TrapSlowCaptureContinuum> serial_traps_slow_capture_continuum(
+        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), serial_n_traps_ic_co);
+    std::valarray<TrapSlowCaptureContinuum> serial_traps_sc_co(
         TrapSlowCaptureContinuum(0.0, 0.0, 0.0, 0.0),
-        serial_n_traps_slow_capture_continuum);
+        serial_n_traps_sc_co);
 
     int n_traps_serial = 0;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_instant_capture; i_trap++) {
-        serial_traps_instant_capture[i_trap] = TrapInstantCapture(
+         i_trap < n_traps_serial + serial_n_traps_ic; i_trap++) {
+        serial_traps_ic[i_trap] = TrapInstantCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
     }
-    n_traps_serial += serial_n_traps_instant_capture;
+    n_traps_serial += serial_n_traps_ic;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_slow_capture; i_trap++) {
-        serial_traps_slow_capture[i_trap] = TrapSlowCapture(
+         i_trap < n_traps_serial + serial_n_traps_sc; i_trap++) {
+        serial_traps_sc[i_trap] = TrapSlowCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap]);
     }
-    n_traps_serial += serial_n_traps_slow_capture;
+    n_traps_serial += serial_n_traps_sc;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_instant_capture_continuum; i_trap++) {
+         i_trap < n_traps_serial + serial_n_traps_ic_co; i_trap++) {
         serial_traps_continuum[i_trap] = TrapInstantCaptureContinuum(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap]);
     }
-    n_traps_serial += serial_n_traps_instant_capture_continuum;
+    n_traps_serial += serial_n_traps_ic_co;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_slow_capture_continuum; i_trap++) {
-        serial_traps_slow_capture_continuum[i_trap] = TrapSlowCaptureContinuum(
+         i_trap < n_traps_serial + serial_n_traps_sc_co; i_trap++) {
+        serial_traps_sc_co[i_trap] = TrapSlowCaptureContinuum(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap], serial_trap_fourth_params[i_trap]);
     }
-    n_traps_serial += serial_n_traps_slow_capture_continuum;
+    n_traps_serial += serial_n_traps_sc_co;
 
     // ========
     // Add CTI
@@ -242,9 +242,9 @@ void add_cti(
             // Parallel
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
-            &serial_traps_slow_capture, &serial_traps_continuum,
-            &serial_traps_slow_capture_continuum, serial_express, serial_offset,
+            &serial_roe, &serial_ccd, &serial_traps_ic,
+            &serial_traps_sc, &serial_traps_continuum,
+            &serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop);
     }
     // No serial, parallel only
@@ -252,9 +252,9 @@ void add_cti(
         image_out = add_cti(
             image_in,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
-            &parallel_traps_slow_capture, &parallel_traps_continuum,
-            &parallel_traps_slow_capture_continuum, parallel_express, parallel_offset,
+            &parallel_roe, &parallel_ccd, &parallel_traps_ic,
+            &parallel_traps_sc, &parallel_traps_continuum,
+            &parallel_traps_sc_co, parallel_express, parallel_offset,
             parallel_window_start, parallel_window_stop,
             // Serial
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1);
@@ -264,14 +264,14 @@ void add_cti(
         image_out = add_cti(
             image_in,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
-            &parallel_traps_slow_capture, &parallel_traps_continuum,
-            &parallel_traps_slow_capture_continuum, parallel_express, parallel_offset,
+            &parallel_roe, &parallel_ccd, &parallel_traps_ic,
+            &parallel_traps_sc, &parallel_traps_continuum,
+            &parallel_traps_sc_co, parallel_express, parallel_offset,
             parallel_window_start, parallel_window_stop,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
-            &serial_traps_slow_capture, &serial_traps_continuum,
-            &serial_traps_slow_capture_continuum, serial_express, serial_offset,
+            &serial_roe, &serial_ccd, &serial_traps_ic,
+            &serial_traps_sc, &serial_traps_continuum,
+            &serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop);
     }
 
@@ -311,8 +311,8 @@ void remove_cti(
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
     double* parallel_trap_third_params, double* parallel_trap_fourth_params,
-    int parallel_n_traps_instant_capture, int parallel_n_traps_slow_capture,
-    int parallel_n_traps_instant_capture_continuum, int parallel_n_traps_slow_capture_continuum,
+    int parallel_n_traps_ic, int parallel_n_traps_sc,
+    int parallel_n_traps_ic_co, int parallel_n_traps_sc_co,
     // Misc
     int parallel_express, int parallel_offset, int parallel_window_start,
     int parallel_window_stop,
@@ -331,8 +331,8 @@ void remove_cti(
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
     double* serial_trap_third_params, double* serial_trap_fourth_params,
-    int serial_n_traps_instant_capture, int serial_n_traps_slow_capture,
-    int serial_n_traps_instant_capture_continuum, int serial_n_traps_slow_capture_continuum,
+    int serial_n_traps_ic, int serial_n_traps_sc,
+    int serial_n_traps_ic_co, int serial_n_traps_sc_co,
     // Misc
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
@@ -378,45 +378,45 @@ void remove_cti(
     CCD parallel_ccd(parallel_phases, parallel_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<TrapInstantCapture> parallel_traps_instant_capture(
-        TrapInstantCapture(0.0, 0.0), parallel_n_traps_instant_capture);
-    std::valarray<TrapSlowCapture> parallel_traps_slow_capture(
-        TrapSlowCapture(0.0, 0.0, 0.0), parallel_n_traps_slow_capture);
+    std::valarray<TrapInstantCapture> parallel_traps_ic(
+        TrapInstantCapture(0.0, 0.0), parallel_n_traps_ic);
+    std::valarray<TrapSlowCapture> parallel_traps_sc(
+        TrapSlowCapture(0.0, 0.0, 0.0), parallel_n_traps_sc);
     std::valarray<TrapInstantCaptureContinuum> parallel_traps_continuum(
-        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), parallel_n_traps_instant_capture_continuum);
-    std::valarray<TrapSlowCaptureContinuum> parallel_traps_slow_capture_continuum(
+        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), parallel_n_traps_ic_co);
+    std::valarray<TrapSlowCaptureContinuum> parallel_traps_sc_co(
         TrapSlowCaptureContinuum(0.0, 0.0, 0.0, 0.0),
-        parallel_n_traps_slow_capture_continuum);
+        parallel_n_traps_sc_co);
 
     int n_traps_parallel = 0;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_instant_capture; i_trap++) {
-        parallel_traps_instant_capture[i_trap] = TrapInstantCapture(
+         i_trap < n_traps_parallel + parallel_n_traps_ic; i_trap++) {
+        parallel_traps_ic[i_trap] = TrapInstantCapture(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_instant_capture;
+    n_traps_parallel += parallel_n_traps_ic;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_slow_capture; i_trap++) {
-        parallel_traps_slow_capture[i_trap] = TrapSlowCapture(
+         i_trap < n_traps_parallel + parallel_n_traps_sc; i_trap++) {
+        parallel_traps_sc[i_trap] = TrapSlowCapture(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
             parallel_trap_third_params[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_slow_capture;
+    n_traps_parallel += parallel_n_traps_sc;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_instant_capture_continuum; i_trap++) {
+         i_trap < n_traps_parallel + parallel_n_traps_ic_co; i_trap++) {
         parallel_traps_continuum[i_trap] = TrapInstantCaptureContinuum(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
             parallel_trap_third_params[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_instant_capture_continuum;
+    n_traps_parallel += parallel_n_traps_ic_co;
     for (int i_trap = n_traps_parallel;
-         i_trap < n_traps_parallel + parallel_n_traps_slow_capture_continuum;
+         i_trap < n_traps_parallel + parallel_n_traps_sc_co;
          i_trap++) {
-        parallel_traps_slow_capture_continuum[i_trap] = TrapSlowCaptureContinuum(
+        parallel_traps_sc_co[i_trap] = TrapSlowCaptureContinuum(
             parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
             parallel_trap_third_params[i_trap], parallel_trap_fourth_params[i_trap]);
     }
-    n_traps_parallel += parallel_n_traps_slow_capture_continuum;
+    n_traps_parallel += parallel_n_traps_sc_co;
 
     // ========
     // Serial
@@ -444,44 +444,44 @@ void remove_cti(
     CCD serial_ccd(serial_phases, serial_fraction_of_traps_per_phase);
 
     // Traps
-    std::valarray<TrapInstantCapture> serial_traps_instant_capture(
-        TrapInstantCapture(0.0, 0.0), serial_n_traps_instant_capture);
-    std::valarray<TrapSlowCapture> serial_traps_slow_capture(
-        TrapSlowCapture(0.0, 0.0, 0.0), serial_n_traps_slow_capture);
+    std::valarray<TrapInstantCapture> serial_traps_ic(
+        TrapInstantCapture(0.0, 0.0), serial_n_traps_ic);
+    std::valarray<TrapSlowCapture> serial_traps_sc(
+        TrapSlowCapture(0.0, 0.0, 0.0), serial_n_traps_sc);
     std::valarray<TrapInstantCaptureContinuum> serial_traps_continuum(
-        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), serial_n_traps_instant_capture_continuum);
-    std::valarray<TrapSlowCaptureContinuum> serial_traps_slow_capture_continuum(
+        TrapInstantCaptureContinuum(0.0, 0.0, 0.0), serial_n_traps_ic_co);
+    std::valarray<TrapSlowCaptureContinuum> serial_traps_sc_co(
         TrapSlowCaptureContinuum(0.0, 0.0, 0.0, 0.0),
-        serial_n_traps_slow_capture_continuum);
+        serial_n_traps_sc_co);
 
     int n_traps_serial = 0;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_instant_capture; i_trap++) {
-        serial_traps_instant_capture[i_trap] = TrapInstantCapture(
+         i_trap < n_traps_serial + serial_n_traps_ic; i_trap++) {
+        serial_traps_ic[i_trap] = TrapInstantCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
     }
-    n_traps_serial += serial_n_traps_instant_capture;
+    n_traps_serial += serial_n_traps_ic;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_slow_capture; i_trap++) {
-        serial_traps_slow_capture[i_trap] = TrapSlowCapture(
+         i_trap < n_traps_serial + serial_n_traps_sc; i_trap++) {
+        serial_traps_sc[i_trap] = TrapSlowCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap]);
     }
-    n_traps_serial += serial_n_traps_slow_capture;
+    n_traps_serial += serial_n_traps_sc;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_instant_capture_continuum; i_trap++) {
+         i_trap < n_traps_serial + serial_n_traps_ic_co; i_trap++) {
         serial_traps_continuum[i_trap] = TrapInstantCaptureContinuum(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap]);
     }
-    n_traps_serial += serial_n_traps_instant_capture_continuum;
+    n_traps_serial += serial_n_traps_ic_co;
     for (int i_trap = n_traps_serial;
-         i_trap < n_traps_serial + serial_n_traps_slow_capture_continuum; i_trap++) {
-        serial_traps_slow_capture_continuum[i_trap] = TrapSlowCaptureContinuum(
+         i_trap < n_traps_serial + serial_n_traps_sc_co; i_trap++) {
+        serial_traps_sc_co[i_trap] = TrapSlowCaptureContinuum(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap], serial_trap_fourth_params[i_trap]);
     }
-    n_traps_serial += serial_n_traps_slow_capture_continuum;
+    n_traps_serial += serial_n_traps_sc_co;
 
     // ========
     // Remove CTI
@@ -494,9 +494,9 @@ void remove_cti(
             // Parallel
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
-            &serial_traps_slow_capture, &serial_traps_continuum,
-            &serial_traps_slow_capture_continuum, serial_express, serial_offset,
+            &serial_roe, &serial_ccd, &serial_traps_ic,
+            &serial_traps_sc, &serial_traps_continuum,
+            &serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop);
     }
     // No serial, parallel only
@@ -504,9 +504,9 @@ void remove_cti(
         image_out = remove_cti(
             image_in, n_iterations,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
-            &parallel_traps_slow_capture, &parallel_traps_continuum,
-            &parallel_traps_slow_capture_continuum, parallel_express, parallel_offset,
+            &parallel_roe, &parallel_ccd, &parallel_traps_ic,
+            &parallel_traps_sc, &parallel_traps_continuum,
+            &parallel_traps_sc_co, parallel_express, parallel_offset,
             parallel_window_start, parallel_window_stop,
             // Serial
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1);
@@ -516,14 +516,14 @@ void remove_cti(
         image_out = remove_cti(
             image_in, n_iterations,
             // Parallel
-            &parallel_roe, &parallel_ccd, &parallel_traps_instant_capture,
-            &parallel_traps_slow_capture, &parallel_traps_continuum,
-            &parallel_traps_slow_capture_continuum, parallel_express, parallel_offset,
+            &parallel_roe, &parallel_ccd, &parallel_traps_ic,
+            &parallel_traps_sc, &parallel_traps_continuum,
+            &parallel_traps_sc_co, parallel_express, parallel_offset,
             parallel_window_start, parallel_window_stop,
             // Serial
-            &serial_roe, &serial_ccd, &serial_traps_instant_capture,
-            &serial_traps_slow_capture, &serial_traps_continuum,
-            &serial_traps_slow_capture_continuum, serial_express, serial_offset,
+            &serial_roe, &serial_ccd, &serial_traps_ic,
+            &serial_traps_sc, &serial_traps_continuum,
+            &serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop);
     }
 
