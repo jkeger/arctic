@@ -98,10 +98,10 @@ TrapSlowCapture::TrapSlowCapture(
 }
 
 // ========
-// TrapContinuum::
+// TrapInstantCaptureContinuum::
 // ========
 /*
-    Class TrapContinuum.
+    Class TrapInstantCaptureContinuum.
 
     For a trap species with a continuum (log-normal distribution) of release
     timescales, and instant capture.
@@ -121,7 +121,7 @@ TrapSlowCapture::TrapSlowCapture(
     release_timescale_sigma : double
         The sigma of release lifetimes of the traps.
 */
-TrapContinuum::TrapContinuum(
+TrapInstantCaptureContinuum::TrapInstantCaptureContinuum(
     double density, double release_timescale, double release_timescale_sigma)
     : TrapInstantCapture(density, release_timescale),
       release_timescale_sigma(release_timescale_sigma) {}
@@ -150,14 +150,14 @@ TrapContinuum::TrapContinuum(
     fill_fraction : double
         The fraction of filled traps.
 */
-struct TrCo_ff_from_te_params {
+struct TrICCo_ff_from_te_params {
     double time_elapsed;
     double mu;
     double sigma;
 };
 
-double TrCo_ff_from_te_integrand(double tau, void* params) {
-    struct TrCo_ff_from_te_params* p = (struct TrCo_ff_from_te_params*)params;
+double TrICCo_ff_from_te_integrand(double tau, void* params) {
+    struct TrICCo_ff_from_te_params* p = (struct TrICCo_ff_from_te_params*)params;
 
     // Distribution density
     double n = exp(-pow(log(tau) - log(p->mu), 2.0) / (2.0 * p->sigma * p->sigma)) /
@@ -167,7 +167,7 @@ double TrCo_ff_from_te_integrand(double tau, void* params) {
     return n * exp(-p->time_elapsed / tau);
 }
 
-double TrapContinuum::fill_fraction_from_time_elapsed(
+double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed(
     double time_elapsed, gsl_integration_workspace* workspace) {
     // Completely full or empty, or unset watermark
     if (time_elapsed == 0.0)
@@ -186,10 +186,10 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
     if (!workspace) {
         workspace = gsl_integration_workspace_alloc(limit);
     }
-    struct TrCo_ff_from_te_params params = {
+    struct TrICCo_ff_from_te_params params = {
         time_elapsed, release_timescale, release_timescale_sigma};
     gsl_function F;
-    F.function = &TrCo_ff_from_te_integrand;
+    F.function = &TrICCo_ff_from_te_integrand;
     F.params = &params;
 
     // Integrate F.function from min to +infinity
@@ -229,21 +229,21 @@ double TrapContinuum::fill_fraction_from_time_elapsed(
         The total time elapsed since the traps were filled, in the same units
         as the trap timescales.
 */
-struct TrCo_te_from_ff_params {
-    TrapContinuum* trap;
+struct TrICCo_te_from_ff_params {
+    TrapInstantCaptureContinuum* trap;
     double fill_fraction;
     gsl_integration_workspace* workspace;
 };
 
-double TrCo_te_from_ff_root_function(double time_elapsed, void* params) {
-    struct TrCo_te_from_ff_params* p = (struct TrCo_te_from_ff_params*)params;
+double TrICCo_te_from_ff_root_function(double time_elapsed, void* params) {
+    struct TrICCo_te_from_ff_params* p = (struct TrICCo_te_from_ff_params*)params;
 
     // To find time such that: fill_fraction(time) - fill_fraction = 0
     return p->trap->fill_fraction_from_time_elapsed(time_elapsed, p->workspace) -
            p->fill_fraction;
 }
 
-double TrapContinuum::time_elapsed_from_fill_fraction(
+double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction(
     double fill_fraction, double time_max, gsl_integration_workspace* workspace) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0)
@@ -269,9 +269,9 @@ double TrapContinuum::time_elapsed_from_fill_fraction(
     gsl_root_fsolver* s;
     T = gsl_root_fsolver_brent;
     s = gsl_root_fsolver_alloc(T);
-    struct TrCo_te_from_ff_params params = {this, fill_fraction, workspace};
+    struct TrICCo_te_from_ff_params params = {this, fill_fraction, workspace};
     gsl_function F;
-    F.function = &TrCo_te_from_ff_root_function;
+    F.function = &TrICCo_te_from_ff_root_function;
     F.params = &params;
 
     // Bounding values
@@ -322,7 +322,7 @@ double TrapContinuum::time_elapsed_from_fill_fraction(
     d_log_time : double
         The logarithmic interval between successive (decreasing) times.
 */
-void TrapContinuum::prep_fill_fraction_and_time_elapsed_tables(
+void TrapInstantCaptureContinuum::prep_fill_fraction_and_time_elapsed_tables(
     double time_min, double time_max, int n_intp) {
 
     // Prep for the GSL integration
@@ -361,7 +361,7 @@ void TrapContinuum::prep_fill_fraction_and_time_elapsed_tables(
     fill_fraction : double
         The fraction of filled traps.
 */
-double TrapContinuum::fill_fraction_from_time_elapsed_table(double time_elapsed) {
+double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed_table(double time_elapsed) {
     // Completely full or empty, or unset watermark
     if (time_elapsed == 0.0)
         return 1.0;
@@ -406,7 +406,7 @@ double TrapContinuum::fill_fraction_from_time_elapsed_table(double time_elapsed)
         The total time elapsed since the traps were filled, in the same units
         as the trap timescales.
 */
-double TrapContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction) {
+double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0)
         return 0.0;
@@ -444,7 +444,7 @@ double TrapContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction
     For traps with a non-instant capture time, and a continuum (log-normal
     distribution) of release timescales.
 
-    i.e. A combination of the TrapSlowCapture and TrapContinuum models.
+    i.e. A combination of the TrapSlowCapture and TrapInstantCaptureContinuum models.
 
     Parameters
     ----------
@@ -475,7 +475,7 @@ TrapSlowCaptureContinuum::TrapSlowCaptureContinuum(
 }
 
 /*
-    Same as TrapContinuum
+    Same as TrapInstantCaptureContinuum
 */
 struct TrSCCo_ff_from_te_params {
     double time_elapsed;
@@ -529,7 +529,7 @@ double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
 }
 
 /*
-    Same as TrapContinuum
+    Same as TrapInstantCaptureContinuum
 */
 struct TrSCCo_te_from_ff_params {
     TrapSlowCaptureContinuum* trap;

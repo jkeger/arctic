@@ -6,135 +6,135 @@ cdef extern from "interface.hpp":
     void print_array(double* array, int length)
     void print_array_2D(double* array, int n_rows, int n_columns)
     void add_cti(
-        double* image, 
-        int n_rows, 
-        int n_columns, 
+        double* image,
+        int n_rows,
+        int n_columns,
         # ========
         # Parallel
         # ========
         # ROE
-        double* parallel_dwell_times_in, 
+        double* parallel_dwell_times_in,
         int parallel_n_steps,
         int parallel_empty_traps_between_columns,
         int parallel_empty_traps_for_first_transfers,
         int parallel_force_release_away_from_readout,
         int parallel_use_integer_express_matrix,
         # CCD
-        double* parallel_fraction_of_traps_per_phase_in, 
+        double* parallel_fraction_of_traps_per_phase_in,
         int parallel_n_phases,
-        double* parallel_full_well_depths, 
+        double* parallel_full_well_depths,
         double* parallel_well_notch_depths,
         double* parallel_well_fill_powers,
         # Traps
-        double* parallel_trap_densities, 
+        double* parallel_trap_densities,
         double* parallel_trap_release_timescales,
-        double* parallel_trap_third_params, 
-        double* parallel_trap_fourth_params, 
+        double* parallel_trap_third_params,
+        double* parallel_trap_fourth_params,
         int parallel_n_traps_instant_capture,
         int parallel_n_traps_slow_capture,
-        int parallel_n_traps_continuum,
+        int parallel_n_traps_instant_capture_continuum,
         int parallel_n_traps_slow_capture_continuum,
         # Misc
-        int parallel_express, 
+        int parallel_express,
         int parallel_offset, 
-        int parallel_window_start, 
+        int parallel_window_start,
         int parallel_window_stop,
         # ========
         # Serial
         # ========
         # ROE
-        double* serial_dwell_times_in, 
+        double* serial_dwell_times_in,
         int serial_n_steps,
         int serial_empty_traps_between_columns,
         int serial_empty_traps_for_first_transfers,
-        int serial_force_release_away_from_readout, 
+        int serial_force_release_away_from_readout,
         int serial_use_integer_express_matrix,
         # CCD
-        double* serial_fraction_of_traps_per_phase_in, 
+        double* serial_fraction_of_traps_per_phase_in,
         int serial_n_phases,
-        double* serial_full_well_depths, 
+        double* serial_full_well_depths,
         double* serial_well_notch_depths,
         double* serial_well_fill_powers,
         # Traps
-        double* serial_trap_densities, 
+        double* serial_trap_densities,
         double* serial_trap_release_timescales,
-        double* serial_trap_third_params, 
-        double* serial_trap_fourth_params, 
+        double* serial_trap_third_params,
+        double* serial_trap_fourth_params,
         int serial_n_traps_instant_capture,
         int serial_n_traps_slow_capture,
-        int serial_n_traps_continuum,
+        int serial_n_traps_instant_capture_continuum,
         int serial_n_traps_slow_capture_continuum,
         # Misc
-        int serial_express, 
-        int serial_offset, 
-        int serial_window_start, 
+        int serial_express,
+        int serial_offset,
+        int serial_window_start,
         int serial_window_stop,
         int verbosity
     )
     void remove_cti(
-        double* image, 
-        int n_rows, 
-        int n_columns, 
+        double* image,
+        int n_rows,
+        int n_columns,
         int n_iterations,
         # ========
         # Parallel
         # ========
         # ROE
-        double* parallel_dwell_times_in, 
+        double* parallel_dwell_times_in,
         int parallel_n_steps,
         int parallel_empty_traps_between_columns,
         int parallel_empty_traps_for_first_transfers,
         int parallel_force_release_away_from_readout,
         int parallel_use_integer_express_matrix,
         # CCD
-        double* parallel_fraction_of_traps_per_phase_in, 
+        double* parallel_fraction_of_traps_per_phase_in,
         int parallel_n_phases,
-        double* parallel_full_well_depths, 
+        double* parallel_full_well_depths,
         double* parallel_well_notch_depths,
         double* parallel_well_fill_powers,
         # Traps
-        double* parallel_trap_densities, 
+        double* parallel_trap_densities,
         double* parallel_trap_release_timescales,
-        double* parallel_trap_third_params, 
-        double* parallel_trap_fourth_params, 
+        double* parallel_trap_third_params,
+        double* parallel_trap_fourth_params,
         int parallel_n_traps_instant_capture,
         int parallel_n_traps_slow_capture,
-        int parallel_n_traps_continuum,
+        int parallel_n_traps_instant_capture_continuum,
         int parallel_n_traps_slow_capture_continuum,
         # Misc
-        int parallel_express, 
-        int parallel_offset, 
-        int parallel_window_start, 
+        int parallel_express,
+        int parallel_offset,
+        int parallel_window_start,
         int parallel_window_stop,
         # ========
         # Serial
         # ========
         # ROE
-        double* serial_dwell_times_in, 
+        double* serial_dwell_times_in,
         int serial_n_steps,
         int serial_empty_traps_between_columns,
         int serial_empty_traps_for_first_transfers,
-        int serial_force_release_away_from_readout, 
+        int serial_force_release_away_from_readout,
         int serial_use_integer_express_matrix,
         # CCD
-        double* serial_fraction_of_traps_per_phase_in, 
+        double* serial_fraction_of_traps_per_phase_in,
         int serial_n_phases,
-        double* serial_full_well_depths, 
+        double* serial_full_well_depths,
         double* serial_well_notch_depths,
         double* serial_well_fill_powers,
         # Traps
-        double* serial_trap_densities, 
+        double* serial_trap_densities,
         double* serial_trap_release_timescales,
-        double* serial_trap_third_params, 
-        double* serial_trap_fourth_params, 
+        double* serial_trap_third_params,
+        double* serial_trap_fourth_params,
         int serial_n_traps_instant_capture,
         int serial_n_traps_slow_capture,
-        int serial_n_traps_continuum,
+        int serial_n_traps_instant_capture_continuum,
         int serial_n_traps_slow_capture_continuum,
         # Misc
-        int serial_express, 
-        int serial_offset, 
-        int serial_window_start, 
+        int serial_express,
+        int serial_offset,
+        int serial_window_start,
         int serial_window_stop,
         int verbosity
     )
@@ -150,13 +150,13 @@ def check_contiguous(array):
 
 def cy_print_array(np.ndarray[np.double_t, ndim=1] array):
     array = check_contiguous(array)
-    
+
     print_array(&array[0], array.shape[0])
 
 
 def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):
     array = check_contiguous(array)
-    
+
     print_array_2D(&array[0, 0], array.shape[0], array.shape[1])
 
 
@@ -183,7 +183,7 @@ def cy_add_cti(
     np.ndarray[np.double_t, ndim=1] parallel_trap_fourth_params,
     int parallel_n_traps_instant_capture,
     int parallel_n_traps_slow_capture,
-    int parallel_n_traps_continuum,
+    int parallel_n_traps_instant_capture_continuum,
     int parallel_n_traps_slow_capture_continuum,
     # Misc
     int parallel_express,
@@ -211,7 +211,7 @@ def cy_add_cti(
     np.ndarray[np.double_t, ndim=1] serial_trap_fourth_params,
     int serial_n_traps_instant_capture,
     int serial_n_traps_slow_capture,
-    int serial_n_traps_continuum,
+    int serial_n_traps_instant_capture_continuum,
     int serial_n_traps_slow_capture_continuum,
     # Misc
     int serial_express,
@@ -223,13 +223,13 @@ def cy_add_cti(
 ):
     """
     Cython wrapper for arctic's add_cti() in src/cti.cpp.
-    
-    This wrapper passes the individual numbers and arrays extracted by the 
-    python wrapper to the C++ interface. See add_cti() in cti.py and add_cti() 
+
+    This wrapper passes the individual numbers and arrays extracted by the
+    python wrapper to the C++ interface. See add_cti() in cti.py and add_cti()
     in interface.cpp.
     """
     image = check_contiguous(image)
-    
+
     add_cti(
         &image[0, 0],
         image.shape[0],
@@ -257,7 +257,7 @@ def cy_add_cti(
         &parallel_trap_fourth_params[0],
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
-        parallel_n_traps_continuum,
+        parallel_n_traps_instant_capture_continuum,
         parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
@@ -287,7 +287,7 @@ def cy_add_cti(
         &serial_trap_fourth_params[0],
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
-        serial_n_traps_continuum,
+        serial_n_traps_instant_capture_continuum,
         serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
@@ -297,7 +297,7 @@ def cy_add_cti(
         # Output
         verbosity,
     )
-    
+
     return image
 
 
@@ -325,7 +325,7 @@ def cy_remove_cti(
     np.ndarray[np.double_t, ndim=1] parallel_trap_fourth_params,
     int parallel_n_traps_instant_capture,
     int parallel_n_traps_slow_capture,
-    int parallel_n_traps_continuum,
+    int parallel_n_traps_instant_capture_continuum,
     int parallel_n_traps_slow_capture_continuum,
     # Misc
     int parallel_express,
@@ -353,7 +353,7 @@ def cy_remove_cti(
     np.ndarray[np.double_t, ndim=1] serial_trap_fourth_params,
     int serial_n_traps_instant_capture,
     int serial_n_traps_slow_capture,
-    int serial_n_traps_continuum,
+    int serial_n_traps_instant_capture_continuum,
     int serial_n_traps_slow_capture_continuum,
     # Misc
     int serial_express,
@@ -365,13 +365,13 @@ def cy_remove_cti(
 ):
     """
     Cython wrapper for arctic's remove_cti() in src/cti.cpp.
-    
-    This wrapper passes the individual numbers and arrays extracted by the 
-    python wrapper to the C++ interface. See remove_cti() in cti.py and 
+
+    This wrapper passes the individual numbers and arrays extracted by the
+    python wrapper to the C++ interface. See remove_cti() in cti.py and
     remove_cti() in interface.cpp.
     """
     image = check_contiguous(image)
-    
+
     remove_cti(
         &image[0, 0],
         image.shape[0],
@@ -400,7 +400,7 @@ def cy_remove_cti(
         &parallel_trap_fourth_params[0],
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
-        parallel_n_traps_continuum,
+        parallel_n_traps_instant_capture_continuum,
         parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
@@ -430,7 +430,7 @@ def cy_remove_cti(
         &serial_trap_fourth_params[0],
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
-        serial_n_traps_continuum,
+        serial_n_traps_instant_capture_continuum,
         serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
@@ -440,5 +440,5 @@ def cy_remove_cti(
         # Output
         verbosity,
     )
-    
+
     return image

@@ -88,15 +88,15 @@ class TrapManagerSlowCapture : public TrapManagerBase {
     double n_electrons_released_and_captured(double n_free_electrons);
 };
 
-class TrapManagerContinuum : public TrapManagerBase {
+class TrapManagerInstantCaptureContinuum : public TrapManagerBase {
    public:
-    TrapManagerContinuum(){};
-    TrapManagerContinuum(
-        std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
+    TrapManagerInstantCaptureContinuum(){};
+    TrapManagerInstantCaptureContinuum(
+        std::valarray<TrapInstantCaptureContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
         double dwell_time);
-    ~TrapManagerContinuum(){};
+    ~TrapManagerInstantCaptureContinuum(){};
 
-    std::valarray<TrapContinuum> traps;
+    std::valarray<TrapInstantCaptureContinuum> traps;
 
     double time_min;
     double time_max;
@@ -135,25 +135,25 @@ class TrapManagerManager {
     TrapManagerManager(
         std::valarray<TrapInstantCapture>& instant_capture_traps,
         std::valarray<TrapSlowCapture>& slow_capture_traps,
-        std::valarray<TrapContinuum>& continuum_traps,
+        std::valarray<TrapInstantCaptureContinuum>& instant_capture_continuum_traps,
         std::valarray<TrapSlowCaptureContinuum>& slow_capture_continuum_traps,
         int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
     std::valarray<TrapInstantCapture> instant_capture_traps;
     std::valarray<TrapSlowCapture> slow_capture_traps;
-    std::valarray<TrapContinuum> continuum_traps;
+    std::valarray<TrapInstantCaptureContinuum> instant_capture_continuum_traps;
     std::valarray<TrapSlowCaptureContinuum> slow_capture_continuum_traps;
     int max_n_transfers;
     CCD ccd;
 
     int n_slow_capture_traps;
     int n_instant_capture_traps;
-    int n_continuum_traps;
+    int n_instant_capture_continuum_traps;
     int n_slow_capture_continuum_traps;
     std::valarray<TrapManagerInstantCapture> trap_managers_instant_capture;
     std::valarray<TrapManagerSlowCapture> trap_managers_slow_capture;
-    std::valarray<TrapManagerContinuum> trap_managers_continuum;
+    std::valarray<TrapManagerInstantCaptureContinuum> trap_managers_instant_capture_continuum;
     std::valarray<TrapManagerSlowCaptureContinuum> trap_managers_slow_capture_continuum;
 
     void reset_trap_states();

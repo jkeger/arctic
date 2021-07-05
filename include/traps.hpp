@@ -27,11 +27,11 @@ class TrapSlowCapture : public TrapInstantCapture {
     double capture_rate;
 };
 
-class TrapContinuum : public TrapInstantCapture {
+class TrapInstantCaptureContinuum : public TrapInstantCapture {
    public:
-    TrapContinuum(
+    TrapInstantCaptureContinuum(
         double density, double release_timescale, double release_timescale_sigma);
-    ~TrapContinuum(){};
+    ~TrapInstantCaptureContinuum(){};
 
     double release_timescale_sigma;
 

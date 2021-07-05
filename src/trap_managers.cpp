@@ -1000,10 +1000,10 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
 }
 
 // ========
-// TrapManagerContinuum::
+// TrapManagerInstantCaptureContinuum::
 // ========
 /*
-    Class TrapManagerContinuum.
+    Class TrapManagerInstantCaptureContinuum.
 
     For trap species with continous distributions of release timescales, and
     the standard release-then-instant-capture algorithm.
@@ -1024,8 +1024,8 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
         The number of interpolation values in the arrays. Currently set here
         manually. See prep_fill_fraction_and_time_elapsed_tables().
 */
-TrapManagerContinuum::TrapManagerContinuum(
-    std::valarray<TrapContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
+TrapManagerInstantCaptureContinuum::TrapManagerInstantCaptureContinuum(
+    std::valarray<TrapInstantCaptureContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
     double dwell_time)
     : TrapManagerBase(max_n_transfers, ccd_phase, dwell_time), traps(traps) {
 
@@ -1044,9 +1044,9 @@ TrapManagerContinuum::TrapManagerContinuum(
     Set the interpolation table values for converting between fill fractions
     and elapsed times.
 
-    See TrapContinuum.prep_fill_fraction_and_time_elapsed_tables().
+    See TrapInstantCaptureContinuum.prep_fill_fraction_and_time_elapsed_tables().
 */
-void TrapManagerContinuum::prepare_interpolation_tables() {
+void TrapManagerInstantCaptureContinuum::prepare_interpolation_tables() {
     // Prepare interpolation tables for each trap species
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
         traps[i_trap].prep_fill_fraction_and_time_elapsed_tables(
@@ -1057,7 +1057,7 @@ void TrapManagerContinuum::prepare_interpolation_tables() {
 /*
     Call any necessary initialisation functions, etc.
 */
-void TrapManagerContinuum::setup() {
+void TrapManagerInstantCaptureContinuum::setup() {
     initialise_trap_states();
     prepare_interpolation_tables();
 }
@@ -1066,7 +1066,7 @@ void TrapManagerContinuum::setup() {
     Same as TrapManagerInstantCapture, except for the conversion between fill
     fractions and elapsed times to update the trap states.
 */
-double TrapManagerContinuum::n_electrons_released() {
+double TrapManagerInstantCaptureContinuum::n_electrons_released() {
     double n_released = 0.0;
     double n_released_this_wmk;
     double fill_initial;
@@ -1105,7 +1105,7 @@ double TrapManagerContinuum::n_electrons_released() {
 /*
     Same as TrapManagerInstantCapture.
 */
-void TrapManagerContinuum::update_watermarks_capture(
+void TrapManagerInstantCaptureContinuum::update_watermarks_capture(
     double cloud_fractional_volume, int i_wmk_above_cloud) {
     // First capture
     if (n_active_watermarks == 0) {
@@ -1191,7 +1191,7 @@ void TrapManagerContinuum::update_watermarks_capture(
 /*
     Same as TrapManagerInstantCapture.
 */
-void TrapManagerContinuum::update_watermarks_capture_not_enough(
+void TrapManagerInstantCaptureContinuum::update_watermarks_capture_not_enough(
     double cloud_fractional_volume, int i_wmk_above_cloud, double enough) {
     // First capture
     if (n_active_watermarks == 0) {
@@ -1311,7 +1311,7 @@ void TrapManagerContinuum::update_watermarks_capture_not_enough(
 /*
     Same as TrapManagerInstantCapture.
 */
-double TrapManagerContinuum::n_electrons_captured(double n_free_electrons) {
+double TrapManagerInstantCaptureContinuum::n_electrons_captured(double n_free_electrons) {
     // The fractional volume the electron cloud reaches in the pixel well
     double cloud_fractional_volume =
         ccd_phase.cloud_fractional_volume_from_electrons(n_free_electrons);
@@ -1379,7 +1379,7 @@ double TrapManagerContinuum::n_electrons_captured(double n_free_electrons) {
 /*
     Same as TrapManagerInstantCapture.
 */
-double TrapManagerContinuum::n_electrons_released_and_captured(
+double TrapManagerInstantCaptureContinuum::n_electrons_released_and_captured(
     double n_free_electrons) {
 
     double n_released = n_electrons_released();
@@ -1506,7 +1506,7 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
     gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Count the released electrons and update the watermarks
-    // Same as TrapManagerContinuum.n_electrons_released()
+    // Same as TrapManagerInstantCaptureContinuum.n_electrons_released()
     for (int i_wmk = i_wmk_above_cloud;
          i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
         n_released_this_wmk = 0.0;
@@ -1690,7 +1690,7 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
     ----------
     instant_capture_traps : std::valarray<TrapInstantCapture>
     slow_capture_traps : std::valarray<TrapSlowCapture>
-    continuum_traps : std::valarray<TrapContinuum>
+    instant_capture_continuum_traps : std::valarray<TrapInstantCaptureContinuum>
     slow_capture_continuum_traps : std::valarray<TrapSlowCaptureContinuum>
         The arrays of trap species, one for each type (which can be empty).
 
@@ -1713,13 +1713,13 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
     ----------
     n_instant_capture_traps : int
     n_slow_capture_traps : int
-    n_continuum_traps : int
+    n_instant_capture_continuum_traps : int
     n_slow_capture_continuum_traps : int
         The number of trap species (if any) of each watermark type.
 
     trap_managers_instant_capture : std::valarray<TrapManagerInstantCapture>
     trap_managers_slow_capture : std::valarray<TrapManagerSlowCapture>
-    trap_managers_continuum : std::valarray<TrapManagerContinuum>
+    trap_managers_instant_capture_continuum : std::valarray<TrapManagerInstantCaptureContinuum>
     trap_managers_slow_capture_continuum :
    std::valarray<TrapManagerSlowCaptureContinuum> For each watermark type, the list of
    trap manager objects for each phase. Ignored if the corresponding n_*_traps is 0.
@@ -1727,12 +1727,12 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
 TrapManagerManager::TrapManagerManager(
     std::valarray<TrapInstantCapture>& instant_capture_traps,
     std::valarray<TrapSlowCapture>& slow_capture_traps,
-    std::valarray<TrapContinuum>& continuum_traps,
+    std::valarray<TrapInstantCaptureContinuum>& instant_capture_continuum_traps,
     std::valarray<TrapSlowCaptureContinuum>& slow_capture_continuum_traps,
     int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times)
     : instant_capture_traps(instant_capture_traps),
       slow_capture_traps(slow_capture_traps),
-      continuum_traps(continuum_traps),
+      instant_capture_continuum_traps(instant_capture_continuum_traps),
       slow_capture_continuum_traps(slow_capture_continuum_traps),
       max_n_transfers(max_n_transfers),
       ccd(ccd) {
@@ -1740,7 +1740,7 @@ TrapManagerManager::TrapManagerManager(
     // The number of trap species (if any) of each watermark type
     n_instant_capture_traps = instant_capture_traps.size();
     n_slow_capture_traps = slow_capture_traps.size();
-    n_continuum_traps = continuum_traps.size();
+    n_instant_capture_continuum_traps = instant_capture_continuum_traps.size();
     n_slow_capture_continuum_traps = slow_capture_continuum_traps.size();
 
     // Account for the number of clock-sequence steps for the maximum transfers
@@ -1784,20 +1784,20 @@ TrapManagerManager::TrapManagerManager(
         }
     }
 
-    if (n_continuum_traps > 0) {
-        trap_managers_continuum.resize(ccd.n_phases);
+    if (n_instant_capture_continuum_traps > 0) {
+        trap_managers_instant_capture_continuum.resize(ccd.n_phases);
 
         // Initialise manager and watermarks for each phase
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            trap_managers_continuum[phase_index] = TrapManagerContinuum(
-                continuum_traps, max_n_transfers, ccd.phases[phase_index],
+            trap_managers_instant_capture_continuum[phase_index] = TrapManagerInstantCaptureContinuum(
+                instant_capture_continuum_traps, max_n_transfers, ccd.phases[phase_index],
                 dwell_times[phase_index]);
 
             // Modify the trap densities in different phases
-            trap_managers_continuum[phase_index].trap_densities *=
+            trap_managers_instant_capture_continuum[phase_index].trap_densities *=
                 ccd.fraction_of_traps_per_phase[phase_index];
 
-            trap_managers_continuum[phase_index].setup();
+            trap_managers_instant_capture_continuum[phase_index].setup();
         }
     }
 
@@ -1832,9 +1832,9 @@ void TrapManagerManager::reset_trap_states() {
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
             trap_managers_slow_capture[phase_index].reset_trap_states();
         }
-    if (n_continuum_traps > 0)
+    if (n_instant_capture_continuum_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            trap_managers_continuum[phase_index].reset_trap_states();
+            trap_managers_instant_capture_continuum[phase_index].reset_trap_states();
         }
     if (n_slow_capture_continuum_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
@@ -1854,9 +1854,9 @@ void TrapManagerManager::store_trap_states() {
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
             trap_managers_slow_capture[phase_index].store_trap_states();
         }
-    if (n_continuum_traps > 0)
+    if (n_instant_capture_continuum_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            trap_managers_continuum[phase_index].store_trap_states();
+            trap_managers_instant_capture_continuum[phase_index].store_trap_states();
         }
     if (n_slow_capture_continuum_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
@@ -1876,9 +1876,9 @@ void TrapManagerManager::restore_trap_states() {
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
             trap_managers_slow_capture[phase_index].restore_trap_states();
         }
-    if (n_continuum_traps > 0)
+    if (n_instant_capture_continuum_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            trap_managers_continuum[phase_index].restore_trap_states();
+            trap_managers_instant_capture_continuum[phase_index].restore_trap_states();
         }
     if (n_slow_capture_continuum_traps > 0)
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {

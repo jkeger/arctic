@@ -4,7 +4,7 @@ from arcticpy.src.roe import ROE
 from arcticpy.src.traps import (
     TrapInstantCapture,
     TrapSlowCapture,
-    TrapContinuum,
+    TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
 from arcticpy.wrapper import (

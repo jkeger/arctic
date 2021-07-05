@@ -5,7 +5,7 @@ from arcticpy.src.roe import ROE
 from arcticpy.src.traps import (
     TrapInstantCapture,
     TrapSlowCapture,
-    TrapContinuum,
+    TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
 
@@ -19,18 +19,18 @@ def _extract_trap_parameters(traps):
     # Extract trap inputs
     traps_instant_capture = [trap for trap in traps if type(trap) == TrapInstantCapture]
     traps_slow_capture = [trap for trap in traps if type(trap) == TrapSlowCapture]
-    traps_continuum = [trap for trap in traps if type(trap) == TrapContinuum]
+    traps_instant_capture_continuum = [trap for trap in traps if type(trap) == TrapInstantCaptureContinuum]
     traps_slow_capture_continuum = [
         trap for trap in traps if type(trap) == TrapSlowCaptureContinuum
     ]
     n_traps_instant_capture = len(traps_instant_capture)
     n_traps_slow_capture = len(traps_slow_capture)
-    n_traps_continuum = len(traps_continuum)
+    n_traps_instant_capture_continuum = len(traps_instant_capture_continuum)
     n_traps_slow_capture_continuum = len(traps_slow_capture_continuum)
     if (
         n_traps_slow_capture
         + n_traps_instant_capture
-        + n_traps_continuum
+        + n_traps_instant_capture_continuum
         + n_traps_slow_capture_continuum
         != len(traps)
     ):
@@ -39,7 +39,7 @@ def _extract_trap_parameters(traps):
             % (
                 n_traps_instant_capture,
                 n_traps_slow_capture,
-                n_traps_continuum,
+                n_traps_instant_capture_continuum,
                 n_traps_slow_capture_continuum,
                 len(traps),
             )
@@ -49,7 +49,7 @@ def _extract_trap_parameters(traps):
     traps = (
         traps_instant_capture
         + traps_slow_capture
-        + traps_continuum
+        + traps_instant_capture_continuum
         + traps_slow_capture_continuum
     )
     trap_densities = np.array([trap.density for trap in traps], dtype=np.double)
@@ -63,7 +63,7 @@ def _extract_trap_parameters(traps):
             trap_third_params.append(0.0)
         elif type(trap) == TrapSlowCapture:
             trap_third_params.append(trap.capture_timescale)
-        elif type(trap) == TrapContinuum:
+        elif type(trap) == TrapInstantCaptureContinuum:
             trap_third_params.append(trap.release_timescale_sigma)
         elif type(trap) == TrapSlowCaptureContinuum:
             trap_third_params.append(trap.release_timescale_sigma)
@@ -75,7 +75,7 @@ def _extract_trap_parameters(traps):
             trap_fourth_params.append(0.0)
         elif type(trap) == TrapSlowCapture:
             trap_fourth_params.append(0.0)
-        elif type(trap) == TrapContinuum:
+        elif type(trap) == TrapInstantCaptureContinuum:
             trap_fourth_params.append(0.0)
         elif type(trap) == TrapSlowCaptureContinuum:
             trap_fourth_params.append(trap.capture_timescale)
@@ -88,7 +88,7 @@ def _extract_trap_parameters(traps):
         trap_fourth_params,
         n_traps_instant_capture,
         n_traps_slow_capture,
-        n_traps_continuum,
+        n_traps_instant_capture_continuum,
         n_traps_slow_capture_continuum,
     )
 
@@ -108,7 +108,7 @@ def _set_dummy_parameters():
     trap_fourth_params = np.array([0.0], dtype=np.double)
     n_traps_instant_capture = 0
     n_traps_slow_capture = 0
-    n_traps_continuum = 0
+    n_traps_instant_capture_continuum = 0
     n_traps_slow_capture_continuum = 0
     express = 0
     offset = 0
@@ -124,7 +124,7 @@ def _set_dummy_parameters():
         trap_fourth_params,
         n_traps_instant_capture,
         n_traps_slow_capture,
-        n_traps_continuum,
+        n_traps_instant_capture_continuum,
         n_traps_slow_capture_continuum,
         express,
         offset,
@@ -193,7 +193,7 @@ def add_cti(
             parallel_trap_fourth_params,
             parallel_n_traps_instant_capture,
             parallel_n_traps_slow_capture,
-            parallel_n_traps_continuum,
+            parallel_n_traps_instant_capture_continuum,
             parallel_n_traps_slow_capture_continuum,
         ) = _extract_trap_parameters(parallel_traps)
     else:
@@ -207,7 +207,7 @@ def add_cti(
             parallel_trap_fourth_params,
             parallel_n_traps_instant_capture,
             parallel_n_traps_slow_capture,
-            parallel_n_traps_continuum,
+            parallel_n_traps_instant_capture_continuum,
             parallel_n_traps_slow_capture_continuum,
             parallel_express,
             parallel_offset,
@@ -224,7 +224,7 @@ def add_cti(
             serial_trap_fourth_params,
             serial_n_traps_instant_capture,
             serial_n_traps_slow_capture,
-            serial_n_traps_continuum,
+            serial_n_traps_instant_capture_continuum,
             serial_n_traps_slow_capture_continuum,
         ) = _extract_trap_parameters(serial_traps)
     else:
@@ -238,7 +238,7 @@ def add_cti(
             serial_trap_fourth_params,
             serial_n_traps_instant_capture,
             serial_n_traps_slow_capture,
-            serial_n_traps_continuum,
+            serial_n_traps_instant_capture_continuum,
             serial_n_traps_slow_capture_continuum,
             serial_express,
             serial_offset,
@@ -273,7 +273,7 @@ def add_cti(
         parallel_trap_fourth_params,
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
-        parallel_n_traps_continuum,
+        parallel_n_traps_instant_capture_continuum,
         parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
@@ -301,7 +301,7 @@ def add_cti(
         serial_trap_fourth_params,
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
-        serial_n_traps_continuum,
+        serial_n_traps_instant_capture_continuum,
         serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,
@@ -447,7 +447,7 @@ def remove_cti(
         parallel_trap_fourth_params,
         parallel_n_traps_instant_capture,
         parallel_n_traps_slow_capture,
-        parallel_n_traps_continuum,
+        parallel_n_traps_instant_capture_continuum,
         parallel_n_traps_slow_capture_continuum,
         # Misc
         parallel_express,
@@ -475,7 +475,7 @@ def remove_cti(
         serial_trap_fourth_params,
         serial_n_traps_instant_capture,
         serial_n_traps_slow_capture,
-        serial_n_traps_continuum,
+        serial_n_traps_instant_capture_continuum,
         serial_n_traps_slow_capture_continuum,
         # Misc
         serial_express,

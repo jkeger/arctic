@@ -23,7 +23,7 @@ class TrapSlowCapture(TrapInstantCapture):
         self.capture_timescale = capture_timescale
 
 
-class TrapContinuum(TrapInstantCapture):
+class TrapInstantCaptureContinuum(TrapInstantCapture):
     def __init__(
         self,
         density=1.0,
@@ -35,7 +35,7 @@ class TrapContinuum(TrapInstantCapture):
         self.release_timescale_sigma = release_timescale_sigma
 
 
-class TrapSlowCaptureContinuum(TrapInstantCapture):
+class TrapSlowCaptureContinuum(TrapSlowCapture):
     def __init__(
         self,
         density=1.0,
