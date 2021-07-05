@@ -305,12 +305,12 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
     }
 
     SECTION("Narrow continuum traps similar to instant-capture traps") {
-        std::valarray<std::valarray<double>> image_pre_cti, image_add_ic, image_add_co;
+        std::valarray<std::valarray<double>> image_pre_cti, image_add_ic, image_add_ic_co;
         int express;
         TrapInstantCapture trap_ic(10.0, -1.0 / log(0.5));
-        TrapInstantCaptureContinuum trap_co(10.0, -1.0 / log(0.5), 0.01);
+        TrapInstantCaptureContinuum trap_ic_co(10.0, -1.0 / log(0.5), 0.01);
         std::valarray<TrapInstantCapture> traps_ic = {trap_ic};
-        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_co};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_ic_co};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
@@ -321,24 +321,24 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         // Parallel
         image_add_ic = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, nullptr, nullptr, nullptr, express);
-        image_add_co = add_cti(
+        image_add_ic_co = add_cti(
             image_pre_cti, &roe, &ccd, nullptr, nullptr, &traps_ic_co, nullptr,
             express);
 
         // ~Same results
         for (int i_row = 0; i_row < 10; i_row++) {
             REQUIRE(
-                image_add_co[i_row][0] == Approx(image_add_ic[i_row][0]).margin(1e-3));
+                image_add_ic_co[i_row][0] == Approx(image_add_ic[i_row][0]).margin(1e-3));
         }
     }
 
     SECTION("Slow-capture continuum traps trail less than continuum traps") {
         std::valarray<std::valarray<double>> image_pre_cti, image_add_sc_co,
-            image_add_co;
+            image_add_ic_co;
         int express;
-        TrapInstantCaptureContinuum trap_co(10.0, -1.0 / log(0.5), 0.3);
+        TrapInstantCaptureContinuum trap_ic_co(10.0, -1.0 / log(0.5), 0.3);
         TrapSlowCaptureContinuum trap_sc_co(10.0, -1.0 / log(0.5), 0.3, 0.1);
-        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_co};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_ic_co};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_sc_co};
         ROE roe(dwell_times, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -348,7 +348,7 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         express = 0;
 
         // Parallel
-        image_add_co = add_cti(
+        image_add_ic_co = add_cti(
             image_pre_cti, &roe, &ccd, nullptr, nullptr, &traps_ic_co, nullptr,
             express);
         image_add_sc_co = add_cti(
@@ -357,13 +357,13 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
 
         // Similarish results, but less charge removed from bright pixel and
         // less released into trail by standard traps than instant-capture traps
-        REQUIRE(image_add_sc_co[2][0] > image_add_co[2][0]);
-        REQUIRE(image_add_sc_co[2][0] == Approx(image_add_co[2][0]).epsilon(0.01));
+        REQUIRE(image_add_sc_co[2][0] > image_add_ic_co[2][0]);
+        REQUIRE(image_add_sc_co[2][0] == Approx(image_add_ic_co[2][0]).epsilon(0.01));
         for (int i_row = 3; i_row < 10; i_row++) {
-            REQUIRE(image_add_sc_co[i_row][0] < image_add_co[i_row][0]);
+            REQUIRE(image_add_sc_co[i_row][0] < image_add_ic_co[i_row][0]);
             REQUIRE(
                 image_add_sc_co[i_row][0] ==
-                Approx(image_add_co[i_row][0]).margin(1.5));
+                Approx(image_add_ic_co[i_row][0]).margin(1.5));
         }
     }
 

@@ -43,9 +43,9 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager_sc.trap_densities[0] == trap_3.density);
 
         // Continuum traps
-        std::valarray<TrapInstantCaptureContinuum> traps_co = {trap_4};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_4};
         TrapManagerInstantCaptureContinuum trap_manager_co(
-            traps_co, max_n_transfers, ccd_phase, dwell_time);
+            traps_ic_co, max_n_transfers, ccd_phase, dwell_time);
 
         REQUIRE(trap_manager_co.n_traps == 1);
         REQUIRE(trap_manager_co.traps[0].density == trap_4.density);
@@ -74,9 +74,9 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager_sc.ccd_phase.well_fill_power == ccd_phase.well_fill_power);
 
         // Continuum traps
-        std::valarray<TrapInstantCaptureContinuum> traps_co = {trap_4};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_4};
         TrapManagerInstantCaptureContinuum trap_manager_co(
-            traps_co, max_n_transfers, ccd_phase, dwell_time);
+            traps_ic_co, max_n_transfers, ccd_phase, dwell_time);
 
         REQUIRE(trap_manager_co.ccd_phase.full_well_depth == ccd_phase.full_well_depth);
         REQUIRE(
@@ -458,13 +458,13 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Initialisation, single phase, one type of traps") {
         std::valarray<TrapInstantCapture> traps_ic = {trap_1, trap_2};
         std::valarray<TrapSlowCapture> traps_sc = {};
-        std::valarray<TrapInstantCaptureContinuum> traps_co = {};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
         ROE roe;
         CCD ccd(ccd_phase);
 
         TrapManagerManager trap_manager_manager(
-            traps_ic, traps_sc, traps_co, traps_sc_co, max_n_transfers, ccd,
+            traps_ic, traps_sc, traps_ic_co, traps_sc_co, max_n_transfers, ccd,
             roe.dwell_times);
 
         REQUIRE(trap_manager_manager.n_traps_ic == 2);
@@ -480,13 +480,13 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Initialisation, single phase, two types of traps") {
         std::valarray<TrapInstantCapture> traps_ic = {trap_1, trap_2};
         std::valarray<TrapSlowCapture> traps_sc = {trap_3};
-        std::valarray<TrapInstantCaptureContinuum> traps_co = {};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
         ROE roe;
         CCD ccd(ccd_phase);
 
         TrapManagerManager trap_manager_manager(
-            traps_ic, traps_sc, traps_co, traps_sc_co, max_n_transfers, ccd,
+            traps_ic, traps_sc, traps_ic_co, traps_sc_co, max_n_transfers, ccd,
             roe.dwell_times);
 
         REQUIRE(trap_manager_manager.n_traps_ic == 2);
@@ -506,7 +506,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Initialisation, multiphase, all types of traps") {
         std::valarray<TrapInstantCapture> traps_ic = {trap_1, trap_2};
         std::valarray<TrapSlowCapture> traps_sc = {trap_3};
-        std::valarray<TrapInstantCaptureContinuum> traps_co = {trap_4};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_4};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_5};
         std::valarray<double> dwell_times = {0.8, 0.1, 0.1};
         ROE roe(dwell_times);
@@ -516,7 +516,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         CCD ccd(phases, fractions);
 
         TrapManagerManager trap_manager_manager(
-            traps_ic, traps_sc, traps_co, traps_sc_co, max_n_transfers, ccd,
+            traps_ic, traps_sc, traps_ic_co, traps_sc_co, max_n_transfers, ccd,
             roe.dwell_times);
 
         REQUIRE(trap_manager_manager.n_traps_ic == 2);
@@ -748,7 +748,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
     SECTION("Store, reset, and restore all trap states") {
         std::valarray<TrapInstantCapture> traps_ic = {trap_1, trap_2};
         std::valarray<TrapSlowCapture> traps_sc = {trap_3};
-        std::valarray<TrapInstantCaptureContinuum> traps_co = {trap_4};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_4};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_5};
         std::valarray<double> dwell_times = {0.8, 0.1, 0.1};
         ROE roe(dwell_times);
@@ -759,7 +759,7 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         max_n_transfers = 3;
         TrapManagerManager t_m_m(
-            traps_ic, traps_sc, traps_co, traps_sc_co, max_n_transfers, ccd,
+            traps_ic, traps_sc, traps_ic_co, traps_sc_co, max_n_transfers, ccd,
             roe.dwell_times);
 
         // Account for the number of clock-sequence steps for the maximum transfers
@@ -2311,7 +2311,7 @@ TEST_CASE("Test slow-capture traps: release and capture", "[trap_managers]") {
     }
 }
 
-TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
+TEST_CASE("Test (narrow) instant-capture continuum traps: release", "[trap_managers]") {
     TrapInstantCaptureContinuum trap_1(10.0, -1.0 / log(0.5), 0.01);
     TrapInstantCaptureContinuum trap_2(8.0, -1.0 / log(0.2), 0.01);
 
@@ -2433,7 +2433,7 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
     }
 }
 
-TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
+TEST_CASE("Test instant-capture continuum traps: simple capture", "[trap_managers]") {
     // Base cases: i_first_active_wmk = 0, enough > 1
 
     // Identical to instant-capture traps
@@ -2664,7 +2664,7 @@ TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
     }
 }
 
-TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
+TEST_CASE("Test instant-capture continuum traps: other capture", "[trap_managers]") {
     // More complicated cases: i_first_active_wmk != 0 and/or enough < 1
 
     // Identical to instant-capture traps

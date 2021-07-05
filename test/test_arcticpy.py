@@ -640,7 +640,7 @@ class TestCompareTrapTypes:
         for i, (trap, label) in enumerate(
             zip(
                 [trap_sc, trap_ic_co, trap_sc_co],
-                ["Slow Capture", "Continuum", "Slow Capture Continuum"],
+                ["Slow Capture", "Instant Capture Continuum", "Slow Capture Continuum"],
             )
         ):
             image_post_cti = ac.add_cti(

@@ -39,7 +39,7 @@ TEST_CASE("Test instant-capture and slow-capture traps", "[traps]") {
     }
 }
 
-TEST_CASE("Test continuum traps", "[traps]") {
+TEST_CASE("Test instant-capture continuum traps", "[traps]") {
     // Narrow and wide distributions of release lifetimes
     TrapInstantCaptureContinuum trap_1(10.0, -1.0 / log(0.5), 0.1);
     TrapInstantCaptureContinuum trap_2(10.0, -1.0 / log(0.5), 1.0);
