@@ -638,11 +638,10 @@ class TestCompareTrapTypes:
 
         # Other trap types
         for i, (trap, label) in enumerate(
-            # zip(  ### WIP ###
-            #     [trap_sc, trap_co, trap_sc_co],
-            #     ["Slow Capture", "Continuum", "Slow Capture Continuum"],
-            # )
-            zip([trap_sc, trap_co], ["Slow Capture", "Continuum"])
+            zip(
+                [trap_sc, trap_co, trap_sc_co],
+                ["Slow Capture", "Continuum", "Slow Capture Continuum"],
+            )
         ):
             image_post_cti = ac.add_cti(
                 image=image_pre_cti,
