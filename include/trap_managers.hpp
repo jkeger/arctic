@@ -92,8 +92,8 @@ class TrapManagerInstantCaptureContinuum : public TrapManagerBase {
    public:
     TrapManagerInstantCaptureContinuum(){};
     TrapManagerInstantCaptureContinuum(
-        std::valarray<TrapInstantCaptureContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
-        double dwell_time);
+        std::valarray<TrapInstantCaptureContinuum> traps, int max_n_transfers,
+        CCDPhase ccd_phase, double dwell_time);
     ~TrapManagerInstantCaptureContinuum(){};
 
     std::valarray<TrapInstantCaptureContinuum> traps;
@@ -136,8 +136,8 @@ class TrapManagerManager {
         std::valarray<TrapInstantCapture>& traps_ic,
         std::valarray<TrapSlowCapture>& traps_sc,
         std::valarray<TrapInstantCaptureContinuum>& traps_ic_co,
-        std::valarray<TrapSlowCaptureContinuum>& traps_sc_co,
-        int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times);
+        std::valarray<TrapSlowCaptureContinuum>& traps_sc_co, int max_n_transfers,
+        CCD ccd, std::valarray<double>& dwell_times);
     ~TrapManagerManager(){};
 
     std::valarray<TrapInstantCapture> traps_ic;

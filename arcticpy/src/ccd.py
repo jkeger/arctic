@@ -2,23 +2,14 @@ import numpy as np
 
 
 class CCDPhase(object):
-    def __init__(
-        self,
-        full_well_depth=1e4,
-        well_notch_depth=0.0,
-        well_fill_power=0.58,
-    ):
+    def __init__(self, full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=0.58):
         self.full_well_depth = full_well_depth
         self.well_notch_depth = well_notch_depth
         self.well_fill_power = well_fill_power
 
 
 class CCD(object):
-    def __init__(
-        self,
-        phases=[CCDPhase()],
-        fraction_of_traps_per_phase=[1.0],
-    ):
+    def __init__(self, phases=[CCDPhase()], fraction_of_traps_per_phase=[1.0]):
         self.phases = phases
         self.fraction_of_traps_per_phase = np.array(
             fraction_of_traps_per_phase, dtype=np.double

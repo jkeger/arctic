@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include <valarray>
 #include <vector>
 
@@ -12,7 +13,7 @@
 // ========
 /*
     Global verbosity parameter to control the amount of printed information:
-    
+
     0       No printing (except errors etc).
     1       Standard.
     2       Extra details.
@@ -22,7 +23,7 @@ void set_verbosity(int v);
 
 /*
     Print if the global verbosity parameter is >= verbosity_min.
-    
+
     If verbosity >= 2, also print the origin of the message.
 */
 #define __FILENAME__ strrchr("/" __FILE__, '/') + 1

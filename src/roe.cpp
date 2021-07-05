@@ -1,9 +1,11 @@
 
+#include "roe.hpp"
+
 #include <math.h>
 #include <stdio.h>
+
 #include <valarray>
 
-#include "roe.hpp"
 #include "util.hpp"
 
 // ========
@@ -808,13 +810,12 @@ void ROETrapPumping::set_express_matrix_from_rows_and_express(
 
         n_express_passes = express + 1;
         tmp_col.resize(n_express_passes);
-        // Set the non-zero elements, which won't include the final entry for 
+        // Set the non-zero elements, which won't include the final entry for
         // mismatched integer multipliers
         if ((use_integer_express_matrix) && (n_pumps % express != 0)) {
             // (Using slice here doesn't compile on mac for some odd reason...)
-            for (int i = 0; i < n_express_passes - 1; i++)
-                tmp_col[i] = tmp_col_2[i];
-            
+            for (int i = 0; i < n_express_passes - 1; i++) tmp_col[i] = tmp_col_2[i];
+
             // Put back the final zero
             tmp_col[n_express_passes - 1] = 0.0;
         } else

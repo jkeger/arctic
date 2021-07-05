@@ -1,9 +1,9 @@
 
-#include "catch2/catch.hpp"
-#include "util.hpp"
-
 #include <valarray>
 #include <vector>
+
+#include "catch2/catch.hpp"
+#include "util.hpp"
 
 TEST_CASE("Test clamp", "[util]") {
     double value = 123.456;
@@ -58,7 +58,7 @@ TEST_CASE("Test transpose", "[util]") {
         {3.0, 7.0, 11.0},
         // clang-format on
     };
-    
+
     SECTION("Transpose array to array_T") {
         test = transpose(array);
         REQUIRE(test.size() == array_T.size());
@@ -69,7 +69,7 @@ TEST_CASE("Test transpose", "[util]") {
             REQUIRE_THAT(test_row, Catch::Approx(answer_row));
         }
     }
-    
+
     SECTION("Transpose array_T to array") {
         test = transpose(array_T);
         REQUIRE(test.size() == array.size());

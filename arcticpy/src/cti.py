@@ -20,38 +20,19 @@ def _extract_trap_parameters(traps):
     traps_ic = [trap for trap in traps if type(trap) == TrapInstantCapture]
     traps_sc = [trap for trap in traps if type(trap) == TrapSlowCapture]
     traps_ic_co = [trap for trap in traps if type(trap) == TrapInstantCaptureContinuum]
-    traps_sc_co = [
-        trap for trap in traps if type(trap) == TrapSlowCaptureContinuum
-    ]
+    traps_sc_co = [trap for trap in traps if type(trap) == TrapSlowCaptureContinuum]
     n_traps_ic = len(traps_ic)
     n_traps_sc = len(traps_sc)
     n_traps_ic_co = len(traps_ic_co)
     n_traps_sc_co = len(traps_sc_co)
-    if (
-        n_traps_sc
-        + n_traps_ic
-        + n_traps_ic_co
-        + n_traps_sc_co
-        != len(traps)
-    ):
+    if n_traps_sc + n_traps_ic + n_traps_ic_co + n_traps_sc_co != len(traps):
         raise Exception(
             "Not all traps extracted successfully (%d instant capture, %d slow capture, %d continuum, %d slow_capture_continuum, %d total)"
-            % (
-                n_traps_ic,
-                n_traps_sc,
-                n_traps_ic_co,
-                n_traps_sc_co,
-                len(traps),
-            )
+            % (n_traps_ic, n_traps_sc, n_traps_ic_co, n_traps_sc_co, len(traps))
         )
 
     # Make sure the order is correct
-    traps = (
-        traps_ic
-        + traps_sc
-        + traps_ic_co
-        + traps_sc_co
-    )
+    traps = traps_ic + traps_sc + traps_ic_co + traps_sc_co
     trap_densities = np.array([trap.density for trap in traps], dtype=np.double)
     trap_release_timescales = np.array(
         [trap.release_timescale for trap in traps], dtype=np.double

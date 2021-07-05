@@ -589,7 +589,7 @@ class TestCompareTrapTypes:
         trap_sc = ac.TrapSlowCapture(
             density=10, release_timescale=-1 / np.log(0.5), capture_timescale=0.1
         )
-        trap_co = ac.TrapInstantCaptureContinuum(
+        trap_ic_co = ac.TrapInstantCaptureContinuum(
             density=10, release_timescale=-1 / np.log(0.5), release_timescale_sigma=0.05
         )
         trap_sc_co = ac.TrapSlowCaptureContinuum(
@@ -639,7 +639,7 @@ class TestCompareTrapTypes:
         # Other trap types
         for i, (trap, label) in enumerate(
             zip(
-                [trap_sc, trap_co, trap_sc_co],
+                [trap_sc, trap_ic_co, trap_sc_co],
                 ["Slow Capture", "Continuum", "Slow Capture Continuum"],
             )
         ):

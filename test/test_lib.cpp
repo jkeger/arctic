@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+
 #include <valarray>
 
 #include "cti.hpp"
@@ -10,7 +11,7 @@
 
 /*
     Test using the arctic shared library to add CTI to a test image.
-    
+
     Compile from the top directory with `make lib_test`.
 */
 int main(int argc, char** argv) {
@@ -42,8 +43,9 @@ int main(int argc, char** argv) {
 
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset, start,
-        stop, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset, start, stop);
+        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
+        start, stop, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
+        start, stop);
     printf("Image with CTI added: \n");
     print_array_2D(image_post_cti);
 

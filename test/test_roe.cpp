@@ -379,19 +379,16 @@ TEST_CASE("Test express matrix", "[roe]") {
         for (int i_rows = 0; i_rows < rows.size(); i_rows++) {
             n_rows = rows[i_rows];
 
-            for (int i_express = 0; i_express < expresses.size();
-                 i_express++) {
+            for (int i_express = 0; i_express < expresses.size(); i_express++) {
                 express = expresses[i_express];
 
                 for (int i_offset = 0; i_offset < offsets.size(); i_offset++) {
                     offset = offsets[i_offset];
 
-                    for (int i_integer = 0; i_integer < integers.size();
-                         i_integer++) {
+                    for (int i_integer = 0; i_integer < integers.size(); i_integer++) {
                         roe.use_integer_express_matrix = integers[i_integer];
 
-                        for (int i_empty = 0; i_empty < emptys.size();
-                             i_empty++) {
+                        for (int i_empty = 0; i_empty < emptys.size(); i_empty++) {
                             roe.empty_traps_for_first_transfers = emptys[i_empty];
 
                             roe.set_express_matrix_from_rows_and_express(
@@ -1059,15 +1056,13 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
         for (int i_rows = 0; i_rows < rows.size(); i_rows++) {
             n_rows = rows[i_rows];
 
-            for (int i_express = 0; i_express < expresses.size();
-                 i_express++) {
+            for (int i_express = 0; i_express < expresses.size(); i_express++) {
                 express = expresses[i_express];
 
                 for (int i_offset = 0; i_offset < offsets.size(); i_offset++) {
                     offset = offsets[i_offset];
 
-                    for (int i_integer = 0; i_integer < integers.size();
-                         i_integer++) {
+                    for (int i_integer = 0; i_integer < integers.size(); i_integer++) {
                         roe.use_integer_express_matrix = integers[i_integer];
 
                         roe.set_express_matrix_from_rows_and_express(

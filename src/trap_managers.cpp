@@ -1025,8 +1025,8 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
         manually. See prep_fill_fraction_and_time_elapsed_tables().
 */
 TrapManagerInstantCaptureContinuum::TrapManagerInstantCaptureContinuum(
-    std::valarray<TrapInstantCaptureContinuum> traps, int max_n_transfers, CCDPhase ccd_phase,
-    double dwell_time)
+    std::valarray<TrapInstantCaptureContinuum> traps, int max_n_transfers,
+    CCDPhase ccd_phase, double dwell_time)
     : TrapManagerBase(max_n_transfers, ccd_phase, dwell_time), traps(traps) {
 
     n_traps = traps.size();
@@ -1311,7 +1311,8 @@ void TrapManagerInstantCaptureContinuum::update_watermarks_capture_not_enough(
 /*
     Same as TrapManagerInstantCapture.
 */
-double TrapManagerInstantCaptureContinuum::n_electrons_captured(double n_free_electrons) {
+double TrapManagerInstantCaptureContinuum::n_electrons_captured(
+    double n_free_electrons) {
     // The fractional volume the electron cloud reaches in the pixel well
     double cloud_fractional_volume =
         ccd_phase.cloud_fractional_volume_from_electrons(n_free_electrons);
@@ -1728,8 +1729,8 @@ TrapManagerManager::TrapManagerManager(
     std::valarray<TrapInstantCapture>& traps_ic,
     std::valarray<TrapSlowCapture>& traps_sc,
     std::valarray<TrapInstantCaptureContinuum>& traps_ic_co,
-    std::valarray<TrapSlowCaptureContinuum>& traps_sc_co,
-    int max_n_transfers, CCD ccd, std::valarray<double>& dwell_times)
+    std::valarray<TrapSlowCaptureContinuum>& traps_sc_co, int max_n_transfers, CCD ccd,
+    std::valarray<double>& dwell_times)
     : traps_ic(traps_ic),
       traps_sc(traps_sc),
       traps_ic_co(traps_ic_co),
@@ -1806,10 +1807,9 @@ TrapManagerManager::TrapManagerManager(
 
         // Initialise manager and watermarks for each phase
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            trap_managers_sc_co[phase_index] =
-                TrapManagerSlowCaptureContinuum(
-                    traps_sc_co, max_n_transfers,
-                    ccd.phases[phase_index], dwell_times[phase_index]);
+            trap_managers_sc_co[phase_index] = TrapManagerSlowCaptureContinuum(
+                traps_sc_co, max_n_transfers, ccd.phases[phase_index],
+                dwell_times[phase_index]);
 
             // Modify the trap densities in different phases
             trap_managers_sc_co[phase_index].trap_densities *=

@@ -361,7 +361,8 @@ void TrapInstantCaptureContinuum::prep_fill_fraction_and_time_elapsed_tables(
     fill_fraction : double
         The fraction of filled traps.
 */
-double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed_table(double time_elapsed) {
+double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed_table(
+    double time_elapsed) {
     // Completely full or empty, or unset watermark
     if (time_elapsed == 0.0)
         return 1.0;
@@ -406,7 +407,8 @@ double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed_table(double
         The total time elapsed since the traps were filled, in the same units
         as the trap timescales.
 */
-double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction_table(double fill_fraction) {
+double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction_table(
+    double fill_fraction) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0)
         return 0.0;

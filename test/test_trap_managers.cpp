@@ -110,7 +110,8 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 
         // Instant-capture traps
         TrapManagerInstantCaptureContinuum trap_manager_co(
-            std::valarray<TrapInstantCaptureContinuum>{trap_4}, max_n_transfers, ccd_phase, 3.0);
+            std::valarray<TrapInstantCaptureContinuum>{trap_4}, max_n_transfers,
+            ccd_phase, 3.0);
 
         REQUIRE(trap_manager_co.max_n_transfers == 123);
         REQUIRE(trap_manager_co.n_watermarks_per_transfer == 1);
@@ -169,7 +170,8 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
 
         // Continuum traps
         TrapManagerInstantCaptureContinuum trap_manager_co(
-            std::valarray<TrapInstantCaptureContinuum>{trap_4}, 3, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_4}, 3, ccd_phase,
+            dwell_time);
         trap_manager_co.initialise_trap_states();
 
         REQUIRE(trap_manager_co.n_watermarks == 4);
@@ -269,7 +271,8 @@ TEST_CASE("Test utilities", "[trap_managers]") {
 
         // Continuum traps
         TrapManagerInstantCaptureContinuum trap_manager_co(
-            std::valarray<TrapInstantCaptureContinuum>{trap_5}, 4, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_5}, 4, ccd_phase,
+            dwell_time);
         trap_manager_co.initialise_trap_states();
         trap_manager_co.n_active_watermarks = 3;
         trap_manager_co.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
@@ -315,7 +318,8 @@ TEST_CASE("Test utilities", "[trap_managers]") {
     SECTION("Prepare interpolation tables") {
         // Continuum traps
         TrapManagerInstantCaptureContinuum trap_manager_co(
-            std::valarray<TrapInstantCaptureContinuum>{trap_5}, 4, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_5}, 4, ccd_phase,
+            dwell_time);
         trap_manager_co.prepare_interpolation_tables();
 
         REQUIRE(
@@ -465,10 +469,8 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         REQUIRE(trap_manager_manager.n_traps_ic == 2);
         REQUIRE(trap_manager_manager.trap_managers_ic.size() == 1);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].traps.size() == 2);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].dwell_time == 1.0);
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].traps.size() == 2);
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].dwell_time == 1.0);
 
         REQUIRE(trap_manager_manager.n_traps_sc == 0);
         REQUIRE(trap_manager_manager.n_traps_ic_co == 0);
@@ -489,10 +491,8 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         REQUIRE(trap_manager_manager.n_traps_ic == 2);
         REQUIRE(trap_manager_manager.trap_managers_ic.size() == 1);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].traps.size() == 2);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].dwell_time == 1.0);
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].traps.size() == 2);
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].dwell_time == 1.0);
 
         REQUIRE(trap_manager_manager.n_traps_sc == 1);
         REQUIRE(trap_manager_manager.trap_managers_sc.size() == 1);
@@ -521,14 +521,10 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         REQUIRE(trap_manager_manager.n_traps_ic == 2);
         REQUIRE(trap_manager_manager.trap_managers_ic.size() == 3);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].traps.size() == 2);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].dwell_time == 0.8);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[1].dwell_time == 0.1);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[2].dwell_time == 0.1);
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].traps.size() == 2);
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].dwell_time == 0.8);
+        REQUIRE(trap_manager_manager.trap_managers_ic[1].dwell_time == 0.1);
+        REQUIRE(trap_manager_manager.trap_managers_ic[2].dwell_time == 0.1);
 
         REQUIRE(trap_manager_manager.n_traps_sc == 1);
         REQUIRE(trap_manager_manager.trap_managers_sc.size() == 3);
@@ -546,99 +542,76 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         REQUIRE(trap_manager_manager.n_traps_sc_co == 1);
         REQUIRE(trap_manager_manager.trap_managers_sc_co.size() == 3);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[0].traps.size() ==
-            1);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[0].dwell_time ==
-            0.8);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[1].dwell_time ==
-            0.1);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[2].dwell_time ==
-            0.1);
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[0].traps.size() == 1);
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[0].dwell_time == 0.8);
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[1].dwell_time == 0.1);
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[2].dwell_time == 0.1);
 
         // Initial watermarks, accounting for number of clock-sequence steps
         REQUIRE(trap_manager_manager.max_n_transfers == max_n_transfers * 3);
 
         int n_levels = max_n_transfers * 3 + 1;
+        REQUIRE(trap_manager_manager.trap_managers_ic[0].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_ic[0].n_watermarks ==
+            trap_manager_manager.trap_managers_ic[0].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_ic[0]
-                .watermark_volumes.size() == n_levels);
+            trap_manager_manager.trap_managers_ic[0].watermark_fills.size() ==
+            n_levels * 2);
+        REQUIRE(trap_manager_manager.trap_managers_ic[1].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_ic[0]
-                .watermark_fills.size() == n_levels * 2);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[1].n_watermarks ==
+            trap_manager_manager.trap_managers_ic[1].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_ic[1]
-                .watermark_volumes.size() == n_levels);
+            trap_manager_manager.trap_managers_ic[1].watermark_fills.size() ==
+            n_levels * 2);
+        REQUIRE(trap_manager_manager.trap_managers_ic[2].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_ic[1]
-                .watermark_fills.size() == n_levels * 2);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[2].n_watermarks ==
+            trap_manager_manager.trap_managers_ic[2].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_ic[2]
-                .watermark_volumes.size() == n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic[2]
-                .watermark_fills.size() == n_levels * 2);
+            trap_manager_manager.trap_managers_ic[2].watermark_fills.size() ==
+            n_levels * 2);
 
         n_levels = max_n_transfers * 3 * 2 + 1;
+        REQUIRE(trap_manager_manager.trap_managers_sc[0].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc[0].n_watermarks ==
+            trap_manager_manager.trap_managers_sc[0].watermark_volumes.size() ==
             n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc[0]
-                .watermark_volumes.size() == n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_sc[0].watermark_fills.size() ==
             n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_sc[1].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc[1].n_watermarks ==
+            trap_manager_manager.trap_managers_sc[1].watermark_volumes.size() ==
             n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc[1]
-                .watermark_volumes.size() == n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_sc[1].watermark_fills.size() ==
             n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_sc[2].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc[2].n_watermarks ==
+            trap_manager_manager.trap_managers_sc[2].watermark_volumes.size() ==
             n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc[2]
-                .watermark_volumes.size() == n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_sc[2].watermark_fills.size() ==
             n_levels);
 
         n_levels = max_n_transfers * 3 + 1;
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic_co[0].n_watermarks == n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_ic_co[0].n_watermarks == n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[0].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[0].watermark_fills.size() ==
             n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic_co[1].n_watermarks == n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_ic_co[1].n_watermarks == n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[1].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[1].watermark_fills.size() ==
             n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_ic_co[2].n_watermarks == n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_ic_co[2].n_watermarks == n_levels);
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[2].watermark_volumes.size() ==
             n_levels);
@@ -647,77 +620,59 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
             n_levels);
 
         n_levels = max_n_transfers * 3 * 2 + 1;
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[0].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[0].n_watermarks ==
+            trap_manager_manager.trap_managers_sc_co[0].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[0]
-                .watermark_volumes.size() == n_levels);
+            trap_manager_manager.trap_managers_sc_co[0].watermark_fills.size() ==
+            n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[1].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[0]
-                .watermark_fills.size() == n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[1].n_watermarks ==
+            trap_manager_manager.trap_managers_sc_co[1].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[1]
-                .watermark_volumes.size() == n_levels);
+            trap_manager_manager.trap_managers_sc_co[1].watermark_fills.size() ==
+            n_levels);
+        REQUIRE(trap_manager_manager.trap_managers_sc_co[2].n_watermarks == n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[1]
-                .watermark_fills.size() == n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[2].n_watermarks ==
+            trap_manager_manager.trap_managers_sc_co[2].watermark_volumes.size() ==
             n_levels);
         REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[2]
-                .watermark_volumes.size() == n_levels);
-        REQUIRE(
-            trap_manager_manager.trap_managers_sc_co[2]
-                .watermark_fills.size() == n_levels);
+            trap_manager_manager.trap_managers_sc_co[2].watermark_fills.size() ==
+            n_levels);
 
         // Trap densities modified by the CCD's fraction_of_traps_per_phase
         answer = {trap_1.density * 0.5, trap_2.density * 0.5};
         test.assign(
-            std::begin(
-                trap_manager_manager.trap_managers_ic[0].trap_densities),
-            std::end(
-                trap_manager_manager.trap_managers_ic[0].trap_densities));
+            std::begin(trap_manager_manager.trap_managers_ic[0].trap_densities),
+            std::end(trap_manager_manager.trap_managers_ic[0].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
         answer = {trap_1.density * 0.25, trap_2.density * 0.25};
         test.assign(
-            std::begin(
-                trap_manager_manager.trap_managers_ic[1].trap_densities),
-            std::end(
-                trap_manager_manager.trap_managers_ic[1].trap_densities));
+            std::begin(trap_manager_manager.trap_managers_ic[1].trap_densities),
+            std::end(trap_manager_manager.trap_managers_ic[1].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
         answer = {trap_1.density * 0.25, trap_2.density * 0.25};
         test.assign(
-            std::begin(
-                trap_manager_manager.trap_managers_ic[2].trap_densities),
-            std::end(
-                trap_manager_manager.trap_managers_ic[2].trap_densities));
+            std::begin(trap_manager_manager.trap_managers_ic[2].trap_densities),
+            std::end(trap_manager_manager.trap_managers_ic[2].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
 
         answer = {trap_3.density * 0.5};
         test.assign(
-            std::begin(
-                trap_manager_manager.trap_managers_sc[0].trap_densities),
-            std::end(
-                trap_manager_manager.trap_managers_sc[0].trap_densities));
+            std::begin(trap_manager_manager.trap_managers_sc[0].trap_densities),
+            std::end(trap_manager_manager.trap_managers_sc[0].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
         answer = {trap_3.density * 0.25};
         test.assign(
-            std::begin(
-                trap_manager_manager.trap_managers_sc[1].trap_densities),
-            std::end(
-                trap_manager_manager.trap_managers_sc[1].trap_densities));
+            std::begin(trap_manager_manager.trap_managers_sc[1].trap_densities),
+            std::end(trap_manager_manager.trap_managers_sc[1].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
         answer = {trap_3.density * 0.25};
         test.assign(
-            std::begin(
-                trap_manager_manager.trap_managers_sc[2].trap_densities),
-            std::end(
-                trap_manager_manager.trap_managers_sc[2].trap_densities));
+            std::begin(trap_manager_manager.trap_managers_sc[2].trap_densities),
+            std::end(trap_manager_manager.trap_managers_sc[2].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
 
         answer = {trap_4.density * 0.5};
@@ -738,24 +693,18 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         answer = {trap_5.density * 0.5};
         test.assign(
-            std::begin(trap_manager_manager.trap_managers_sc_co[0]
-                           .trap_densities),
-            std::end(trap_manager_manager.trap_managers_sc_co[0]
-                         .trap_densities));
+            std::begin(trap_manager_manager.trap_managers_sc_co[0].trap_densities),
+            std::end(trap_manager_manager.trap_managers_sc_co[0].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
         answer = {trap_5.density * 0.25};
         test.assign(
-            std::begin(trap_manager_manager.trap_managers_sc_co[1]
-                           .trap_densities),
-            std::end(trap_manager_manager.trap_managers_sc_co[1]
-                         .trap_densities));
+            std::begin(trap_manager_manager.trap_managers_sc_co[1].trap_densities),
+            std::end(trap_manager_manager.trap_managers_sc_co[1].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
         answer = {trap_5.density * 0.25};
         test.assign(
-            std::begin(trap_manager_manager.trap_managers_sc_co[2]
-                           .trap_densities),
-            std::end(trap_manager_manager.trap_managers_sc_co[2]
-                         .trap_densities));
+            std::begin(trap_manager_manager.trap_managers_sc_co[2].trap_densities),
+            std::end(trap_manager_manager.trap_managers_sc_co[2].trap_densities));
         REQUIRE_THAT(test, Catch::Approx(answer));
 
         // Continuum interpolation tables
@@ -782,17 +731,15 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[0]
                 .traps[0]
-                .fill_fraction_table[0] <
-            trap_manager_manager.trap_managers_ic_co[1]
-                .traps[0]
-                .fill_fraction_table[0]);
+                .fill_fraction_table[0] < trap_manager_manager.trap_managers_ic_co[1]
+                                              .traps[0]
+                                              .fill_fraction_table[0]);
         REQUIRE(
             trap_manager_manager.trap_managers_ic_co[1]
                 .traps[0]
-                .fill_fraction_table[0] ==
-            trap_manager_manager.trap_managers_ic_co[2]
-                .traps[0]
-                .fill_fraction_table[0]);
+                .fill_fraction_table[0] == trap_manager_manager.trap_managers_ic_co[2]
+                                               .traps[0]
+                                               .fill_fraction_table[0]);
 
         // SlowCaptureContinuum interpolation tables
         // ### WIP ###
@@ -853,14 +800,12 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
             t_m_m.trap_managers_ic[phase_index].n_active_watermarks = 3;
             t_m_m.trap_managers_ic[phase_index].i_first_active_wmk = 1;
-            t_m_m.trap_managers_ic[phase_index].watermark_volumes =
-                volumes_ic;
+            t_m_m.trap_managers_ic[phase_index].watermark_volumes = volumes_ic;
             t_m_m.trap_managers_ic[phase_index].watermark_fills = fills_ic;
 
             t_m_m.trap_managers_sc[phase_index].n_active_watermarks = 3;
             t_m_m.trap_managers_sc[phase_index].i_first_active_wmk = 1;
-            t_m_m.trap_managers_sc[phase_index].watermark_volumes =
-                volumes_sc;
+            t_m_m.trap_managers_sc[phase_index].watermark_volumes = volumes_sc;
             t_m_m.trap_managers_sc[phase_index].watermark_fills = fills_sc;
 
             t_m_m.trap_managers_ic_co[phase_index].n_active_watermarks = 3;
@@ -868,14 +813,10 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
             t_m_m.trap_managers_ic_co[phase_index].watermark_volumes = volumes_co;
             t_m_m.trap_managers_ic_co[phase_index].watermark_fills = fills_co;
 
-            t_m_m.trap_managers_sc_co[phase_index]
-                .n_active_watermarks = 3;
-            t_m_m.trap_managers_sc_co[phase_index].i_first_active_wmk =
-                1;
-            t_m_m.trap_managers_sc_co[phase_index].watermark_volumes =
-                volumes_sc_co;
-            t_m_m.trap_managers_sc_co[phase_index].watermark_fills =
-                fills_sc_co;
+            t_m_m.trap_managers_sc_co[phase_index].n_active_watermarks = 3;
+            t_m_m.trap_managers_sc_co[phase_index].i_first_active_wmk = 1;
+            t_m_m.trap_managers_sc_co[phase_index].watermark_volumes = volumes_sc_co;
+            t_m_m.trap_managers_sc_co[phase_index].watermark_fills = fills_sc_co;
         }
 
         // Store
@@ -883,59 +824,45 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
 
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
             REQUIRE(
-                t_m_m.trap_managers_ic[phase_index]
-                    .stored_n_active_watermarks == 3);
-            REQUIRE(
-                t_m_m.trap_managers_ic[phase_index]
-                    .stored_i_first_active_wmk == 1);
+                t_m_m.trap_managers_ic[phase_index].stored_n_active_watermarks == 3);
+            REQUIRE(t_m_m.trap_managers_ic[phase_index].stored_i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_ic), std::end(volumes_ic));
             test.assign(
-                std::begin(t_m_m.trap_managers_ic[phase_index]
-                               .stored_watermark_volumes),
-                std::end(t_m_m.trap_managers_ic[phase_index]
-                             .stored_watermark_volumes));
+                std::begin(
+                    t_m_m.trap_managers_ic[phase_index].stored_watermark_volumes),
+                std::end(t_m_m.trap_managers_ic[phase_index].stored_watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_ic), std::end(fills_ic));
             test.assign(
-                std::begin(t_m_m.trap_managers_ic[phase_index]
-                               .stored_watermark_fills),
-                std::end(t_m_m.trap_managers_ic[phase_index]
-                             .stored_watermark_fills));
+                std::begin(t_m_m.trap_managers_ic[phase_index].stored_watermark_fills),
+                std::end(t_m_m.trap_managers_ic[phase_index].stored_watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
             REQUIRE(
-                t_m_m.trap_managers_sc[phase_index]
-                    .stored_n_active_watermarks == 3);
-            REQUIRE(
-                t_m_m.trap_managers_sc[phase_index]
-                    .stored_i_first_active_wmk == 1);
+                t_m_m.trap_managers_sc[phase_index].stored_n_active_watermarks == 3);
+            REQUIRE(t_m_m.trap_managers_sc[phase_index].stored_i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_sc), std::end(volumes_sc));
             test.assign(
-                std::begin(t_m_m.trap_managers_sc[phase_index]
-                               .stored_watermark_volumes),
-                std::end(t_m_m.trap_managers_sc[phase_index]
-                             .stored_watermark_volumes));
+                std::begin(
+                    t_m_m.trap_managers_sc[phase_index].stored_watermark_volumes),
+                std::end(t_m_m.trap_managers_sc[phase_index].stored_watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_sc), std::end(fills_sc));
             test.assign(
-                std::begin(t_m_m.trap_managers_sc[phase_index]
-                               .stored_watermark_fills),
-                std::end(t_m_m.trap_managers_sc[phase_index]
-                             .stored_watermark_fills));
+                std::begin(t_m_m.trap_managers_sc[phase_index].stored_watermark_fills),
+                std::end(t_m_m.trap_managers_sc[phase_index].stored_watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
             REQUIRE(
-                t_m_m.trap_managers_ic_co[phase_index].stored_n_active_watermarks ==
-                3);
+                t_m_m.trap_managers_ic_co[phase_index].stored_n_active_watermarks == 3);
             REQUIRE(
-                t_m_m.trap_managers_ic_co[phase_index].stored_i_first_active_wmk ==
-                1);
+                t_m_m.trap_managers_ic_co[phase_index].stored_i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_co), std::end(volumes_co));
             test.assign(
-                std::begin(t_m_m.trap_managers_ic_co[phase_index]
-                               .stored_watermark_volumes),
-                std::end(t_m_m.trap_managers_ic_co[phase_index]
-                             .stored_watermark_volumes));
+                std::begin(
+                    t_m_m.trap_managers_ic_co[phase_index].stored_watermark_volumes),
+                std::end(
+                    t_m_m.trap_managers_ic_co[phase_index].stored_watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_co), std::end(fills_co));
             test.assign(
@@ -946,24 +873,22 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
             REQUIRE_THAT(test, Catch::Approx(answer));
 
             REQUIRE(
-                t_m_m.trap_managers_sc_co[phase_index]
-                    .stored_n_active_watermarks == 3);
+                t_m_m.trap_managers_sc_co[phase_index].stored_n_active_watermarks == 3);
             REQUIRE(
-                t_m_m.trap_managers_sc_co[phase_index]
-                    .stored_i_first_active_wmk == 1);
+                t_m_m.trap_managers_sc_co[phase_index].stored_i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_sc_co), std::end(volumes_sc_co));
             test.assign(
-                std::begin(t_m_m.trap_managers_sc_co[phase_index]
-                               .stored_watermark_volumes),
-                std::end(t_m_m.trap_managers_sc_co[phase_index]
-                             .stored_watermark_volumes));
+                std::begin(
+                    t_m_m.trap_managers_sc_co[phase_index].stored_watermark_volumes),
+                std::end(
+                    t_m_m.trap_managers_sc_co[phase_index].stored_watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_sc_co), std::end(fills_sc_co));
             test.assign(
-                std::begin(t_m_m.trap_managers_sc_co[phase_index]
-                               .stored_watermark_fills),
-                std::end(t_m_m.trap_managers_sc_co[phase_index]
-                             .stored_watermark_fills));
+                std::begin(
+                    t_m_m.trap_managers_sc_co[phase_index].stored_watermark_fills),
+                std::end(
+                    t_m_m.trap_managers_sc_co[phase_index].stored_watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
         }
 
@@ -971,53 +896,37 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         t_m_m.reset_trap_states();
 
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            REQUIRE(
-                t_m_m.trap_managers_ic[phase_index].n_active_watermarks ==
-                0);
-            REQUIRE(
-                t_m_m.trap_managers_ic[phase_index].i_first_active_wmk ==
-                0);
+            REQUIRE(t_m_m.trap_managers_ic[phase_index].n_active_watermarks == 0);
+            REQUIRE(t_m_m.trap_managers_ic[phase_index].i_first_active_wmk == 0);
             answer = std::vector<double>(10, 0.0);
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_ic[phase_index].watermark_volumes),
-                std::end(t_m_m.trap_managers_ic[phase_index]
-                             .watermark_volumes));
+                std::begin(t_m_m.trap_managers_ic[phase_index].watermark_volumes),
+                std::end(t_m_m.trap_managers_ic[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer = std::vector<double>(20, 0.0);
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_ic[phase_index].watermark_fills),
-                std::end(
-                    t_m_m.trap_managers_ic[phase_index].watermark_fills));
+                std::begin(t_m_m.trap_managers_ic[phase_index].watermark_fills),
+                std::end(t_m_m.trap_managers_ic[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
-            REQUIRE(
-                t_m_m.trap_managers_sc[phase_index].n_active_watermarks == 0);
-            REQUIRE(
-                t_m_m.trap_managers_sc[phase_index].i_first_active_wmk == 0);
+            REQUIRE(t_m_m.trap_managers_sc[phase_index].n_active_watermarks == 0);
+            REQUIRE(t_m_m.trap_managers_sc[phase_index].i_first_active_wmk == 0);
             answer = std::vector<double>(19, 0.0);
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_sc[phase_index].watermark_volumes),
-                std::end(
-                    t_m_m.trap_managers_sc[phase_index].watermark_volumes));
+                std::begin(t_m_m.trap_managers_sc[phase_index].watermark_volumes),
+                std::end(t_m_m.trap_managers_sc[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer = std::vector<double>(19, 0.0);
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_sc[phase_index].watermark_fills),
-                std::end(
-                    t_m_m.trap_managers_sc[phase_index].watermark_fills));
+                std::begin(t_m_m.trap_managers_sc[phase_index].watermark_fills),
+                std::end(t_m_m.trap_managers_sc[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
-            REQUIRE(
-                t_m_m.trap_managers_ic_co[phase_index].n_active_watermarks == 0);
+            REQUIRE(t_m_m.trap_managers_ic_co[phase_index].n_active_watermarks == 0);
             REQUIRE(t_m_m.trap_managers_ic_co[phase_index].i_first_active_wmk == 0);
             answer = std::vector<double>(10, 0.0);
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_ic_co[phase_index].watermark_volumes),
+                std::begin(t_m_m.trap_managers_ic_co[phase_index].watermark_volumes),
                 std::end(t_m_m.trap_managers_ic_co[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer = std::vector<double>(10, 0.0);
@@ -1026,25 +935,17 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
                 std::end(t_m_m.trap_managers_ic_co[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
-            REQUIRE(
-                t_m_m.trap_managers_sc_co[phase_index]
-                    .n_active_watermarks == 0);
-            REQUIRE(
-                t_m_m.trap_managers_sc_co[phase_index]
-                    .i_first_active_wmk == 0);
+            REQUIRE(t_m_m.trap_managers_sc_co[phase_index].n_active_watermarks == 0);
+            REQUIRE(t_m_m.trap_managers_sc_co[phase_index].i_first_active_wmk == 0);
             answer = std::vector<double>(19, 0.0);
             test.assign(
-                std::begin(t_m_m.trap_managers_sc_co[phase_index]
-                               .watermark_volumes),
-                std::end(t_m_m.trap_managers_sc_co[phase_index]
-                             .watermark_volumes));
+                std::begin(t_m_m.trap_managers_sc_co[phase_index].watermark_volumes),
+                std::end(t_m_m.trap_managers_sc_co[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer = std::vector<double>(19, 0.0);
             test.assign(
-                std::begin(t_m_m.trap_managers_sc_co[phase_index]
-                               .watermark_fills),
-                std::end(t_m_m.trap_managers_sc_co[phase_index]
-                             .watermark_fills));
+                std::begin(t_m_m.trap_managers_sc_co[phase_index].watermark_fills),
+                std::end(t_m_m.trap_managers_sc_co[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
         }
 
@@ -1052,53 +953,37 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
         t_m_m.restore_trap_states();
 
         for (int phase_index = 0; phase_index < ccd.n_phases; phase_index++) {
-            REQUIRE(
-                t_m_m.trap_managers_ic[phase_index].n_active_watermarks ==
-                3);
-            REQUIRE(
-                t_m_m.trap_managers_ic[phase_index].i_first_active_wmk ==
-                1);
+            REQUIRE(t_m_m.trap_managers_ic[phase_index].n_active_watermarks == 3);
+            REQUIRE(t_m_m.trap_managers_ic[phase_index].i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_ic), std::end(volumes_ic));
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_ic[phase_index].watermark_volumes),
-                std::end(t_m_m.trap_managers_ic[phase_index]
-                             .watermark_volumes));
+                std::begin(t_m_m.trap_managers_ic[phase_index].watermark_volumes),
+                std::end(t_m_m.trap_managers_ic[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_ic), std::end(fills_ic));
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_ic[phase_index].watermark_fills),
-                std::end(
-                    t_m_m.trap_managers_ic[phase_index].watermark_fills));
+                std::begin(t_m_m.trap_managers_ic[phase_index].watermark_fills),
+                std::end(t_m_m.trap_managers_ic[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
-            REQUIRE(
-                t_m_m.trap_managers_sc[phase_index].n_active_watermarks == 3);
-            REQUIRE(
-                t_m_m.trap_managers_sc[phase_index].i_first_active_wmk == 1);
+            REQUIRE(t_m_m.trap_managers_sc[phase_index].n_active_watermarks == 3);
+            REQUIRE(t_m_m.trap_managers_sc[phase_index].i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_sc), std::end(volumes_sc));
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_sc[phase_index].watermark_volumes),
-                std::end(
-                    t_m_m.trap_managers_sc[phase_index].watermark_volumes));
+                std::begin(t_m_m.trap_managers_sc[phase_index].watermark_volumes),
+                std::end(t_m_m.trap_managers_sc[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_sc), std::end(fills_sc));
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_sc[phase_index].watermark_fills),
-                std::end(
-                    t_m_m.trap_managers_sc[phase_index].watermark_fills));
+                std::begin(t_m_m.trap_managers_sc[phase_index].watermark_fills),
+                std::end(t_m_m.trap_managers_sc[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
-            REQUIRE(
-                t_m_m.trap_managers_ic_co[phase_index].n_active_watermarks == 3);
+            REQUIRE(t_m_m.trap_managers_ic_co[phase_index].n_active_watermarks == 3);
             REQUIRE(t_m_m.trap_managers_ic_co[phase_index].i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_co), std::end(volumes_co));
             test.assign(
-                std::begin(
-                    t_m_m.trap_managers_ic_co[phase_index].watermark_volumes),
+                std::begin(t_m_m.trap_managers_ic_co[phase_index].watermark_volumes),
                 std::end(t_m_m.trap_managers_ic_co[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_co), std::end(fills_co));
@@ -1107,25 +992,17 @@ TEST_CASE("Test manager manager", "[trap_managers]") {
                 std::end(t_m_m.trap_managers_ic_co[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
 
-            REQUIRE(
-                t_m_m.trap_managers_sc_co[phase_index]
-                    .n_active_watermarks == 3);
-            REQUIRE(
-                t_m_m.trap_managers_sc_co[phase_index]
-                    .i_first_active_wmk == 1);
+            REQUIRE(t_m_m.trap_managers_sc_co[phase_index].n_active_watermarks == 3);
+            REQUIRE(t_m_m.trap_managers_sc_co[phase_index].i_first_active_wmk == 1);
             answer.assign(std::begin(volumes_sc_co), std::end(volumes_sc_co));
             test.assign(
-                std::begin(t_m_m.trap_managers_sc_co[phase_index]
-                               .watermark_volumes),
-                std::end(t_m_m.trap_managers_sc_co[phase_index]
-                             .watermark_volumes));
+                std::begin(t_m_m.trap_managers_sc_co[phase_index].watermark_volumes),
+                std::end(t_m_m.trap_managers_sc_co[phase_index].watermark_volumes));
             REQUIRE_THAT(test, Catch::Approx(answer));
             answer.assign(std::begin(fills_sc_co), std::end(fills_sc_co));
             test.assign(
-                std::begin(t_m_m.trap_managers_sc_co[phase_index]
-                               .watermark_fills),
-                std::end(t_m_m.trap_managers_sc_co[phase_index]
-                             .watermark_fills));
+                std::begin(t_m_m.trap_managers_sc_co[phase_index].watermark_fills),
+                std::end(t_m_m.trap_managers_sc_co[phase_index].watermark_fills));
             REQUIRE_THAT(test, Catch::Approx(answer));
         }
     }
@@ -2443,7 +2320,8 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
 
     SECTION("Empty release") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 4, ccd_phase,
+            dwell_time);
         trap_manager.setup();
 
         n_electrons_released = trap_manager.n_electrons_released();
@@ -2471,7 +2349,8 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
 
     SECTION("Multiple traps release") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 4, ccd_phase,
+            dwell_time);
         // Reduce time_min to get high test fill fractions within the table
         trap_manager.time_min /= 10.0;
         trap_manager.setup();
@@ -2512,7 +2391,8 @@ TEST_CASE("Test (narrow) continuum traps: release", "[trap_managers]") {
 
     SECTION("Multiple traps release, non-zero first active watermark") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 4, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 4, ccd_phase,
+            dwell_time);
         // Reduce time_min to get high test fill fractions within the table
         trap_manager.time_min /= 10.0;
         trap_manager.setup();
@@ -2566,7 +2446,8 @@ TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
 
     SECTION("Multiple traps capture, first watermark") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 0;
         n_electrons_captured = trap_manager.n_electrons_captured(6e3);
@@ -2598,7 +2479,8 @@ TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud below watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
@@ -2641,7 +2523,8 @@ TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud above watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
@@ -2689,7 +2572,8 @@ TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
 
     SECTION("Multiple traps capture, cloud between watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0};
@@ -2735,7 +2619,8 @@ TEST_CASE("Test continuum traps: simple capture", "[trap_managers]") {
 
     SECTION("Same cloud volume as existing watermark") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.1, 0.0, 0.0};
@@ -2792,7 +2677,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Capture, non-zero first active watermark, cloud below watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 3;
         trap_manager.i_first_active_wmk = 2;
@@ -2836,7 +2722,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Capture, non-zero first active watermark, cloud between watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 4;
         trap_manager.i_first_active_wmk = 2;
@@ -2885,7 +2772,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, first watermark") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1}, 5, ccd_phase_2, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 0;
         n_electrons_captured = trap_manager.n_electrons_captured(2.5e-3);
@@ -2908,7 +2796,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud below watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase_2, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 3;
         trap_manager.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0, 0.0};
@@ -2955,7 +2844,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud above watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase_2, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 2;
         trap_manager.watermark_volumes = {2e-4, 1e-4, 0.0, 0.0, 0.0, 0.0};
@@ -3004,7 +2894,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, cloud between watermarks") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase_2, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 5, ccd_phase_2,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 4;
         trap_manager.watermark_volumes = {2e-4, 1e-4, 0.2, 0.1, 0.0, 0.0, 0.0};
@@ -3055,7 +2946,8 @@ TEST_CASE("Test continuum traps: other capture", "[trap_managers]") {
 
     SECTION("Not-enough capture, non-zero first active watermark, cloud between") {
         TrapManagerInstantCaptureContinuum trap_manager(
-            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 6, ccd_phase_2, dwell_time);
+            std::valarray<TrapInstantCaptureContinuum>{trap_1, trap_2}, 6, ccd_phase_2,
+            dwell_time);
         trap_manager.setup();
         trap_manager.n_active_watermarks = 4;
         trap_manager.i_first_active_wmk = 2;

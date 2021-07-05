@@ -1,6 +1,7 @@
 
 #include <getopt.h>
 #include <stdio.h>
+
 #include <valarray>
 
 #include "cti.hpp"
@@ -62,9 +63,8 @@ int run_demo() {
 
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc,
-        &traps_ic_co, &traps_sc_co, express, offset, start, stop,
-        &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
+        image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
+        express, offset, start, stop, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
         &traps_sc_co, express, offset, start, stop);
     print_v(1, "Image with CTI added: \n");
     print_array_2D(image_post_cti);
@@ -72,9 +72,8 @@ int run_demo() {
     // Remove CTI
     int n_iterations = 4;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
-        image_post_cti, n_iterations, &roe, &ccd, &traps_ic,
-        &traps_sc, &traps_ic_co, &traps_sc_co, express,
-        offset, start, stop, &roe, &ccd, &traps_ic, &traps_sc,
+        image_post_cti, n_iterations, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
+        &traps_sc_co, express, offset, start, stop, &roe, &ccd, &traps_ic, &traps_sc,
         &traps_ic_co, &traps_sc_co, express, offset, start, stop);
     print_v(1, "Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
@@ -88,7 +87,7 @@ int run_demo() {
 
 /*
     Run arctic with --benchmark or -b for this simple test, e.g. for profiling.
-
+
     Add CTI to a 10-column extract of an HST ACS image. Takes ~0.02 s.
 */
 int run_benchmark() {
@@ -164,11 +163,12 @@ void parse_parameters(int argc, char** argv) {
     // Short options
     const char* const short_opts = ":hv:db";
     // Full options
-    const option long_opts[] = {{"help", no_argument, nullptr, 'h'},
-                                {"verbosity", required_argument, nullptr, 'v'},
-                                {"demo", no_argument, nullptr, 'd'},
-                                {"benchmark", no_argument, nullptr, 'b'},
-                                {0, 0, 0, 0}};
+    const option long_opts[] = {
+        {"help", no_argument, nullptr, 'h'},
+        {"verbosity", required_argument, nullptr, 'v'},
+        {"demo", no_argument, nullptr, 'd'},
+        {"benchmark", no_argument, nullptr, 'b'},
+        {0, 0, 0, 0}};
 
     // Parse options
     while (true) {

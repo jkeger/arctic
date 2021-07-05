@@ -3,6 +3,7 @@
 #define ARCTIC_TRAPS_HPP
 
 #include <gsl/gsl_integration.h>
+
 #include <valarray>
 
 class TrapInstantCapture {
