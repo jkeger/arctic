@@ -120,7 +120,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the trap managers
     TrapManagerManager trap_manager_manager(
-        *traps_ic, *traps_sc, *traps_ic_co, *traps_sc_co, row_stop - row_start, *ccd,
+        *traps_ic, *traps_sc, *traps_ic_co, *traps_sc_co, n_active_rows + offset, *ccd,
         roe->dwell_times);
 
     unsigned int column_index;
