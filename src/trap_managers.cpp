@@ -131,8 +131,8 @@ void TrapManagerBase::initialise_trap_states() {
 void TrapManagerBase::reset_trap_states() {
     n_active_watermarks = 0;
     i_first_active_wmk = 0;
-    watermark_volumes = std::valarray<double>(empty_watermark, n_watermarks);
-    watermark_fills = std::valarray<double>(empty_watermark, n_traps * n_watermarks);
+    watermark_volumes = empty_watermark;
+    watermark_fills = empty_watermark;
 }
 
 /*
@@ -351,7 +351,7 @@ void TrapManagerInstantCapture::update_watermarks_capture(
             i_first_active_wmk--;
         } else {
             // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
                  i_wmk >= i_first_active_wmk; i_wmk--) {
                 watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
                 for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -462,7 +462,7 @@ void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
             i_first_active_wmk--;
         } else {
             // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
                  i_wmk >= i_first_active_wmk; i_wmk--) {
                 watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
                 for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -518,8 +518,7 @@ void TrapManagerInstantCapture::update_watermarks_capture_not_enough(
     // Cloud between current watermarks
     else {
         // Copy-paste all higher watermarks up one to make room
-        for (int i_wmk =
-                 i_wmk_above_cloud - 1 + n_active_watermarks - i_first_active_wmk;
+        for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
              i_wmk >= i_wmk_above_cloud; i_wmk--) {
             watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
             for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -827,7 +826,7 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
             }
 
             // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
                  i_wmk >= i_wmk_above_cloud; i_wmk--) {
                 watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
                 for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -901,7 +900,7 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
         }
 
         // Copy-paste any higher watermarks up one to make room
-        for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+        for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
              i_wmk >= i_wmk_above_cloud; i_wmk--) {
             watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
             for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -1127,7 +1126,7 @@ void TrapManagerInstantCaptureContinuum::update_watermarks_capture(
             i_first_active_wmk--;
         } else {
             // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
                  i_wmk >= i_first_active_wmk; i_wmk--) {
                 watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
                 for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -1213,7 +1212,7 @@ void TrapManagerInstantCaptureContinuum::update_watermarks_capture_not_enough(
             i_first_active_wmk--;
         } else {
             // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
                  i_wmk >= i_first_active_wmk; i_wmk--) {
                 watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
                 for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -1269,8 +1268,7 @@ void TrapManagerInstantCaptureContinuum::update_watermarks_capture_not_enough(
     // Cloud between current watermarks
     else {
         // Copy-paste all higher watermarks up one to make room
-        for (int i_wmk =
-                 i_wmk_above_cloud - 1 + n_active_watermarks - i_first_active_wmk;
+        for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
              i_wmk >= i_wmk_above_cloud; i_wmk--) {
             watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
             for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -1468,7 +1466,7 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
             }
 
             // Copy-paste all higher watermarks up one to make room
-            for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
                  i_wmk >= i_wmk_above_cloud; i_wmk--) {
                 watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
                 for (int i_trap = 0; i_trap < n_traps; i_trap++) {
@@ -1555,7 +1553,7 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
         }
 
         // Copy-paste any higher watermarks up one to make room
-        for (int i_wmk = i_first_active_wmk + n_active_watermarks;
+        for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
              i_wmk >= i_wmk_above_cloud; i_wmk--) {
             watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
             for (int i_trap = 0; i_trap < n_traps; i_trap++) {
