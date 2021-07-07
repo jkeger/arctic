@@ -79,6 +79,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Number of active rows and columns
     unsigned int n_active_rows = row_stop - row_start;
     unsigned int n_active_columns = column_stop - column_start;
+    unsigned int max_n_transfers = n_active_rows + offset;
     print_v(
         1, "Clock charge in %d column(s) [%d to %d] and %d row(s) [%d to %d] \n",
         n_active_columns, column_start, column_stop, n_active_rows, row_start,
@@ -99,6 +100,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         error(
             "Number of CCD phases (%d) and ROE phases (%d) don't match.", ccd->n_phases,
             roe->n_phases);
+    if (!roe->empty_traps_between_columns) {
+        // Account for the complete set of capture/release events that might
+        // need to be tracked if the traps are never reset
+        max_n_transfers *= n_columns;
+    }
 
     // Set empty arrays for nullptr trap lists
     if (traps_ic == nullptr) {
@@ -120,7 +126,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the trap managers
     TrapManagerManager trap_manager_manager(
-        *traps_ic, *traps_sc, *traps_ic_co, *traps_sc_co, n_active_rows + offset, *ccd,
+        *traps_ic, *traps_sc, *traps_ic_co, *traps_sc_co, max_n_transfers, *ccd,
         roe->dwell_times);
 
     unsigned int column_index;
