@@ -32,13 +32,27 @@
         The release timescale of the trap, in the same units as the time
         spent in each pixel or phase.
 
+    fractional_volume_none_exposed : double (opt.)
+    fractional_volume_full_exposed : double (opt.)
+        The fractional volume of a pixel below which no traps are exposed and
+        above which traps are fully exposed, respectively. Default to 0.0, 0.0
+        for evenly distributed traps. Between the two, the fraction of traps is
+        taken to increase linearly. Or set both to the same (non-zero) value for
+        a step function of no traps below that volume and evenly distributed
+        traps above it. See fill_fraction_from_time_elapsed().
+
     Attributes
     ----------
     release_rate : double
         The release (or emission) rate (Lindegren (1998) section 3.2).
 */
-TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
-    : density(density), release_timescale(release_timescale) {
+TrapInstantCapture::TrapInstantCapture(
+    double density, double release_timescale, double fractional_volume_none_exposed,
+    double fractional_volume_full_exposed)
+    : density(density),
+      release_timescale(release_timescale),
+      fractional_volume_none_exposed(fractional_volume_none_exposed),
+      fractional_volume_full_exposed(fractional_volume_full_exposed) {
 
     release_rate = 1.0 / release_timescale;
 }
@@ -59,6 +73,61 @@ TrapInstantCapture::TrapInstantCapture(double density, double release_timescale)
 */
 double TrapInstantCapture::fill_fraction_from_time_elapsed(double time_elapsed) {
     return exp(-time_elapsed / release_timescale);
+}
+
+/*
+    Calculate the fraction of traps exposed between two fractional volumes.
+
+    Simple idea but hard to put into words...
+
+    Assume a linear increase with volume (v) in the fraction of traps between
+    fractional_volume_none_exposed (a) and fractional_volume_full_exposed (a),
+    i.e. f(v) = (v - a) / (b - a), capped between zero and one. Here integrate
+    f(v) from fractional_volume_low (v_l) to high (v_h), then divide by the
+    total fractional volume to get the right "units", as it were.
+
+    Parameters
+    ----------
+    fractional_volume_low : double
+    fractional_volume_high : double
+        Two volumes (e.g. of a watermark) as a fraction of the pixel (or phase).
+
+    Returns
+    -------
+    fraction_exposed_traps : double
+        The fraction of traps exposed between these volumes, divided by the
+        volume. For default evenly distributed traps, the fraction exposed and
+        the fractional volume are the same, in which case this is always 1.0.
+*/
+double TrapInstantCapture::fraction_traps_exposed_per_fractional_volume(
+    double fractional_volume_low, double fractional_volume_high) {
+
+    if (fractional_volume_low >= fractional_volume_full_exposed)
+        return 1.0;
+    else if (fractional_volume_high <= fractional_volume_none_exposed)
+        return 0.0;
+
+    double fraction;
+    // Integrate f(v) from v_l to v_h
+    if (fractional_volume_none_exposed == fractional_volume_full_exposed) {
+        // v_h - b
+        fraction = fractional_volume_high - fractional_volume_full_exposed;
+    } else {
+        // v_l = max(v_l, a), v_h = min(v_h, b)
+        // int_v_l^v_h f dv = (1/2 v_h^2 - a v_h - 1/2 v_l^2 + a v_l) / (b - a)
+        double v_low = std::max(fractional_volume_low, fractional_volume_none_exposed);
+        double v_high =
+            std::min(fractional_volume_high, fractional_volume_full_exposed);
+        fraction = (0.5 * v_high * v_high - fractional_volume_none_exposed * v_high -
+                    0.5 * v_low * v_low + fractional_volume_none_exposed * v_low) /
+                   (fractional_volume_full_exposed - fractional_volume_none_exposed);
+        // + (v_h - b)
+        if (fractional_volume_high > fractional_volume_full_exposed)
+            fraction += fractional_volume_high - fractional_volume_full_exposed;
+    }
+
+    // Divide by the total fractional volume
+    return fraction / (fractional_volume_high - fractional_volume_low);
 }
 
 // ========

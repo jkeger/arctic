@@ -8,7 +8,10 @@
 
 class TrapInstantCapture {
    public:
-    TrapInstantCapture(double density, double release_timescale);
+    TrapInstantCapture(
+        double density, double release_timescale,
+        double fractional_volume_none_exposed = 0.0,
+        double fractional_volume_full_exposed = 0.0);
     ~TrapInstantCapture(){};
 
     double density;
@@ -17,6 +20,12 @@ class TrapInstantCapture {
     double release_rate;
 
     virtual double fill_fraction_from_time_elapsed(double time_elapsed);
+
+    double fractional_volume_none_exposed;
+    double fractional_volume_full_exposed;
+
+    double fraction_traps_exposed_per_fractional_volume(
+        double fractional_volume_low, double fractional_volume_high);
 };
 
 class TrapSlowCapture : public TrapInstantCapture {

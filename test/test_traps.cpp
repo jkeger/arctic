@@ -10,11 +10,14 @@ TEST_CASE("Test instant-capture and slow-capture traps", "[traps]") {
     TrapInstantCapture trap_1(10.0, 2.0);
     TrapSlowCapture trap_2(10.0, 1.0, 0.0);
     TrapSlowCapture trap_3(8.0, 1.0, 0.1);
+    TrapInstantCapture trap_4(1.0, 1.0, 0.6, 0.8);
 
     SECTION("Initialisation") {
         REQUIRE(trap_1.density == 10.0);
         REQUIRE(trap_1.release_timescale == 2.0);
         REQUIRE(trap_1.release_rate == 0.5);
+        REQUIRE(trap_1.fractional_volume_none_exposed == 0.0);
+        REQUIRE(trap_1.fractional_volume_full_exposed == 0.0);
 
         REQUIRE(trap_2.density == 10.0);
         REQUIRE(trap_2.release_timescale == 1.0);
@@ -27,6 +30,12 @@ TEST_CASE("Test instant-capture and slow-capture traps", "[traps]") {
         REQUIRE(trap_3.capture_timescale == 0.1);
         REQUIRE(trap_3.release_rate == 1.0);
         REQUIRE(trap_3.capture_rate == 10.0);
+
+        REQUIRE(trap_4.density == 1.0);
+        REQUIRE(trap_4.release_timescale == 1.0);
+        REQUIRE(trap_4.release_rate == 1.0);
+        REQUIRE(trap_4.fractional_volume_none_exposed == 0.6);
+        REQUIRE(trap_4.fractional_volume_full_exposed == 0.8);
     }
 
     SECTION("Fill fraction from time elapsed") {
@@ -36,6 +45,50 @@ TEST_CASE("Test instant-capture and slow-capture traps", "[traps]") {
         REQUIRE(trap_2.fill_fraction_from_time_elapsed(1.0) == exp(-1.0));
 
         REQUIRE(trap_3.fill_fraction_from_time_elapsed(1.0) == exp(-1.0));
+    }
+
+    SECTION("Fraction traps exposed per fractional volume") {
+        // Default, always 1
+        TrapInstantCapture trap_A(1.0, 1.0);
+        REQUIRE(trap_A.fraction_traps_exposed_per_fractional_volume(0.1, 0.2) == 1.0);
+        REQUIRE(trap_A.fraction_traps_exposed_per_fractional_volume(0.0, 1.0) == 1.0);
+
+        // Step function
+        TrapInstantCapture trap_B(1.0, 1.0, 0.8, 0.8);
+        REQUIRE(trap_B.fraction_traps_exposed_per_fractional_volume(0.1, 0.2) == 0.0);
+        REQUIRE(trap_B.fraction_traps_exposed_per_fractional_volume(0.9, 1.0) == 1.0);
+        REQUIRE(
+            trap_B.fraction_traps_exposed_per_fractional_volume(0.0, 1.0) ==
+            Approx(0.2));
+        REQUIRE(
+            trap_B.fraction_traps_exposed_per_fractional_volume(0.7, 0.9) ==
+            Approx(0.5));
+
+        // Linear
+        TrapInstantCapture trap_C(1.0, 1.0, 0.4, 0.6);
+        REQUIRE(trap_C.fraction_traps_exposed_per_fractional_volume(0.1, 0.2) == 0.0);
+        REQUIRE(trap_C.fraction_traps_exposed_per_fractional_volume(0.9, 1.0) == 1.0);
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.0, 1.0) ==
+            Approx(0.1 + 0.4));
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.0, 0.5) ==
+            Approx(0.025 / 0.5));
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.3, 0.5) ==
+            Approx(0.025 / 0.2));
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.5, 1.0) ==
+            Approx((0.025 + 0.05 + 0.4) / 0.5));
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.5, 0.7) ==
+            Approx((0.05 + 0.025 + 0.1) / 0.2));
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.4, 0.6) ==
+            Approx(0.1 / 0.2));
+        REQUIRE(
+            trap_C.fraction_traps_exposed_per_fractional_volume(0.45, 0.55) ==
+            Approx((0.025 + 0.025) / 0.1));
     }
 }
 
