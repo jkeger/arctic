@@ -299,22 +299,26 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                             n_electrons_released_and_captured +=
                                 trap_manager_manager.trap_managers_ic[i_phase]
                                     .n_electrons_released_and_captured(
-                                        n_free_electrons);
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
                         if (trap_manager_manager.n_traps_sc > 0)
                             n_electrons_released_and_captured +=
                                 trap_manager_manager.trap_managers_sc[i_phase]
                                     .n_electrons_released_and_captured(
-                                        n_free_electrons);
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
                         if (trap_manager_manager.n_traps_ic_co > 0)
                             n_electrons_released_and_captured +=
                                 trap_manager_manager.trap_managers_ic_co[i_phase]
                                     .n_electrons_released_and_captured(
-                                        n_free_electrons);
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
                         if (trap_manager_manager.n_traps_sc_co > 0)
                             n_electrons_released_and_captured +=
                                 trap_manager_manager.trap_managers_sc_co[i_phase]
                                     .n_electrons_released_and_captured(
-                                        n_free_electrons);
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
 
                         print_v(
                             2, "n_electrons_released_and_captured  %g \n",
