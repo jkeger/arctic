@@ -140,7 +140,8 @@ void add_cti(
     for (int i_trap = n_traps_parallel; i_trap < n_traps_parallel + parallel_n_traps_ic;
          i_trap++) {
         parallel_traps_ic[i_trap] = TrapInstantCapture(
-            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_third_params[i_trap], parallel_trap_fourth_params[i_trap]);
     }
     n_traps_parallel += parallel_n_traps_ic;
     for (int i_trap = n_traps_parallel; i_trap < n_traps_parallel + parallel_n_traps_sc;
@@ -204,7 +205,8 @@ void add_cti(
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_ic;
          i_trap++) {
         serial_traps_ic[i_trap] = TrapInstantCapture(
-            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_third_params[i_trap], serial_trap_fourth_params[i_trap]);
     }
     n_traps_serial += serial_n_traps_ic;
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_sc;
@@ -385,7 +387,8 @@ void remove_cti(
     for (int i_trap = n_traps_parallel; i_trap < n_traps_parallel + parallel_n_traps_ic;
          i_trap++) {
         parallel_traps_ic[i_trap] = TrapInstantCapture(
-            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap]);
+            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
+            parallel_trap_third_params[i_trap], parallel_trap_fourth_params[i_trap]);
     }
     n_traps_parallel += parallel_n_traps_ic;
     for (int i_trap = n_traps_parallel; i_trap < n_traps_parallel + parallel_n_traps_sc;
@@ -449,7 +452,8 @@ void remove_cti(
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_ic;
          i_trap++) {
         serial_traps_ic[i_trap] = TrapInstantCapture(
-            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap]);
+            serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
+            serial_trap_third_params[i_trap], serial_trap_fourth_params[i_trap]);
     }
     n_traps_serial += serial_n_traps_ic;
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_sc;

@@ -41,7 +41,7 @@ def _extract_trap_parameters(traps):
     trap_third_params = []
     for trap in traps:
         if type(trap) == TrapInstantCapture:
-            trap_third_params.append(0.0)
+            trap_third_params.append(trap.fractional_volume_none_exposed)
         elif type(trap) == TrapSlowCapture:
             trap_third_params.append(trap.capture_timescale)
         elif type(trap) == TrapInstantCaptureContinuum:
@@ -53,7 +53,7 @@ def _extract_trap_parameters(traps):
     trap_fourth_params = []
     for trap in traps:
         if type(trap) == TrapInstantCapture:
-            trap_fourth_params.append(0.0)
+            trap_fourth_params.append(trap.fractional_volume_full_exposed)
         elif type(trap) == TrapSlowCapture:
             trap_fourth_params.append(0.0)
         elif type(trap) == TrapInstantCaptureContinuum:

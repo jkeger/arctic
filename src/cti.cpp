@@ -180,6 +180,18 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 trap_manager_manager.trap_managers_ic[0]
                     .traps[i_trap]
                     .release_timescale);
+            if (trap_manager_manager.trap_managers_ic[0]
+                    .traps[i_trap]
+                    .fractional_volume_full_exposed != 0.0)
+                printf(
+                    "    fractional_volume_none_exposed = %g, "
+                    "fractional_volume_full_exposed = %g \n",
+                    trap_manager_manager.trap_managers_ic[0]
+                        .traps[i_trap]
+                        .fractional_volume_none_exposed,
+                    trap_manager_manager.trap_managers_ic[0]
+                        .traps[i_trap]
+                        .fractional_volume_full_exposed);
         }
         printf("Slow-capture traps n = %d \n", trap_manager_manager.n_traps_sc);
         for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc; i_trap++) {
