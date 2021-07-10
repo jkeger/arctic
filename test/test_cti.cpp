@@ -266,6 +266,46 @@ TEST_CASE("Test add CTI", "[cti]") {
             &traps_ic_co, &traps_sc_co, express, offset, start, stop);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
     }
+
+    SECTION("Near-surface traps only trail bright enough pixels") {
+        std::valarray<std::valarray<double>> image_pre_cti, image_post_cti;
+        int express;
+        TrapInstantCapture trap(10.0, -1.0 / log(0.5), 0.9, 0.9);
+        std::valarray<TrapInstantCapture> traps_ic = {trap};
+        std::valarray<TrapSlowCapture> traps_sc = {};
+        std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
+        std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
+        ROE roe(dwell_times, true, false, true, true);
+        CCD ccd(CCDPhase(1e3, 0.0, 1.0));
+        image_pre_cti =
+            std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 20);
+        image_pre_cti[1][0] = 200.0;
+        image_pre_cti[2][0] = 400.0;
+        image_pre_cti[3][0] = 600.0;
+        image_pre_cti[4][0] = 800.0;
+        image_pre_cti[10][0] = 1000.0;
+        image_pre_cti[11][0] = 800.0;
+        image_pre_cti[12][0] = 600.0;
+        image_pre_cti[13][0] = 400.0;
+        image_pre_cti[14][0] = 200.0;
+        express = 0;
+
+        // Parallel
+        image_post_cti = add_cti(
+            image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
+            express);
+
+        // No change to the first pixels with cloud volumes below the traps
+        for (int i_row = 0; i_row < 10; i_row++) {
+            REQUIRE(image_post_cti[i_row][0] == image_pre_cti[i_row][0]);
+        }
+        // Capture from the bright pixel
+        REQUIRE(image_post_cti[10][0] < image_pre_cti[10][0]);
+        // Only release to the not-bright-enough pixels after the bright pixel
+        for (int i_row = 11; i_row < 20; i_row++) {
+            REQUIRE(image_post_cti[i_row][0] > 0.0);
+        }
+    }
 }
 
 TEST_CASE("Test add CTI, compare trap species", "[cti]") {
@@ -305,7 +345,8 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
     }
 
     SECTION("Narrow continuum traps similar to instant-capture traps") {
-        std::valarray<std::valarray<double>> image_pre_cti, image_add_ic, image_add_ic_co;
+        std::valarray<std::valarray<double>> image_pre_cti, image_add_ic,
+            image_add_ic_co;
         int express;
         TrapInstantCapture trap_ic(10.0, -1.0 / log(0.5));
         TrapInstantCaptureContinuum trap_ic_co(10.0, -1.0 / log(0.5), 0.01);
@@ -328,7 +369,8 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         // ~Same results
         for (int i_row = 0; i_row < 10; i_row++) {
             REQUIRE(
-                image_add_ic_co[i_row][0] == Approx(image_add_ic[i_row][0]).margin(1e-3));
+                image_add_ic_co[i_row][0] ==
+                Approx(image_add_ic[i_row][0]).margin(1e-3));
         }
     }
 

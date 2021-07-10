@@ -34,12 +34,13 @@
 
     fractional_volume_none_exposed : double (opt.)
     fractional_volume_full_exposed : double (opt.)
-        The fractional volume of a pixel below which no traps are exposed and
-        above which traps are fully exposed, respectively. Default to 0.0, 0.0
-        for evenly distributed traps. Between the two, the fraction of traps is
-        taken to increase linearly. Or set both to the same (non-zero) value for
-        a step function of no traps below that volume and evenly distributed
-        traps above it. See fill_fraction_from_time_elapsed().
+        To allow for a non-uniform distribution with volume: the fractional
+        volume of a pixel below which no traps are exposed and above which traps
+        are fully exposed, respectively. Default to 0.0, 0.0 for uniformly
+        distributed traps. Between the two, the density of traps is set to
+        increase linearly. Or set both to the same (non-zero) value for a step
+        function of no traps below that volume and uniformly distributed traps
+        above it. See fill_fraction_from_time_elapsed().
 
     Attributes
     ----------
@@ -55,6 +56,14 @@ TrapInstantCapture::TrapInstantCapture(
       fractional_volume_full_exposed(fractional_volume_full_exposed) {
 
     release_rate = 1.0 / release_timescale;
+
+    // For a non-uniform distribution with volume, modify the density by the
+    // maximum fraction of exposable traps, i.e. the integration over the full
+    // volume of the fractional distribution, such that the trap's total density
+    // per pixel is preserved.
+    if (fractional_volume_full_exposed > 0.0)
+        this->density /= 1.0 - 0.5 * (fractional_volume_none_exposed +
+                                      fractional_volume_full_exposed);
 }
 
 /*
@@ -76,7 +85,8 @@ double TrapInstantCapture::fill_fraction_from_time_elapsed(double time_elapsed) 
 }
 
 /*
-    Calculate the fraction of traps exposed between two fractional volumes.
+    Calculate the fraction of traps exposed between two fractional volumes, to
+    allow for a non-uniform distribution with volume.
 
     Simple idea but hard to put into words...
 
@@ -110,7 +120,7 @@ double TrapInstantCapture::fraction_traps_exposed_per_fractional_volume(
     double fraction;
     // Integrate f(v) from v_l to v_h
     if (fractional_volume_none_exposed == fractional_volume_full_exposed) {
-        // v_h - b
+        // Step function. v_h - b
         fraction = fractional_volume_high - fractional_volume_full_exposed;
     } else {
         // v_l = max(v_l, a), v_h = min(v_h, b)

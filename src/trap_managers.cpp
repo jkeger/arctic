@@ -232,6 +232,13 @@ int TrapManagerBase::watermark_index_above_cloud(double cloud_fractional_volume)
     Class TrapManagerInstantCapture.
 
     For the standard release-then-instant-capture algorithm.
+
+    Attributes
+    ----------
+    any_non_uniform_traps : double
+        Default false, set to true if any of the traps have a non-uniform
+        distribution with volume, in which case some small extra steps are
+        required in the release and capture functions.
 */
 TrapManagerInstantCapture::TrapManagerInstantCapture(
     std::valarray<TrapInstantCapture> traps, int max_n_transfers, CCDPhase ccd_phase,
@@ -242,6 +249,14 @@ TrapManagerInstantCapture::TrapManagerInstantCapture(
     trap_densities = std::valarray<double>(n_traps);
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
         trap_densities[i_trap] = traps[i_trap].density;
+    }
+
+    any_non_uniform_traps = false;
+    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+        if (traps[i_trap].fractional_volume_full_exposed > 0.0) {
+            any_non_uniform_traps = true;
+            break;
+        }
     }
 }
 
@@ -289,18 +304,37 @@ double TrapManagerInstantCapture::n_electrons_released() {
     double n_released = 0.0;
     double n_released_this_wmk;
     double frac_released;
+    double frac_exposed_per_volume;
+    double cumulative_volume;
+    double next_cumulative_volume = 0.0;
 
     // Each active watermark
     for (int i_wmk = i_first_active_wmk;
          i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
         n_released_this_wmk = 0.0;
 
+        if (any_non_uniform_traps) {
+            // Total volume at the bottom and top of this watermark
+            cumulative_volume = next_cumulative_volume;
+            next_cumulative_volume += watermark_volumes[i_wmk];
+        }
+
         // Each trap species
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             // Fraction of released electrons
             frac_released = watermark_fills[i_wmk * n_traps + i_trap] *
                             empty_probabilities_from_release[i_trap];
-            n_released_this_wmk += frac_released;
+
+            // Account for non-uniform distribution with volume
+            if (traps[i_trap].fractional_volume_full_exposed == 0.0)
+                frac_exposed_per_volume = 1.0;
+            else
+                frac_exposed_per_volume =
+                    traps[i_trap].fraction_traps_exposed_per_fractional_volume(
+                        cumulative_volume, next_cumulative_volume);
+
+            // Number released
+            n_released_this_wmk += frac_released * frac_exposed_per_volume;
 
             // Update the watermark fill fraction
             watermark_fills[i_wmk * n_traps + i_trap] -= frac_released;
@@ -589,6 +623,8 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
     double n_captured_this_wmk;
     double cumulative_volume = 0.0;
     double next_cumulative_volume = 0.0;
+    double volume_top;
+    double frac_exposed_per_volume;
 
     int i_wmk_above_cloud = watermark_index_above_cloud(cloud_fractional_volume);
 
@@ -600,22 +636,32 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
         cumulative_volume = next_cumulative_volume;
         next_cumulative_volume += watermark_volumes[i_wmk];
 
-        // Each trap species
-        for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-            n_captured_this_wmk +=
-                trap_densities[i_trap] - watermark_fills[i_wmk * n_traps + i_trap];
+        // Capture up to the cloud volume for the last watermark
+        if (i_wmk == i_wmk_above_cloud) {
+            volume_top = cloud_fractional_volume;
+        }
+        // Capture up to the next watermark for watermarks below the cloud
+        else {
+            volume_top = next_cumulative_volume;
         }
 
-        // Capture from the bottom of the last watermark up to the cloud volume
-        if (i_wmk == i_wmk_above_cloud) {
-            n_captured +=
-                n_captured_this_wmk * (cloud_fractional_volume - cumulative_volume);
+        // Each trap species
+        for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+            // Account for non-uniform distribution with volume
+            if (traps[i_trap].fractional_volume_full_exposed == 0.0)
+                frac_exposed_per_volume = 1.0;
+            else
+                frac_exposed_per_volume =
+                    traps[i_trap].fraction_traps_exposed_per_fractional_volume(
+                        cumulative_volume, volume_top);
+
+            n_captured_this_wmk +=
+                (trap_densities[i_trap] - watermark_fills[i_wmk * n_traps + i_trap]) *
+                frac_exposed_per_volume;
         }
-        // Capture from the bottom to top of watermark volumes below the cloud
-        else {
-            n_captured +=
-                n_captured_this_wmk * (next_cumulative_volume - cumulative_volume);
-        }
+
+        // Capture from the bottom to the top of the watermark
+        n_captured += n_captured_this_wmk * (volume_top - cumulative_volume);
     }
 
     // ========

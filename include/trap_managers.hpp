@@ -59,6 +59,8 @@ class TrapManagerInstantCapture : public TrapManagerBase {
     void set_fill_probabilities();
     void setup();
 
+    bool any_non_uniform_traps;
+
     double n_electrons_released();
     void update_watermarks_capture(
         double cloud_fractional_volume, int i_wmk_above_cloud);
