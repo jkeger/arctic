@@ -305,7 +305,7 @@ double TrapManagerInstantCapture::n_electrons_released() {
     double n_released_this_wmk;
     double frac_released;
     double frac_exposed_per_volume;
-    double cumulative_volume;
+    double cumulative_volume = 0.0;
     double next_cumulative_volume = 0.0;
 
     // Each active watermark
@@ -1444,6 +1444,12 @@ double TrapManagerInstantCaptureContinuum::n_electrons_released_and_captured(
 
     For traps with a non-instant capture time and a continuum (log-normal
     distribution) of release timescales.
+
+    Attributes (where different to TrapManagerInstantCaptureContinuum)
+    ----------
+    time_min : double
+        Unlike instant capture, need a much smaller minimum time so that the
+        interpolation tables cover the not-completely-filled traps from capture.
 */
 TrapManagerSlowCaptureContinuum::TrapManagerSlowCaptureContinuum(
     std::valarray<TrapSlowCaptureContinuum> traps, int max_n_transfers,
@@ -1456,14 +1462,35 @@ TrapManagerSlowCaptureContinuum::TrapManagerSlowCaptureContinuum(
         trap_densities[i_trap] = traps[i_trap].density;
     }
 
+    time_min = dwell_time / 30;
+    time_max = max_n_transfers * dwell_time;
+    n_intp = 1000;
+
     // Overwrite default parameter values
     n_watermarks_per_transfer = 2;
 }
 
 /*
+    Set the interpolation table values for converting between fill fractions
+    and elapsed times.
+
+    See TrapManagerSlowCaptureContinuum.prep_fill_fraction_and_time_elapsed_tables().
+*/
+void TrapManagerSlowCaptureContinuum::prepare_interpolation_tables() {
+    // Prepare interpolation tables for each trap species
+    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+        traps[i_trap].prep_fill_fraction_and_time_elapsed_tables(
+            time_min, time_max, n_intp);
+    }
+}
+
+/*
     Call any necessary initialisation functions, etc.
 */
-void TrapManagerSlowCaptureContinuum::setup() { initialise_trap_states(); }
+void TrapManagerSlowCaptureContinuum::setup() {
+    initialise_trap_states();
+    prepare_interpolation_tables();
+}
 
 /*
     Same as TrapManagerSlowCapture, except for the conversion between fill
@@ -1560,14 +1587,14 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             // Initial fill and conversion to elapsed time
             fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
-            time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
-                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time,
-                workspace);
+            time_initial = traps[i_trap].time_elapsed_from_fill_fraction_table(
+                fill_initial / trap_densities[i_trap]);
 
             // New fill fraction from updated elapsed time
             watermark_fills[i_wmk * n_traps + i_trap] =
-                trap_densities[i_trap] * traps[i_trap].fill_fraction_from_time_elapsed(
-                                             time_initial + dwell_time, workspace);
+                trap_densities[i_trap] *
+                traps[i_trap].fill_fraction_from_time_elapsed_table(
+                    time_initial + dwell_time);
 
             // Number released from difference in fill fractions
             n_released_this_wmk +=
@@ -1637,9 +1664,8 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             // Initial fill and conversion to elapsed time
             fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
-            time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
-                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time,
-                workspace);
+            time_initial = traps[i_trap].time_elapsed_from_fill_fraction_table(
+                fill_initial / trap_densities[i_trap]);
 
             // Integrate over the fraction of full traps that remain full plus
             // fraction of empty traps that become full over the distribution
@@ -1681,9 +1707,8 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
         for (int i_trap = 0; i_trap < n_traps; i_trap++) {
             // Initial fill and conversion to elapsed time
             fill_initial = watermark_fills[i_wmk * n_traps + i_trap];
-            time_initial = traps[i_trap].time_elapsed_from_fill_fraction(
-                fill_initial / trap_densities[i_trap], max_n_transfers * dwell_time,
-                workspace);
+            time_initial = traps[i_trap].time_elapsed_from_fill_fraction_table(
+                fill_initial / trap_densities[i_trap]);
 
             // Integrate over the fraction of full traps that remain full plus
             // fraction of empty traps that become full over the distribution

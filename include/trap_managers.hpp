@@ -126,6 +126,11 @@ class TrapManagerSlowCaptureContinuum : public TrapManagerBase {
 
     std::valarray<TrapSlowCaptureContinuum> traps;
 
+    double time_min;
+    double time_max;
+    int n_intp;
+
+    void prepare_interpolation_tables();
     void setup();
 
     double n_electrons_released_and_captured(double n_free_electrons);

@@ -677,6 +677,100 @@ double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction(
 }
 
 /*
+    Same as TrapInstantCaptureContinuum
+*/
+void TrapSlowCaptureContinuum::prep_fill_fraction_and_time_elapsed_tables(
+    double time_min, double time_max, int n_intp) {
+
+    // Prep for the GSL integration
+    const int limit = 100;
+    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+
+    // Set up the arrays and limits
+    fill_fraction_table = std::valarray<double>(0.0, n_intp);
+    this->n_intp = n_intp;
+    this->time_min = time_min;
+    this->time_max = time_max;
+    fill_min = fill_fraction_from_time_elapsed(time_max, workspace);
+    fill_max = fill_fraction_from_time_elapsed(time_min, workspace);
+    d_log_time = (log(time_max) - log(time_min)) / (n_intp - 1);
+    double time_i;
+
+    // Tabulate the values corresponding to the equally log-spaced inputs
+    for (int i = 0; i < n_intp; i++) {
+        time_i = exp(log(time_max) - i * d_log_time);
+        fill_fraction_table[i] = fill_fraction_from_time_elapsed(time_i, workspace);
+    }
+}
+
+/*
+    Same as TrapInstantCaptureContinuum
+*/
+double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed_table(
+    double time_elapsed) {
+    // Completely full or empty, or unset watermark
+    if (time_elapsed == 0.0)
+        return 1.0;
+    else if (time_elapsed >= std::numeric_limits<double>::max())
+        return 0.0;
+    else if (time_elapsed == -1.0)
+        return 0.0;
+
+    // Get the index and interpolation factor
+    double intp = (log(time_max) - log(time_elapsed)) / d_log_time;
+    int idx = (int)std::floor(intp);
+    intp = intp - idx;
+
+    // Extrapolate if outside the table
+    if (idx < 0) {
+        intp += idx;
+        idx = 0;
+    } else if (idx >= n_intp - 1) {
+        intp += idx - (n_intp - 2);
+        idx = n_intp - 2;
+    }
+
+    // Interpolate
+    double fill =
+        (1.0 - intp) * fill_fraction_table[idx] + intp * fill_fraction_table[idx + 1];
+
+    return clamp(fill, 0.0, 1.0);
+}
+
+/*
+    Same as TrapInstantCaptureContinuum
+*/
+double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction_table(
+    double fill_fraction) {
+    // Completely full or empty, or unset watermark
+    if (fill_fraction == 1.0)
+        return 0.0;
+    else if (fill_fraction == 0.0)
+        return std::numeric_limits<double>::max();
+    else if (fill_fraction == -1.0)
+        return 0.0;
+
+    // Find the index by searching the table
+    int idx = std::upper_bound(
+                  std::begin(fill_fraction_table), std::end(fill_fraction_table),
+                  fill_fraction) -
+              std::begin(fill_fraction_table) - 1;
+
+    // Extrapolate if outside the table
+    if (idx < 0)
+        idx = 0;
+    else if (idx == n_intp - 1)
+        idx = n_intp - 2;
+
+    // Interpolation factor
+    double intp = (fill_fraction - fill_fraction_table[idx]) /
+                  (fill_fraction_table[idx + 1] - fill_fraction_table[idx]);
+
+    // Interpolate
+    return exp(log(time_max) - (idx + intp) * d_log_time);
+}
+
+/*
     Calculate the fraction of filled traps after slow-capture (and release).
 
     Found by integrating the trap density distribution multiplied by the final
