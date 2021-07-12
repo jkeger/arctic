@@ -471,7 +471,7 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
             std::numeric_limits<double>::max());
     }
 
-    SECTION("Fill fraction from slow capture") {
+    SECTION("Fill fraction after slow capture") {
         double dwell_time = 1.0;
 
         // Almost-instant capture
@@ -522,5 +522,68 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
         REQUIRE(
             trap_2.fill_fraction_after_slow_capture(10.0, dwell_time) >
             trap_2.fill_fraction_after_slow_capture(20.0, dwell_time));
+    }
+
+    double dwell_time = 1.0;
+    trap_1.prep_fill_fraction_after_slow_capture_tables(
+        dwell_time, time_min, time_max, n_intp);
+    trap_2.prep_fill_fraction_after_slow_capture_tables(
+        dwell_time, time_min, time_max, n_intp);
+
+    SECTION("Prep fill fraction after slow capture table") {
+        // Derived variables
+        double fill_capture_min =
+            trap_1.fill_fraction_after_slow_capture(time_max, dwell_time);
+        double fill_capture_max =
+            trap_1.fill_fraction_after_slow_capture(time_min, dwell_time);
+        REQUIRE(trap_1.fill_capture_min == fill_capture_min);
+        REQUIRE(trap_1.fill_capture_max == fill_capture_max);
+
+        // End table values
+        REQUIRE(trap_1.fill_fraction_capture_table[0] == Approx(fill_capture_min));
+        REQUIRE(
+            trap_1.fill_fraction_capture_table[n_intp - 1] == Approx(fill_capture_max));
+
+        REQUIRE(
+            trap_1.fill_capture_long_time ==
+            trap_1.fill_fraction_after_slow_capture(time_max * 100, dwell_time));
+    }
+
+    SECTION("Fill fraction after slow capture from table") {
+        // Inside table
+        for (double log10_time = -1.0; log10_time <= 1.8; log10_time += 0.2) {
+            double time = pow(10, log10_time);
+            REQUIRE(
+                trap_2.fill_fraction_after_slow_capture_table(time) ==
+                Approx(trap_2.fill_fraction_after_slow_capture(time, dwell_time))
+                    .epsilon(1e-4)
+                    .margin(1e-7));
+            REQUIRE(
+                trap_2.fill_fraction_after_slow_capture_table(time) ==
+                Approx(trap_2.fill_fraction_after_slow_capture(time, dwell_time))
+                    .epsilon(1e-4)
+                    .margin(1e-7));
+        }
+
+        // Outside table still close, and long times converge
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture_table(0.05) ==
+            Approx(trap_2.fill_fraction_after_slow_capture(0.05, dwell_time))
+                .epsilon(1e-2));
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture_table(100) ==
+            Approx(trap_2.fill_fraction_after_slow_capture(100, dwell_time)));
+
+        // Far outside table still closeish, and long times converge
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture_table(0.01) ==
+            Approx(trap_2.fill_fraction_after_slow_capture(0.01, dwell_time))
+                .epsilon(1e-1));
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture_table(1000) ==
+            Approx(trap_2.fill_fraction_after_slow_capture(1000, dwell_time)));
+        REQUIRE(
+            trap_2.fill_fraction_after_slow_capture_table(
+                std::numeric_limits<double>::max()) == trap_2.fill_capture_long_time);
     }
 }

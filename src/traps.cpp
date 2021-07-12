@@ -863,3 +863,105 @@ double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
 
     return result;
 }
+
+/*
+    Prepare tables of fill fractions and elapsed times for interpolation of
+    fill fractions after slow capture (and release).
+
+    Use logarithmically spaced (decreasing) times to calculate the corresponding
+    (monotonically increasing) table of fill fractions. So no need to actually
+    store the elapsed times.
+
+    Parameters
+    ----------
+    dwell_time : double
+        The time spent in this pixel or phase, in the same units as the trap
+        timescales.
+
+    time_min : double
+    time_max : double
+        The minimum and maximum elapsed times to set the table limits, e.g. a
+        single dwell time and the cumulative dwell time over all transfers.
+
+    n_intp : int
+        The number of interpolation values in the arrays.
+
+    Sets
+    ----
+    fill_fraction_capture_table : std::valarray<double>
+        The array of fill fractions.
+
+    fill_capture_long_time : double
+        The should-be-converged fill fraction from a very long elapsed time.
+*/
+void TrapSlowCaptureContinuum::prep_fill_fraction_after_slow_capture_tables(
+    double dwell_time, double time_min, double time_max, int n_intp) {
+    // Prep for the GSL integration
+    const int limit = 100;
+    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+
+    // Set up the arrays and limits
+    fill_fraction_capture_table = std::valarray<double>(0.0, n_intp);
+    this->n_intp = n_intp;
+    this->time_min = time_min;
+    this->time_max = time_max;
+    fill_capture_min =
+        fill_fraction_after_slow_capture(time_max, dwell_time, workspace);
+    fill_capture_max =
+        fill_fraction_after_slow_capture(time_min, dwell_time, workspace);
+    fill_capture_long_time =
+        fill_fraction_after_slow_capture(time_max * 100, dwell_time, workspace);
+    d_log_time = (log(time_max) - log(time_min)) / (n_intp - 1);
+    double time_i;
+
+    // Tabulate the values corresponding to the equally log-spaced inputs
+    for (int i = 0; i < n_intp; i++) {
+        time_i = exp(log(time_max) - i * d_log_time);
+        fill_fraction_capture_table[i] =
+            fill_fraction_after_slow_capture(time_i, dwell_time, workspace);
+    }
+}
+
+/*
+    Calculate the fraction of filled traps after slow-capture (and release),
+    using previously tabulated values for interpolation.
+
+    Parameters
+    ----------
+    time_elapsed : double
+        The approximate, effective time elapsed since the traps were filled, in
+        the same units as the trap timescales.
+
+    Returns
+    -------
+    fill_fraction : double
+        The fraction of filled traps.
+*/
+double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture_table(
+    double time_elapsed) {
+    // Very long elapsed time, or unset watermark
+    if (time_elapsed >= std::numeric_limits<double>::max())
+        return fill_capture_long_time;
+    else if (time_elapsed == -1.0)
+        return 0.0;
+
+    // Get the index and interpolation factor
+    double intp = (log(time_max) - log(time_elapsed)) / d_log_time;
+    int idx = (int)std::floor(intp);
+    intp = intp - idx;
+
+    // Extrapolate if outside the table
+    if (idx < 0) {
+        intp += idx;
+        idx = 0;
+    } else if (idx >= n_intp - 1) {
+        intp += idx - (n_intp - 2);
+        idx = n_intp - 2;
+    }
+
+    // Interpolate
+    double fill = (1.0 - intp) * fill_fraction_capture_table[idx] +
+                  intp * fill_fraction_capture_table[idx + 1];
+
+    return clamp(fill, 0.0, 1.0);
+}

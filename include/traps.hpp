@@ -98,6 +98,15 @@ class TrapSlowCaptureContinuum : public TrapInstantCapture {
     double fill_fraction_after_slow_capture(
         double time_elapsed, double dwell_time,
         gsl_integration_workspace* workspace = nullptr);
+
+    std::valarray<double> fill_fraction_capture_table;
+    double fill_capture_min;
+    double fill_capture_max;
+    double fill_capture_long_time;
+
+    void prep_fill_fraction_after_slow_capture_tables(
+        double dwell_time, double time_min, double time_max, int n_intp);
+    double fill_fraction_after_slow_capture_table(double time_elapsed);
 };
 
 #endif  // ARCTIC_TRAPS_HPP

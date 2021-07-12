@@ -1474,13 +1474,16 @@ TrapManagerSlowCaptureContinuum::TrapManagerSlowCaptureContinuum(
     Set the interpolation table values for converting between fill fractions
     and elapsed times.
 
-    See TrapManagerSlowCaptureContinuum.prep_fill_fraction_and_time_elapsed_tables().
+    See TrapManagerSlowCaptureContinuum.prep_fill_fraction_and_time_elapsed_tables()
+    and prep_fill_fraction_after_slow_capture_tables().
 */
 void TrapManagerSlowCaptureContinuum::prepare_interpolation_tables() {
     // Prepare interpolation tables for each trap species
     for (int i_trap = 0; i_trap < n_traps; i_trap++) {
         traps[i_trap].prep_fill_fraction_and_time_elapsed_tables(
             time_min, time_max, n_intp);
+        traps[i_trap].prep_fill_fraction_after_slow_capture_tables(
+            dwell_time, time_min, time_max, n_intp);
     }
 }
 
@@ -1572,10 +1575,6 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
     double time_initial;
     double cumulative_volume = 0.0;
     double next_cumulative_volume = 0.0;
-
-    // Prep for the GSL integration
-    const int limit = 100;
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Count the released electrons and update the watermarks
     // Same as TrapManagerInstantCaptureContinuum.n_electrons_released()
@@ -1669,8 +1668,8 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
 
             // Integrate over the fraction of full traps that remain full plus
             // fraction of empty traps that become full over the distribution
-            new_fill = traps[i_trap].fill_fraction_after_slow_capture(
-                time_initial, dwell_time, workspace);
+            new_fill =
+                traps[i_trap].fill_fraction_after_slow_capture_table(time_initial);
 
             // Include the trap density
             new_fill *= trap_densities[i_trap];
@@ -1712,8 +1711,8 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
 
             // Integrate over the fraction of full traps that remain full plus
             // fraction of empty traps that become full over the distribution
-            new_fill = traps[i_trap].fill_fraction_after_slow_capture(
-                time_initial, dwell_time, workspace);
+            new_fill =
+                traps[i_trap].fill_fraction_after_slow_capture_table(time_initial);
 
             // Include the trap density
             new_fill *= trap_densities[i_trap];
