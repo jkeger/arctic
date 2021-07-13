@@ -19,6 +19,7 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
     TrapInstantCapture trap_2(2.0, 2.0);
     TrapSlowCapture trap_3(3.0, 3.0, 0.0);
     TrapInstantCaptureContinuum trap_4(10.0, 4.0, 0.1);
+    TrapSlowCaptureContinuum trap_5(10.0, 5.0, 0.05, 0.1);
     int max_n_transfers = 123;
 
     SECTION("Traps") {
@@ -50,6 +51,15 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager_ic_co.n_traps == 1);
         REQUIRE(trap_manager_ic_co.traps[0].density == trap_4.density);
         REQUIRE(trap_manager_ic_co.trap_densities[0] == trap_4.density);
+
+        // Slow-capture continuum traps
+        std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_5};
+        TrapManagerSlowCaptureContinuum trap_manager_sc_co(
+            traps_sc_co, max_n_transfers, ccd_phase, dwell_time);
+
+        REQUIRE(trap_manager_sc_co.n_traps == 1);
+        REQUIRE(trap_manager_sc_co.traps[0].density == trap_5.density);
+        REQUIRE(trap_manager_sc_co.trap_densities[0] == trap_5.density);
     }
 
     SECTION("CCD Phase") {
@@ -85,6 +95,19 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
             ccd_phase.well_notch_depth);
         REQUIRE(
             trap_manager_ic_co.ccd_phase.well_fill_power == ccd_phase.well_fill_power);
+
+        // Slow-capture continuum traps
+        std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_5};
+        TrapManagerSlowCaptureContinuum trap_manager_sc_co(
+            traps_sc_co, max_n_transfers, ccd_phase, dwell_time);
+
+        REQUIRE(
+            trap_manager_sc_co.ccd_phase.full_well_depth == ccd_phase.full_well_depth);
+        REQUIRE(
+            trap_manager_sc_co.ccd_phase.well_notch_depth ==
+            ccd_phase.well_notch_depth);
+        REQUIRE(
+            trap_manager_sc_co.ccd_phase.well_fill_power == ccd_phase.well_fill_power);
     }
 
     SECTION("Misc attributes") {
@@ -123,13 +146,24 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(trap_manager_ic_co.i_first_active_wmk == 0);
         REQUIRE(trap_manager_ic_co.dwell_time == 3.0);
 
-        // Instant-capture traps, non-uniform volume distribution
-        REQUIRE(!trap_manager_ic.any_non_uniform_traps);
+        // Slow-capture continuum traps
+        TrapManagerSlowCaptureContinuum trap_manager_sc_co(
+            std::valarray<TrapSlowCaptureContinuum>{trap_5}, max_n_transfers, ccd_phase,
+            4.0);
 
+        REQUIRE(trap_manager_sc_co.max_n_transfers == 123);
+        REQUIRE(trap_manager_sc_co.n_watermarks_per_transfer == 2);
+        REQUIRE(trap_manager_sc_co.empty_watermark == 0.0);
+        REQUIRE(trap_manager_sc_co.n_active_watermarks == 0);
+        REQUIRE(trap_manager_sc_co.i_first_active_wmk == 0);
+        REQUIRE(trap_manager_sc_co.dwell_time == 4.0);
+
+        // Instant-capture traps, non-uniform volume distribution
         TrapInstantCapture trap_surface(10.0, -1.0 / log(0.5), 0.9, 0.9);
         TrapManagerInstantCapture trap_manager_ic_2(
             std::valarray<TrapInstantCapture>{trap_1, trap_2, trap_surface},
             max_n_transfers, ccd_phase, 1.0);
+        REQUIRE(!trap_manager_ic.any_non_uniform_traps);
         REQUIRE(trap_manager_ic_2.any_non_uniform_traps);
     }
 
@@ -195,6 +229,21 @@ TEST_CASE("Test initialisation", "[trap_managers]") {
         REQUIRE(
             trap_manager_ic_co.watermark_fills.sum() ==
             trap_manager_ic_co.n_watermarks * trap_manager_ic_co.empty_watermark);
+
+        // Slow-capture continuum traps
+        TrapManagerSlowCaptureContinuum trap_manager_sc_co(
+            std::valarray<TrapSlowCaptureContinuum>{trap_5}, 3, ccd_phase, dwell_time);
+        trap_manager_sc_co.initialise_trap_states();
+
+        REQUIRE(trap_manager_sc_co.n_watermarks == 7);
+        REQUIRE(trap_manager_sc_co.watermark_volumes.size() == 7);
+        REQUIRE(trap_manager_sc_co.watermark_fills.size() == 7);
+        REQUIRE(
+            trap_manager_sc_co.watermark_volumes.sum() ==
+            trap_manager_sc_co.n_watermarks * trap_manager_sc_co.empty_watermark);
+        REQUIRE(
+            trap_manager_sc_co.watermark_fills.sum() ==
+            trap_manager_sc_co.n_watermarks * trap_manager_sc_co.empty_watermark);
     }
 }
 
@@ -295,6 +344,19 @@ TEST_CASE("Test utilities", "[trap_managers]") {
         REQUIRE(
             n_trapped_electrons ==
             Approx((0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_5.density));
+
+        // Slow-capture continuum traps
+        TrapManagerSlowCaptureContinuum trap_manager_sc_co(
+            std::valarray<TrapSlowCaptureContinuum>{trap_6}, 4, ccd_phase, dwell_time);
+        trap_manager_sc_co.initialise_trap_states();
+        trap_manager_sc_co.n_active_watermarks = 3;
+        trap_manager_sc_co.watermark_volumes = {0.5, 0.2, 0.1, 0.0, 0.0};
+        trap_manager_sc_co.watermark_fills = {0.8 * 10, 0.4 * 10, 0.2 * 10, 0.0, 0.0};
+        n_trapped_electrons = trap_manager_sc_co.n_trapped_electrons_from_watermarks(
+            trap_manager_sc_co.watermark_volumes, trap_manager_sc_co.watermark_fills);
+        REQUIRE(
+            n_trapped_electrons ==
+            Approx((0.5 * 0.8 + 0.2 * 0.4 + 0.1 * 0.2) * trap_6.density));
     }
 
     SECTION("Fill probabilities") {
