@@ -212,7 +212,11 @@ TrapInstantCaptureContinuum::TrapInstantCaptureContinuum(
     distribution with trap release timescales:
         f = int_0^inf n(tau) exp(-t_e/tau) dtau
 
-    (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
+    Integrating from 0 to infinity can fail for very small mu and/or sigma, so
+    instead integrate from 0 to (mu + 100 sigma) for a more reliable and very
+    close approximation.
+
+    (www.gnu.org/software/gsl/doc/html/integration.html#qag-adaptive-integration)
 
     Parameters
     ----------
@@ -259,9 +263,11 @@ double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed(
     // Prep the integration
     double result, error;
     const double min = 0.0;
+    const double max = release_timescale + 100 * release_timescale_sigma;
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
+    const int key = GSL_INTEG_GAUSS51;
     if (!workspace) {
         workspace = gsl_integration_workspace_alloc(limit);
     }
@@ -271,9 +277,9 @@ double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed(
     F.function = &TrICCo_ff_from_te_integrand;
     F.params = &params;
 
-    // Integrate F.function from min to +infinity
-    int status = gsl_integration_qagiu(
-        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
+    // Integrate F.function from min to max
+    int status = gsl_integration_qag(
+        &F, min, max, epsabs, epsrel, limit, key, workspace, &result, &error);
 
     if (status) error("Integration failed, status %d", status);
 
@@ -588,9 +594,11 @@ double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
     // Prep the integration
     double result, error;
     const double min = 0.0;
+    const double max = release_timescale + 100 * release_timescale_sigma;
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
+    const int key = GSL_INTEG_GAUSS51;
     if (!workspace) {
         workspace = gsl_integration_workspace_alloc(limit);
     }
@@ -600,9 +608,9 @@ double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
     F.function = &TrSCCo_ff_from_te_integrand;
     F.params = &params;
 
-    // Integrate F.function from min to +infinity
-    int status = gsl_integration_qagiu(
-        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
+    // Integrate F.function from min to max
+    int status = gsl_integration_qag(
+        &F, min, max, epsabs, epsrel, limit, key, workspace, &result, &error);
 
     if (status) error("Integration failed, status %d", status);
 
@@ -780,7 +788,11 @@ double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction_table(
         f(tau) = f_0(tau) f_f(tau) + (1 - f_0(tau)) f_e(tau)
         f = int_0^inf n(tau) f(tau) dtau
 
-    (www.gnu.org/software/gsl/doc/html/integration.html#c.gsl_integration_qagiu)
+    Integrating from 0 to infinity can fail for very small mu and/or sigma, so
+    instead integrate from 0 to (mu + 100 sigma) for a more reliable and very
+    close approximation.
+
+    (www.gnu.org/software/gsl/doc/html/integration.html#qag-adaptive-integration)
 
     Parameters
     ----------
@@ -842,9 +854,11 @@ double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
     // Prep the integration
     double result, error;
     const double min = 0.0;
+    const double max = release_timescale + 100 * release_timescale_sigma;
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
+    const int key = GSL_INTEG_GAUSS51;
     if (!workspace) {
         workspace = gsl_integration_workspace_alloc(limit);
     }
@@ -855,9 +869,9 @@ double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
     F.function = &TrSCCo_ff_after_sc_integrand;
     F.params = &params;
 
-    // Integrate F.function from min to +infinity
-    int status = gsl_integration_qagiu(
-        &F, min, epsabs, epsrel, limit, workspace, &result, &error);
+    // Integrate F.function from min to max
+    int status = gsl_integration_qag(
+        &F, min, max, epsabs, epsrel, limit, key, workspace, &result, &error);
 
     if (status) error("Integration failed, status %d", status);
 

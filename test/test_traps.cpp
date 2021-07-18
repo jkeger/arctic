@@ -124,6 +124,8 @@ TEST_CASE("Test instant-capture continuum traps", "[traps]") {
     // Narrow and wide distributions of release lifetimes
     TrapInstantCaptureContinuum trap_1(10.0, -1.0 / log(0.5), 0.1);
     TrapInstantCaptureContinuum trap_2(10.0, -1.0 / log(0.5), 1.0);
+    // Small mu and sigma
+    TrapInstantCaptureContinuum trap_3(10.0, -0.1 / log(0.5), 0.001);
 
     SECTION("Initialisation") {
         REQUIRE(trap_1.density == 10.0);
@@ -146,6 +148,9 @@ TEST_CASE("Test instant-capture continuum traps", "[traps]") {
             trap_1.fill_fraction_from_time_elapsed(2.0) == Approx(0.25).epsilon(0.01));
         REQUIRE(
             trap_2.fill_fraction_from_time_elapsed(2.0) == Approx(0.25).epsilon(0.2));
+
+        // Small mu and sigma
+        REQUIRE(trap_3.fill_fraction_from_time_elapsed(0.1) == Approx(0.5));
 
         // Full and empty
         REQUIRE(trap_1.fill_fraction_from_time_elapsed(0.0) == Approx(1.0));
@@ -185,6 +190,11 @@ TEST_CASE("Test instant-capture continuum traps", "[traps]") {
         REQUIRE(
             2.468 == Approx(trap_2.time_elapsed_from_fill_fraction(
                          trap_2.fill_fraction_from_time_elapsed(2.468), time_max)));
+
+        // Small mu and sigma
+        REQUIRE(
+            1.234 == Approx(trap_3.time_elapsed_from_fill_fraction(
+                         trap_3.fill_fraction_from_time_elapsed(1.234), time_max)));
     }
 
     int n_intp = 1000;
@@ -298,6 +308,8 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
     TrapSlowCaptureContinuum trap_2(8.0, -1.0 / log(0.5), 0.5, 1.0);
     // Close to single-lifetime and instant-capture
     TrapSlowCaptureContinuum trap_3(10.0, -1.0 / log(0.5), 0.01, 0.01);
+    // Small mu and sigma
+    TrapSlowCaptureContinuum trap_4(10.0, -0.1 / log(0.5), 0.001, 0.001);
 
     SECTION("Initialisation") {
         REQUIRE(trap_1.density == 10.0);
@@ -326,6 +338,10 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
             trap_1.fill_fraction_from_time_elapsed(2.0) == Approx(0.25).epsilon(0.01));
         REQUIRE(
             trap_2.fill_fraction_from_time_elapsed(2.0) == Approx(0.25).epsilon(0.2));
+
+        // Small mu and sigma
+        REQUIRE(
+            trap_4.fill_fraction_from_time_elapsed(0.1) == Approx(0.5).epsilon(0.01));
 
         // Full and empty
         REQUIRE(trap_1.fill_fraction_from_time_elapsed(0.0) == Approx(1.0));
@@ -365,6 +381,11 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
         REQUIRE(
             2.468 == Approx(trap_2.time_elapsed_from_fill_fraction(
                          trap_2.fill_fraction_from_time_elapsed(2.468), time_max)));
+
+        // Small mu and sigma
+        REQUIRE(
+            1.234 == Approx(trap_4.time_elapsed_from_fill_fraction(
+                         trap_4.fill_fraction_from_time_elapsed(1.234), time_max)));
     }
 
     int n_intp = 1000;
@@ -483,6 +504,11 @@ TEST_CASE("Test slow-capture continuum traps", "[traps]") {
         REQUIRE(
             trap_1.fill_fraction_after_slow_capture(1.0, dwell_time) ==
             Approx(1.0).epsilon(0.1));
+
+        // Small mu and sigma
+        REQUIRE(
+            trap_4.fill_fraction_after_slow_capture(1.0, dwell_time) ==
+            Approx(1.0).epsilon(0.01));
 
         // Larger final fill from longer dwell time
         REQUIRE(
