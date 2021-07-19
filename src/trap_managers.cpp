@@ -211,7 +211,6 @@ double TrapManagerBase::n_trapped_electrons_from_watermarks(
 */
 int TrapManagerBase::watermark_index_above_cloud(double cloud_fractional_volume) {
     double cumulative_volume = 0.0;
-
     // Sum up the fractional volumes until surpassing the cloud volume
     for (int i_wmk = i_first_active_wmk;
          i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
@@ -222,7 +221,7 @@ int TrapManagerBase::watermark_index_above_cloud(double cloud_fractional_volume)
     }
 
     // Cloud volume above all watermarks
-    return n_active_watermarks;
+    return i_first_active_wmk + n_active_watermarks;
 }
 
 // ========

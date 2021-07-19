@@ -1655,6 +1655,90 @@ TEST_CASE("Test instant-capture traps: simple capture", "[trap_managers]") {
             std::end(trap_manager.watermark_fills));
         REQUIRE_THAT(test, Catch::Approx(answer));
     }
+
+    SECTION("Cloud volume above full well volume") {
+        TrapManagerInstantCapture trap_manager(
+            std::valarray<TrapInstantCapture>{trap_1, trap_2}, 5, ccd_phase,
+            dwell_time);
+        trap_manager.setup();
+        trap_manager.n_active_watermarks = 1;
+        trap_manager.watermark_volumes = {0.5, 0.0, 0.0, 0.0, 0.0, 0.0};
+        trap_manager.watermark_fills = {
+            // clang-format off
+            0.8 * 10, 0.7 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            // clang-format on
+        };
+        n_electrons_captured = trap_manager.n_electrons_captured(2e4);
+
+        REQUIRE(
+            n_electrons_captured ==
+            Approx((0.5 * 0.2 + 0.5 * 1.0) * 10.0 + (0.5 * 0.3 + 0.5 * 1.0) * 8.0));
+        REQUIRE(trap_manager.n_active_watermarks == 1);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
+
+        answer = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        test.assign(
+            std::begin(trap_manager.watermark_volumes),
+            std::end(trap_manager.watermark_volumes));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {
+            // clang-format off
+            1.0 * 10, 1.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            // clang-format on
+        };
+        test.assign(
+            std::begin(trap_manager.watermark_fills),
+            std::end(trap_manager.watermark_fills));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+
+        // Release then another over-full capture
+        trap_manager.watermark_fills = {
+            // clang-format off
+            0.8 * 10, 0.7 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            // clang-format on
+        };
+
+        n_electrons_captured = trap_manager.n_electrons_captured(2e4);
+
+        REQUIRE(n_electrons_captured == Approx(1.0 * 0.2 * 10.0 + 1.0 * 0.3 * 8.0));
+        REQUIRE(trap_manager.n_active_watermarks == 1);
+        REQUIRE(trap_manager.i_first_active_wmk == 0);
+
+        answer = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        test.assign(
+            std::begin(trap_manager.watermark_volumes),
+            std::end(trap_manager.watermark_volumes));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+        answer = {
+            // clang-format off
+            1.0 * 10, 1.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            0.0 * 10, 0.0 * 8,
+            // clang-format on
+        };
+        test.assign(
+            std::begin(trap_manager.watermark_fills),
+            std::end(trap_manager.watermark_fills));
+        REQUIRE_THAT(test, Catch::Approx(answer));
+    }
 }
 
 TEST_CASE("Test instant-capture traps: other capture", "[trap_managers]") {
