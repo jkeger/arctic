@@ -737,6 +737,28 @@ def run_demo():
 
     ac.print_array_2D(image_post_cti)
 
+    image_removed_cti = ac.remove_cti(
+        image=image_post_cti,
+        n_iterations=4,
+        parallel_roe=roe,
+        parallel_ccd=ccd,
+        parallel_traps=traps,
+        parallel_express=express,
+        parallel_offset=offset,
+        parallel_window_start=start,
+        parallel_window_stop=stop,
+        serial_roe=roe,
+        serial_ccd=ccd,
+        serial_traps=traps,
+        serial_express=express,
+        serial_offset=offset,
+        serial_window_start=start,
+        serial_window_stop=stop,
+        verbosity=0,
+    )
+
+    ac.print_array_2D(image_removed_cti);
+
 
 def run_benchmark():
     # Download the test image

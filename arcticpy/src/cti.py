@@ -355,6 +355,8 @@ def remove_cti(
             parallel_trap_fourth_params,
             parallel_n_traps_sc,
             parallel_n_traps_ic,
+            parallel_n_traps_ic_co,
+            parallel_n_traps_sc_co,
         ) = _extract_trap_parameters(parallel_traps)
     else:
         # No parallel clocking, set dummy variables instead
@@ -367,6 +369,8 @@ def remove_cti(
             parallel_trap_fourth_params,
             parallel_n_traps_sc,
             parallel_n_traps_ic,
+            parallel_n_traps_ic_co,
+            parallel_n_traps_sc_co,
             parallel_express,
             parallel_offset,
             parallel_window_start,
@@ -382,6 +386,8 @@ def remove_cti(
             serial_trap_fourth_params,
             serial_n_traps_sc,
             serial_n_traps_ic,
+            serial_n_traps_ic_co,
+            serial_n_traps_sc_co,
         ) = _extract_trap_parameters(serial_traps)
     else:
         # No serial clocking, set dummy variables instead
@@ -394,6 +400,8 @@ def remove_cti(
             serial_trap_fourth_params,
             serial_n_traps_sc,
             serial_n_traps_ic,
+            serial_n_traps_ic_co,
+            serial_n_traps_sc_co,
             serial_express,
             serial_offset,
             serial_window_start,
