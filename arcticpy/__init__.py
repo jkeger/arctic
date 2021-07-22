@@ -1,4 +1,4 @@
-from arcticpy.src.cti import add_cti, remove_cti
+from arcticpy.src.cti import add_cti, remove_cti, CTI_model_for_HST_ACS
 from arcticpy.src.ccd import CCDPhase, CCD
 from arcticpy.src.roe import ROE
 from arcticpy.src.traps import (

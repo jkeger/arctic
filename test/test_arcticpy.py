@@ -196,19 +196,9 @@ class TestCompareOldArCTIC:
                     )
                 else:
                     ax1.plot(
-                        pixels,
-                        image_post_cti,
-                        alpha=0.8,
-                        c=c,
-                        label="%d" % express,
+                        pixels, image_post_cti, alpha=0.8, c=c, label="%d" % express
                     )
-                    ax1.plot(
-                        pixels,
-                        image_idl,
-                        alpha=0.8,
-                        c=c,
-                        ls="--",
-                    )
+                    ax1.plot(pixels, image_idl, alpha=0.8, c=c, ls="--")
                     ax2.plot(
                         pixels,
                         (image_post_cti - image_idl) / image_idl,
@@ -348,19 +338,9 @@ class TestCompareOldArCTIC:
                     )
                 else:
                     ax1.plot(
-                        pixels,
-                        image_post_cti,
-                        alpha=0.8,
-                        c=c,
-                        label="%d" % express,
+                        pixels, image_post_cti, alpha=0.8, c=c, label="%d" % express
                     )
-                    ax1.plot(
-                        pixels,
-                        image_idl,
-                        alpha=0.8,
-                        c=c,
-                        ls="--",
-                    )
+                    ax1.plot(pixels, image_idl, alpha=0.8, c=c, ls="--")
                     ax2.plot(
                         pixels,
                         (image_post_cti - image_idl) / image_idl,
@@ -499,7 +479,7 @@ class TestCompareOldArCTIC:
                         0.417600,
                         0.394439,
                         0.373072,
-                    ],
+                    ]
                 ],
             )
         ):
@@ -542,19 +522,9 @@ class TestCompareOldArCTIC:
                     )
                 else:
                     ax1.plot(
-                        pixels,
-                        image_post_cti,
-                        alpha=0.8,
-                        c=c,
-                        label="%d" % express,
+                        pixels, image_post_cti, alpha=0.8, c=c, label="%d" % express
                     )
-                    ax1.plot(
-                        pixels,
-                        image_idl,
-                        alpha=0.8,
-                        c=c,
-                        ls="--",
-                    )
+                    ax1.plot(pixels, image_idl, alpha=0.8, c=c, ls="--")
                     ax2.plot(
                         pixels,
                         (image_post_cti - image_idl) / image_idl,
@@ -655,13 +625,7 @@ class TestCompareTrapTypes:
             if do_plot:
                 c = colours[i + 1]
 
-                ax1.plot(
-                    pixels,
-                    image_post_cti,
-                    alpha=0.8,
-                    c=c,
-                    label=label,
-                )
+                ax1.plot(pixels, image_post_cti, alpha=0.8, c=c, label=label)
                 ax2.plot(
                     pixels,
                     (image_post_cti - image_post_cti_ic) / image_post_cti_ic,
@@ -682,8 +646,53 @@ class TestCompareTrapTypes:
             plt.show()
 
 
+class TestCTIModelForHSTACS:
+    def test__CTI_model_for_HST_ACS(self):
+        # Julian dates
+        date_acs_launch = 2452334.5  # ACS launched, SM3B, 01 March 2002
+        date_T_change = 2453920.0  # Temperature changed, 03 July 2006
+        date_sm4_repair = 2454968.0  # ACS repaired, SM4, 16 May 2009
+
+        # Before the temperature change
+        date_1 = date_T_change - 246
+        date_2 = date_T_change - 123
+        roe_1, ccd_1, traps_1 = ac.CTI_model_for_HST_ACS(date_1)
+        roe_2, ccd_2, traps_2 = ac.CTI_model_for_HST_ACS(date_2)
+
+        # Trap density grows with time
+        total_density_1 = np.sum([trap.density for trap in traps_1])
+        total_density_2 = np.sum([trap.density for trap in traps_2])
+        assert total_density_1 < total_density_2
+
+        # After the SM4 repair
+        date_3 = date_sm4_repair + 123
+        date_4 = date_sm4_repair + 246
+        roe_3, ccd_3, traps_3 = ac.CTI_model_for_HST_ACS(date_3)
+        roe_4, ccd_4, traps_4 = ac.CTI_model_for_HST_ACS(date_4)
+
+        # Trap density grows with time
+        total_density_3 = np.sum([trap.density for trap in traps_3])
+        total_density_4 = np.sum([trap.density for trap in traps_4])
+        assert total_density_3 < total_density_4
+
+        # Constant ROE and CCD
+        for roe in [roe_1, roe_2, roe_3, roe_4]:
+            assert len(roe.dwell_times) == 1
+            assert roe.dwell_times[0] == 1.0
+            assert roe.empty_traps_between_columns == True
+            assert roe.empty_traps_for_first_transfers == False
+            assert roe.force_release_away_from_readout == True
+            assert roe.use_integer_express_matrix == False
+        for ccd in [ccd_1, ccd_2, ccd_3, ccd_4]:
+            assert len(ccd.phases) == 1
+            assert ccd.fraction_of_traps_per_phase[0] == 1.0
+            assert ccd.phases[0].full_well_depth == 84700
+            assert ccd.phases[0].well_notch_depth == 0.0
+            assert ccd.phases[0].well_fill_power == 0.478
+
+
 def run_demo():
-    # Add CTI to a test image
+    # Add CTI to a test image, then remove it
     image_pre_cti = np.array(
         [
             [0.0, 0.0, 0.0, 0.0],
@@ -757,7 +766,7 @@ def run_demo():
         verbosity=0,
     )
 
-    ac.print_array_2D(image_removed_cti);
+    ac.print_array_2D(image_removed_cti)
 
 
 def run_benchmark():
@@ -827,10 +836,10 @@ def print_help():
 if __name__ == "__main__":
     try:
         if sys.argv[1] in ["-d", "--demo"]:
-            print("# ArCTIC: Running demo code! \n");
+            print("# ArCTIC: Running demo code! \n")
             run_demo()
         elif sys.argv[1] in ["-b", "--benchmark"]:
-            print("# ArCTIC: Running benchmark code \n");
+            print("# ArCTIC: Running benchmark code \n")
             run_benchmark()
         else:
             print_help()

@@ -474,3 +474,76 @@ def remove_cti(
         # Output
         verbosity,
     )
+
+
+def CTI_model_for_HST_ACS(date):
+    """
+    Return arcticpy objects that provide a preset CTI model for the Hubble Space
+    Telescope (HST) Advanced Camera for Surveys (ACS).
+
+    The returned objects are ready to be passed to add_cti() or remove_cti(),
+    for parallel clocking.
+
+    Parameters
+    ----------
+    date : float
+        The Julian date. Should not be before the ACS launch date.
+
+    Returns
+    -------
+    roe : ROE
+        The ROE object that describes the read-out electronics.
+
+    ccd : CCD
+        The CCD object that describes how electrons fill the volume.
+
+    traps : [Trap]
+        A list of trap objects that set the parameters for each trap species.
+    """
+    # Julian dates
+    date_acs_launch = 2452334.5  # ACS launched, SM3B, 01 March 2002
+    date_T_change = 2453920.0  # Temperature changed, 03 July 2006
+    date_sm4_repair = 2454968.0  # ACS repaired, SM4, 16 May 2009
+
+    assert date >= date_acs_launch, "Date must be after ACS launch (2002/03/01)"
+
+    # Trap species
+    relative_densities = np.array([0.17, 0.45, 0.38])
+    if date < date_T_change:
+        release_times = np.array([0.48, 4.86, 20.6])
+    else:
+        release_times = np.array([0.74, 7.70, 37.0])
+
+    # Density evolution
+    if date < date_sm4_repair:
+        initial_total_trap_density = 0.017845
+        trap_growth_rate = 3.5488e-4
+    else:
+        initial_total_trap_density = -0.246591 * 1.011
+        trap_growth_rate = 0.000558980 * 1.011
+    total_trap_density = initial_total_trap_density + trap_growth_rate * (
+        date - date_acs_launch
+    )
+    trap_densities = relative_densities * total_trap_density
+
+    # arctic objects
+    roe = ROE(
+        dwell_times=[1.0],
+        empty_traps_between_columns=True,
+        empty_traps_for_first_transfers=False,
+        force_release_away_from_readout=True,
+        use_integer_express_matrix=False,
+    )
+
+    # Single-phase CCD
+    ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
+
+    # Instant-capture traps
+    traps = [
+        TrapInstantCapture(
+            density=trap_densities[i], release_timescale=release_times[i]
+        )
+        for i in range(len(trap_densities))
+    ]
+
+    return roe, ccd, traps
