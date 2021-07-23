@@ -320,11 +320,7 @@ def remove_cti(
     Wrapper for arctic's remove_cti() in src/cti.cpp, see its documentation.
 
     Remove CTI trails from an image by first modelling the addition of CTI, for
-    parallel and/or serial clocking.
-
-    This wrapper extracts individual numbers and arrays from the user-input
-    objects to pass to the C++ via Cython. See cy_remove_cti() in wrapper.pyx
-    and remove_cti() in interface.cpp.
+    parallel and/or serial clocking, using the add_cti() wrapper.
 
     Parameters (where different to remove_cti() in src/cti.cpp)
     ----------
@@ -342,138 +338,40 @@ def remove_cti(
             2   Extra details.
     """
     image = np.copy(image).astype(np.double)
+    image_remove_cti = np.copy(image).astype(np.double)
 
-    # ========
-    # Extract inputs and/or set dummy variables to pass to the wrapper
-    # ========
-    # Parallel
-    if parallel_traps is not None:
-        (
-            parallel_trap_densities,
-            parallel_trap_release_timescales,
-            parallel_trap_third_params,
-            parallel_trap_fourth_params,
-            parallel_n_traps_sc,
-            parallel_n_traps_ic,
-            parallel_n_traps_ic_co,
-            parallel_n_traps_sc_co,
-        ) = _extract_trap_parameters(parallel_traps)
-    else:
-        # No parallel clocking, set dummy variables instead
-        (
-            parallel_roe,
-            parallel_ccd,
-            parallel_trap_densities,
-            parallel_trap_release_timescales,
-            parallel_trap_third_params,
-            parallel_trap_fourth_params,
-            parallel_n_traps_sc,
-            parallel_n_traps_ic,
-            parallel_n_traps_ic_co,
-            parallel_n_traps_sc_co,
-            parallel_express,
-            parallel_offset,
-            parallel_window_start,
-            parallel_window_stop,
-        ) = _set_dummy_parameters()
+    # Estimate the image with removed CTI more accurately each iteration
+    for iteration in range(n_iterations):
+        # Model the effect of adding CTI trails
+        image_add_cti = add_cti(
+            image=image_remove_cti,
+            # Parallel
+            parallel_ccd=parallel_ccd,
+            parallel_roe=parallel_roe,
+            parallel_traps=parallel_traps,
+            parallel_express=parallel_express,
+            parallel_offset=parallel_offset,
+            parallel_window_start=parallel_window_start,
+            parallel_window_stop=parallel_window_stop,
+            # Serial
+            serial_ccd=serial_ccd,
+            serial_roe=serial_roe,
+            serial_traps=serial_traps,
+            serial_express=serial_express,
+            serial_offset=serial_offset,
+            serial_window_start=serial_window_start,
+            serial_window_stop=serial_window_stop,
+            # Output
+            verbosity=verbosity,
+        )
 
-    # Serial
-    if serial_traps is not None:
-        (
-            serial_trap_densities,
-            serial_trap_release_timescales,
-            serial_trap_third_params,
-            serial_trap_fourth_params,
-            serial_n_traps_sc,
-            serial_n_traps_ic,
-            serial_n_traps_ic_co,
-            serial_n_traps_sc_co,
-        ) = _extract_trap_parameters(serial_traps)
-    else:
-        # No serial clocking, set dummy variables instead
-        (
-            serial_roe,
-            serial_ccd,
-            serial_trap_densities,
-            serial_trap_release_timescales,
-            serial_trap_third_params,
-            serial_trap_fourth_params,
-            serial_n_traps_sc,
-            serial_n_traps_ic,
-            serial_n_traps_ic_co,
-            serial_n_traps_sc_co,
-            serial_express,
-            serial_offset,
-            serial_window_start,
-            serial_window_stop,
-        ) = _set_dummy_parameters()
+        # Improve the estimate of the image with CTI trails removed
+        image_remove_cti += image - image_add_cti
 
-    # ========
-    # Remove CTI
-    # ========
-    # Pass the extracted inputs to C++ via the cython wrapper
-    return w.cy_remove_cti(
-        image,
-        n_iterations,
-        # ========
-        # Parallel
-        # ========
-        # ROE
-        parallel_roe.dwell_times,
-        parallel_roe.empty_traps_between_columns,
-        parallel_roe.empty_traps_for_first_transfers,
-        parallel_roe.force_release_away_from_readout,
-        parallel_roe.use_integer_express_matrix,
-        # CCD
-        parallel_ccd.fraction_of_traps_per_phase,
-        parallel_ccd.full_well_depths,
-        parallel_ccd.well_notch_depths,
-        parallel_ccd.well_fill_powers,
-        # Traps
-        parallel_trap_densities,
-        parallel_trap_release_timescales,
-        parallel_trap_third_params,
-        parallel_trap_fourth_params,
-        parallel_n_traps_ic,
-        parallel_n_traps_sc,
-        parallel_n_traps_ic_co,
-        parallel_n_traps_sc_co,
-        # Misc
-        parallel_express,
-        parallel_offset,
-        parallel_window_start,
-        parallel_window_stop,
-        # ========
-        # Serial
-        # ========
-        # ROE
-        serial_roe.dwell_times,
-        serial_roe.empty_traps_between_columns,
-        serial_roe.empty_traps_for_first_transfers,
-        serial_roe.force_release_away_from_readout,
-        serial_roe.use_integer_express_matrix,
-        # CCD
-        serial_ccd.fraction_of_traps_per_phase,
-        serial_ccd.full_well_depths,
-        serial_ccd.well_notch_depths,
-        serial_ccd.well_fill_powers,
-        # Traps
-        serial_trap_densities,
-        serial_trap_release_timescales,
-        serial_trap_third_params,
-        serial_trap_fourth_params,
-        serial_n_traps_ic,
-        serial_n_traps_sc,
-        serial_n_traps_ic_co,
-        serial_n_traps_sc_co,
-        # Misc
-        serial_express,
-        serial_offset,
-        serial_window_start,
-        serial_window_stop,
-        # Output
-        verbosity,
-    )
+        # Prevent negative image values
+        image_remove_cti[image_remove_cti < 0.0] = 0.0
+
+    return image_remove_cti
 
 
 def CTI_model_for_HST_ACS(date):
@@ -514,7 +412,7 @@ def CTI_model_for_HST_ACS(date):
     else:
         release_times = np.array([0.74, 7.70, 37.0])
 
-    # Density evolution
+    # Density evolution (Massey+2014)
     if date < date_sm4_repair:
         initial_total_trap_density = 0.017845
         trap_growth_rate = 3.5488e-4
