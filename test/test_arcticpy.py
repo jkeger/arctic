@@ -646,6 +646,90 @@ class TestCompareTrapTypes:
             plt.show()
 
 
+class TestRemoveCTI:
+    def test__remove_cti__better_removal_with_more_iterations(self):
+        # Add CTI to a test image, then remove it
+        image_pre_cti = np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0],
+                [200.0, 0.0, 0.0, 0.0],
+                [0.0, 200.0, 0.0, 0.0],
+                [0.0, 0.0, 200.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+            ]
+        )
+
+        roe = ac.ROE(
+            dwell_times=[1.0],
+            empty_traps_between_columns=True,
+            empty_traps_for_first_transfers=False,
+            force_release_away_from_readout=True,
+            use_integer_express_matrix=False,
+        )
+        ccd = ac.CCD(
+            phases=[
+                ac.CCDPhase(
+                    full_well_depth=1e3, well_notch_depth=0.0, well_fill_power=1.0
+                )
+            ],
+            fraction_of_traps_per_phase=[1.0],
+        )
+        traps = [
+            ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))
+        ]
+        express = 0
+        offset = 0
+        start = 0
+        stop = -1
+
+        # Add CTI
+        image_add_cti = ac.add_cti(
+            image=image_pre_cti,
+            parallel_roe=roe,
+            parallel_ccd=ccd,
+            parallel_traps=traps,
+            parallel_express=express,
+            parallel_offset=offset,
+            parallel_window_start=start,
+            parallel_window_stop=stop,
+            serial_roe=roe,
+            serial_ccd=ccd,
+            serial_traps=traps,
+            serial_express=express,
+            serial_offset=offset,
+            serial_window_start=start,
+            serial_window_stop=stop,
+            verbosity=0,
+        )
+
+        # Remove CTI
+        for n_iterations in range(2, 7):
+            image_remove_cti = ac.remove_cti(
+                image=image_add_cti,
+                n_iterations=n_iterations,
+                parallel_roe=roe,
+                parallel_ccd=ccd,
+                parallel_traps=traps,
+                parallel_express=express,
+                parallel_offset=offset,
+                parallel_window_start=start,
+                parallel_window_stop=stop,
+                serial_roe=roe,
+                serial_ccd=ccd,
+                serial_traps=traps,
+                serial_express=express,
+                serial_offset=offset,
+                serial_window_start=start,
+                serial_window_stop=stop,
+                verbosity=0,
+            )
+
+            # Expect better results with more iterations
+            tolerance = 10 ** (1 - n_iterations)
+            assert image_remove_cti == pytest.approx(image_pre_cti, abs=tolerance)
+
+
 class TestCTIModelForHSTACS:
     def test__CTI_model_for_HST_ACS(self):
         # Julian dates
