@@ -35,7 +35,7 @@ class ROE {
    public:
     ROE(std::valarray<double>& dwell_times = dwell_times_default,
         bool empty_traps_between_columns = true,
-        bool empty_traps_for_first_transfers = true,
+        bool empty_traps_for_first_transfers = false,
         bool force_release_away_from_readout = true,
         bool use_integer_express_matrix = false);
     ~ROE(){};

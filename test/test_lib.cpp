@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+
 #include <valarray>
 
 #include "cti.hpp"
@@ -8,10 +9,9 @@
 #include "traps.hpp"
 #include "util.hpp"
 
-
 /*
     Test using the arctic shared library to add CTI to a test image.
-    
+
     Compile from the top directory with `make lib_test`.
 */
 int main(int argc, char** argv) {
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
-    std::valarray<std::valarray<Trap>> traps = {{}, {trap}};
+    std::valarray<TrapInstantCapture> traps = {trap};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
@@ -43,8 +43,9 @@ int main(int argc, char** argv) {
 
     // Add parallel and serial CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps, express, offset, start, stop, &roe, &ccd,
-        &traps, express, offset, start, stop);
+        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
+        start, stop, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
+        start, stop);
     printf("Image with CTI added: \n");
     print_array_2D(image_post_cti);
 

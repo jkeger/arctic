@@ -1,29 +1,38 @@
-# 
+#
 # 	Makefile for ArCTIC
-# 
+#
 # 	Options
 # 	-------
 # 	arctic
 # 		The main program. See src/main.cpp.
-# 
+#
 # 	test, test_arctic
 # 		The unit tests. See test/*.cpp.
-# 
+#
 # 	lib, libarctic.so
 # 		The dynamic library shared object.
-# 
+#
 # 	lib_test
 # 		A simple test for using the shared library. See test/test_lib.cpp.
-# 
+#
 # 	wrapper
 # 		The cython wrapper for the arcticpy python module.
-# 
+#
 # 	default
 # 		The main program and the library.
-# 
+#
 # 	all
 # 		All of the above.
-# 
+#
+# 	clean
+# 		Remove compiled files.
+#
+# 	gsl
+# 		The GNU Scientific Library (www.gnu.org/software/gsl/). See get_gsl.sh.
+#
+# 	clean-gsl
+# 		Remove GSL (not done by `clean`).
+#
 
 # ========
 # Set up
@@ -47,7 +56,7 @@ DIR_SRC := $(DIR_ROOT)src/
 DIR_OBJ := $(DIR_ROOT)build/
 DIR_INC := $(DIR_ROOT)include/
 DIR_TEST := $(DIR_ROOT)test/
-DIR_LIB := $(DIR_ROOT)
+DIR_GSL := $(DIR_ROOT)gsl/
 DIR_WRAPPER := $(DIR_ROOT)arcticpy/
 DIR_WRAPPER_SRC := $(DIR_ROOT)arcticpy/src/
 $(shell mkdir -p $(DIR_OBJ))
@@ -63,9 +72,10 @@ TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)main.o, $(OBJECTS))
 TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
 
-# Header and library links
-INCLUDE := -I $(DIR_INC)
-LINK := -L $(DIR_LIB) -Wl,-rpath=$(DIR_LIB) -l$(TARGET)
+# Headers and library links
+INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)include/
+LIBS := -L $(DIR_GSL)lib/ -Wl,-rpath=$(DIR_GSL)lib/ -lgsl -lgslcblas -lm
+LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath=$(DIR_ROOT) -l$(TARGET)
 
 # ========
 # Rules
@@ -75,14 +85,16 @@ LINK := -L $(DIR_LIB) -Wl,-rpath=$(DIR_LIB) -l$(TARGET)
 default: $(TARGET) $(LIB_TARGET)
 
 # Ignore any files with these names
-.PHONY: all default test lib lib_test wrapper clean
+.PHONY: all default test lib lib_test wrapper clean gsl clean-gsl
 
-# Main program, unit tests, library, and library test
+# Main program, unit tests, library, library test, and wrapper
 all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) wrapper
 
 # Main program
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
+
+$(OBJECTS): $(DIR_GSL)
 
 -include $(DEPENDS)
 
@@ -93,7 +105,7 @@ $(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
 test: $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 -include $(TEST_DEPENDS)
 
@@ -104,11 +116,11 @@ $(DIR_OBJ)%.o: $(DIR_TEST)%.cpp
 lib: $(LIB_TARGET)
 
 $(LIB_TARGET): $(OBJECTS)
-	$(CXX) $(LDFLAGS) $^ -o $(DIR_LIB)$@
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBS)
 
 # Test using the library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LINK) $(LIB_TEST_SOURCES) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(LIB_TEST_SOURCES) -o $@ $(LIBS)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
@@ -117,7 +129,17 @@ wrapper: $(LIB_TARGET)
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)test_lib.[od]
-	@rm -fv $(TARGET) $(TEST_TARGET) $(DIR_LIB)$(LIB_TARGET) $(LIB_TEST_TARGET)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
 	@rm -fv $(DIR_WRAPPER)*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
 	@rm -rfv $(DIR_ROOT)build/temp.*/ $(DIR_WRAPPER)__pycache__/ \
 		$(DIR_WRAPPER_SRC)__pycache__/ $(DIR_TEST)__pycache__/
+
+# GSL
+GSL_VERSION := 2.6
+gsl:
+	@if ! [ -d $(DIR_GSL) ]; then \
+		./get_gsl.sh $(DIR_ROOT) $(DIR_GSL) $(GSL_VERSION); \
+	fi
+
+clean-gsl:
+	@rm -rfv gsl*

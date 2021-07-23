@@ -2,7 +2,12 @@ import numpy as np
 import arcticpy.wrapper as w
 from arcticpy.src.ccd import CCDPhase, CCD
 from arcticpy.src.roe import ROE
-from arcticpy.src.traps import Trap, TrapInstantCapture
+from arcticpy.src.traps import (
+    TrapInstantCapture,
+    TrapSlowCapture,
+    TrapInstantCaptureContinuum,
+    TrapSlowCaptureContinuum,
+)
 
 
 def _extract_trap_parameters(traps):
@@ -12,36 +17,60 @@ def _extract_trap_parameters(traps):
     cython wrapper's cy_add/remove_cti().
     """
     # Extract trap inputs
-    traps_standard = [trap for trap in traps if type(trap) == Trap]
-    traps_instant_capture = [trap for trap in traps if type(trap) == TrapInstantCapture]
-    n_traps_standard = len(traps_standard)
-    n_traps_instant_capture = len(traps_instant_capture)
-    if n_traps_standard + n_traps_instant_capture != len(traps):
+    traps_ic = [trap for trap in traps if type(trap) == TrapInstantCapture]
+    traps_sc = [trap for trap in traps if type(trap) == TrapSlowCapture]
+    traps_ic_co = [trap for trap in traps if type(trap) == TrapInstantCaptureContinuum]
+    traps_sc_co = [trap for trap in traps if type(trap) == TrapSlowCaptureContinuum]
+    n_traps_ic = len(traps_ic)
+    n_traps_sc = len(traps_sc)
+    n_traps_ic_co = len(traps_ic_co)
+    n_traps_sc_co = len(traps_sc_co)
+    if n_traps_sc + n_traps_ic + n_traps_ic_co + n_traps_sc_co != len(traps):
         raise Exception(
-            "Not all traps extracted successfully (%d standard, %d instant capture, %d total)"
-            % (
-                n_traps_standard,
-                n_traps_instant_capture,
-                len(traps),
-            )
+            "Not all traps extracted successfully (%d instant capture, %d slow capture, %d continuum, %d slow_capture_continuum, %d total)"
+            % (n_traps_ic, n_traps_sc, n_traps_ic_co, n_traps_sc_co, len(traps))
         )
 
     # Make sure the order is correct
-    traps = traps_standard + traps_instant_capture
+    traps = traps_ic + traps_sc + traps_ic_co + traps_sc_co
     trap_densities = np.array([trap.density for trap in traps], dtype=np.double)
     trap_release_timescales = np.array(
         [trap.release_timescale for trap in traps], dtype=np.double
     )
-    trap_capture_timescales = np.array(
-        [trap.capture_timescale for trap in traps], dtype=np.double
-    )
+    # Third parameter for some trap types
+    trap_third_params = []
+    for trap in traps:
+        if type(trap) == TrapInstantCapture:
+            trap_third_params.append(trap.fractional_volume_none_exposed)
+        elif type(trap) == TrapSlowCapture:
+            trap_third_params.append(trap.capture_timescale)
+        elif type(trap) == TrapInstantCaptureContinuum:
+            trap_third_params.append(trap.release_timescale_sigma)
+        elif type(trap) == TrapSlowCaptureContinuum:
+            trap_third_params.append(trap.release_timescale_sigma)
+    trap_third_params = np.array(trap_third_params, dtype=np.double)
+    # Fourth parameter for some trap types
+    trap_fourth_params = []
+    for trap in traps:
+        if type(trap) == TrapInstantCapture:
+            trap_fourth_params.append(trap.fractional_volume_full_exposed)
+        elif type(trap) == TrapSlowCapture:
+            trap_fourth_params.append(0.0)
+        elif type(trap) == TrapInstantCaptureContinuum:
+            trap_fourth_params.append(0.0)
+        elif type(trap) == TrapSlowCaptureContinuum:
+            trap_fourth_params.append(trap.capture_timescale)
+    trap_fourth_params = np.array(trap_fourth_params, dtype=np.double)
 
     return (
         trap_densities,
         trap_release_timescales,
-        trap_capture_timescales,
-        n_traps_standard,
-        n_traps_instant_capture,
+        trap_third_params,
+        trap_fourth_params,
+        n_traps_ic,
+        n_traps_sc,
+        n_traps_ic_co,
+        n_traps_sc_co,
     )
 
 
@@ -56,9 +85,12 @@ def _set_dummy_parameters():
     ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
     trap_densities = np.array([0.0], dtype=np.double)
     trap_release_timescales = np.array([0.0], dtype=np.double)
-    trap_capture_timescales = np.array([0.0], dtype=np.double)
-    n_traps_standard = 0
-    n_traps_instant_capture = 0
+    trap_third_params = np.array([0.0], dtype=np.double)
+    trap_fourth_params = np.array([0.0], dtype=np.double)
+    n_traps_ic = 0
+    n_traps_sc = 0
+    n_traps_ic_co = 0
+    n_traps_sc_co = 0
     express = 0
     offset = 0
     window_start = 0
@@ -69,9 +101,12 @@ def _set_dummy_parameters():
         ccd,
         trap_densities,
         trap_release_timescales,
-        trap_capture_timescales,
-        n_traps_standard,
-        n_traps_instant_capture,
+        trap_third_params,
+        trap_fourth_params,
+        n_traps_ic,
+        n_traps_sc,
+        n_traps_ic_co,
+        n_traps_sc_co,
         express,
         offset,
         window_start,
@@ -107,8 +142,23 @@ def add_cti(
     along their independent columns, for parallel and/or serial clocking.
 
     This wrapper extracts individual numbers and arrays from the user-input
-    objects to pass to the C++ via Cython. See cy_add_cti() in
-    arcticpy/wrapper.pyx and add_cti() in arcticpy/interface.cpp.
+    objects to pass to the C++ via Cython. See cy_add_cti() in wrapper.pyx and
+    add_cti() in interface.cpp.
+
+    Parameters (where different to add_cti() in src/cti.cpp)
+    ----------
+    parallel_traps : [Trap]
+    serial_traps : [Trap]
+        The 1D arrays of all trap species objects, for parallel and serial
+        clocking. The core arctic's add_cti() requires the different types of
+        traps to be provided in separate arrays. Here, mutliple trap types can
+        be passed in a single array, which will be separated by the wrapper.
+
+    verbosity : int (opt.)
+        The verbosity parameter to control the amount of printed information:
+            0   No printing (except errors etc).
+            1   Standard.
+            2   Extra details.
     """
     image = np.copy(image).astype(np.double)
 
@@ -120,9 +170,12 @@ def add_cti(
         (
             parallel_trap_densities,
             parallel_trap_release_timescales,
-            parallel_trap_capture_timescales,
-            parallel_n_traps_standard,
-            parallel_n_traps_instant_capture,
+            parallel_trap_third_params,
+            parallel_trap_fourth_params,
+            parallel_n_traps_ic,
+            parallel_n_traps_sc,
+            parallel_n_traps_ic_co,
+            parallel_n_traps_sc_co,
         ) = _extract_trap_parameters(parallel_traps)
     else:
         # No parallel clocking, set dummy variables instead
@@ -131,9 +184,12 @@ def add_cti(
             parallel_ccd,
             parallel_trap_densities,
             parallel_trap_release_timescales,
-            parallel_trap_capture_timescales,
-            parallel_n_traps_standard,
-            parallel_n_traps_instant_capture,
+            parallel_trap_third_params,
+            parallel_trap_fourth_params,
+            parallel_n_traps_ic,
+            parallel_n_traps_sc,
+            parallel_n_traps_ic_co,
+            parallel_n_traps_sc_co,
             parallel_express,
             parallel_offset,
             parallel_window_start,
@@ -145,9 +201,12 @@ def add_cti(
         (
             serial_trap_densities,
             serial_trap_release_timescales,
-            serial_trap_capture_timescales,
-            serial_n_traps_standard,
-            serial_n_traps_instant_capture,
+            serial_trap_third_params,
+            serial_trap_fourth_params,
+            serial_n_traps_ic,
+            serial_n_traps_sc,
+            serial_n_traps_ic_co,
+            serial_n_traps_sc_co,
         ) = _extract_trap_parameters(serial_traps)
     else:
         # No serial clocking, set dummy variables instead
@@ -156,9 +215,12 @@ def add_cti(
             serial_ccd,
             serial_trap_densities,
             serial_trap_release_timescales,
-            serial_trap_capture_timescales,
-            serial_n_traps_standard,
-            serial_n_traps_instant_capture,
+            serial_trap_third_params,
+            serial_trap_fourth_params,
+            serial_n_traps_ic,
+            serial_n_traps_sc,
+            serial_n_traps_ic_co,
+            serial_n_traps_sc_co,
             serial_express,
             serial_offset,
             serial_window_start,
@@ -188,9 +250,12 @@ def add_cti(
         # Traps
         parallel_trap_densities,
         parallel_trap_release_timescales,
-        parallel_trap_capture_timescales,
-        parallel_n_traps_standard,
-        parallel_n_traps_instant_capture,
+        parallel_trap_third_params,
+        parallel_trap_fourth_params,
+        parallel_n_traps_ic,
+        parallel_n_traps_sc,
+        parallel_n_traps_ic_co,
+        parallel_n_traps_sc_co,
         # Misc
         parallel_express,
         parallel_offset,
@@ -213,9 +278,12 @@ def add_cti(
         # Traps
         serial_trap_densities,
         serial_trap_release_timescales,
-        serial_trap_capture_timescales,
-        serial_n_traps_standard,
-        serial_n_traps_instant_capture,
+        serial_trap_third_params,
+        serial_trap_fourth_params,
+        serial_n_traps_ic,
+        serial_n_traps_sc,
+        serial_n_traps_ic_co,
+        serial_n_traps_sc_co,
         # Misc
         serial_express,
         serial_offset,
@@ -252,124 +320,128 @@ def remove_cti(
     Wrapper for arctic's remove_cti() in src/cti.cpp, see its documentation.
 
     Remove CTI trails from an image by first modelling the addition of CTI, for
-    parallel and/or serial clocking.
+    parallel and/or serial clocking, using the add_cti() wrapper.
 
-    This wrapper extracts individual numbers and arrays from the user-input
-    objects to pass to the C++ via Cython. See cy_remove_cti() in
-    arcticpy/wrapper.pyx and remove_cti() in arcticpy/interface.cpp.
+    Parameters (where different to remove_cti() in src/cti.cpp)
+    ----------
+    parallel_traps : [Trap]
+    serial_traps : [Trap]
+        The 1D arrays of all trap species objects, for parallel and serial
+        clocking. The core arctic's add_cti() requires the different types of
+        traps to be provided in separate arrays. Here, mutliple trap types can
+        be passed in a single array, which will be separated by the wrapper.
+
+    verbosity : int (opt.)
+        The verbosity parameter to control the amount of printed information:
+            0   No printing (except errors etc).
+            1   Standard.
+            2   Extra details.
     """
     image = np.copy(image).astype(np.double)
+    image_remove_cti = np.copy(image).astype(np.double)
 
-    # ========
-    # Extract inputs and/or set dummy variables to pass to the wrapper
-    # ========
-    # Parallel
-    if parallel_traps is not None:
-        (
-            parallel_trap_densities,
-            parallel_trap_release_timescales,
-            parallel_trap_capture_timescales,
-            parallel_n_traps_standard,
-            parallel_n_traps_instant_capture,
-        ) = _extract_trap_parameters(parallel_traps)
+    # Estimate the image with removed CTI more accurately each iteration
+    for iteration in range(n_iterations):
+        # Model the effect of adding CTI trails
+        image_add_cti = add_cti(
+            image=image_remove_cti,
+            # Parallel
+            parallel_ccd=parallel_ccd,
+            parallel_roe=parallel_roe,
+            parallel_traps=parallel_traps,
+            parallel_express=parallel_express,
+            parallel_offset=parallel_offset,
+            parallel_window_start=parallel_window_start,
+            parallel_window_stop=parallel_window_stop,
+            # Serial
+            serial_ccd=serial_ccd,
+            serial_roe=serial_roe,
+            serial_traps=serial_traps,
+            serial_express=serial_express,
+            serial_offset=serial_offset,
+            serial_window_start=serial_window_start,
+            serial_window_stop=serial_window_stop,
+            # Output
+            verbosity=verbosity,
+        )
+
+        # Improve the estimate of the image with CTI trails removed
+        image_remove_cti += image - image_add_cti
+
+        # Prevent negative image values
+        image_remove_cti[image_remove_cti < 0.0] = 0.0
+
+    return image_remove_cti
+
+
+def CTI_model_for_HST_ACS(date):
+    """
+    Return arcticpy objects that provide a preset CTI model for the Hubble Space
+    Telescope (HST) Advanced Camera for Surveys (ACS).
+
+    The returned objects are ready to be passed to add_cti() or remove_cti(),
+    for parallel clocking.
+
+    Parameters
+    ----------
+    date : float
+        The Julian date. Should not be before the ACS launch date.
+
+    Returns
+    -------
+    roe : ROE
+        The ROE object that describes the read-out electronics.
+
+    ccd : CCD
+        The CCD object that describes how electrons fill the volume.
+
+    traps : [Trap]
+        A list of trap objects that set the parameters for each trap species.
+    """
+    # Julian dates
+    date_acs_launch = 2452334.5  # ACS launched, SM3B, 01 March 2002
+    date_T_change = 2453920.0  # Temperature changed, 03 July 2006
+    date_sm4_repair = 2454968.0  # ACS repaired, SM4, 16 May 2009
+
+    assert date >= date_acs_launch, "Date must be after ACS launch (2002/03/01)"
+
+    # Trap species
+    relative_densities = np.array([0.17, 0.45, 0.38])
+    if date < date_T_change:
+        release_times = np.array([0.48, 4.86, 20.6])
     else:
-        # No parallel clocking, set dummy variables instead
-        (
-            parallel_roe,
-            parallel_ccd,
-            parallel_trap_densities,
-            parallel_trap_release_timescales,
-            parallel_trap_capture_timescales,
-            parallel_n_traps_standard,
-            parallel_n_traps_instant_capture,
-            parallel_express,
-            parallel_offset,
-            parallel_window_start,
-            parallel_window_stop,
-        ) = _set_dummy_parameters()
+        release_times = np.array([0.74, 7.70, 37.0])
 
-    # Serial
-    if serial_traps is not None:
-        (
-            serial_trap_densities,
-            serial_trap_release_timescales,
-            serial_trap_capture_timescales,
-            serial_n_traps_standard,
-            serial_n_traps_instant_capture,
-        ) = _extract_trap_parameters(serial_traps)
+    # Density evolution (Massey+2014)
+    if date < date_sm4_repair:
+        initial_total_trap_density = 0.017845
+        trap_growth_rate = 3.5488e-4
     else:
-        # No serial clocking, set dummy variables instead
-        (
-            serial_roe,
-            serial_ccd,
-            serial_trap_densities,
-            serial_trap_release_timescales,
-            serial_trap_capture_timescales,
-            serial_n_traps_standard,
-            serial_n_traps_instant_capture,
-            serial_express,
-            serial_offset,
-            serial_window_start,
-            serial_window_stop,
-        ) = _set_dummy_parameters()
-
-    # ========
-    # Remove CTI
-    # ========
-    # Pass the extracted inputs to C++ via the cython wrapper
-    return w.cy_remove_cti(
-        image,
-        n_iterations,
-        # ========
-        # Parallel
-        # ========
-        # ROE
-        parallel_roe.dwell_times,
-        parallel_roe.empty_traps_between_columns,
-        parallel_roe.empty_traps_for_first_transfers,
-        parallel_roe.force_release_away_from_readout,
-        parallel_roe.use_integer_express_matrix,
-        # CCD
-        parallel_ccd.fraction_of_traps_per_phase,
-        parallel_ccd.full_well_depths,
-        parallel_ccd.well_notch_depths,
-        parallel_ccd.well_fill_powers,
-        # Traps
-        parallel_trap_densities,
-        parallel_trap_release_timescales,
-        parallel_trap_capture_timescales,
-        parallel_n_traps_standard,
-        parallel_n_traps_instant_capture,
-        # Misc
-        parallel_express,
-        parallel_offset,
-        parallel_window_start,
-        parallel_window_stop,
-        # ========
-        # Serial
-        # ========
-        # ROE
-        serial_roe.dwell_times,
-        serial_roe.empty_traps_between_columns,
-        serial_roe.empty_traps_for_first_transfers,
-        serial_roe.force_release_away_from_readout,
-        serial_roe.use_integer_express_matrix,
-        # CCD
-        serial_ccd.fraction_of_traps_per_phase,
-        serial_ccd.full_well_depths,
-        serial_ccd.well_notch_depths,
-        serial_ccd.well_fill_powers,
-        # Traps
-        serial_trap_densities,
-        serial_trap_release_timescales,
-        serial_trap_capture_timescales,
-        serial_n_traps_standard,
-        serial_n_traps_instant_capture,
-        # Misc
-        serial_express,
-        serial_offset,
-        serial_window_start,
-        serial_window_stop,
-        # Output
-        verbosity,
+        initial_total_trap_density = -0.246591 * 1.011
+        trap_growth_rate = 0.000558980 * 1.011
+    total_trap_density = initial_total_trap_density + trap_growth_rate * (
+        date - date_acs_launch
     )
+    trap_densities = relative_densities * total_trap_density
+
+    # arctic objects
+    roe = ROE(
+        dwell_times=[1.0],
+        empty_traps_between_columns=True,
+        empty_traps_for_first_transfers=False,
+        force_release_away_from_readout=True,
+        use_integer_express_matrix=False,
+    )
+
+    # Single-phase CCD
+    ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
+
+    # Instant-capture traps
+    traps = [
+        TrapInstantCapture(
+            density=trap_densities[i], release_timescale=release_times[i]
+        )
+        for i in range(len(trap_densities))
+    ]
+
+    return roe, ccd, traps

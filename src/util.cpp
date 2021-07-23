@@ -1,19 +1,20 @@
 
+#include "util.hpp"
+
 #include <math.h>
 #include <stdio.h>
 #include <sys/time.h>
+
 #include <string>
 #include <valarray>
 #include <vector>
-
-#include "util.hpp"
 
 // ========
 // Printing
 // ========
 /*
     Set the global verbosity parameter to control the amount of printed info:
-    
+
     0       No printing (except errors etc).
     1       Standard.
     2       Extra details.
@@ -156,19 +157,19 @@ std::valarray<std::valarray<double>> transpose(
 // ========
 /*
     Load a 2D image from a text file.
-    
+
     File contents:
         n_rows  n_columns
         row_0_column_0  row_0_column_1  ...  row_0_column_n
         row_1_column_0  ...             ...  ...
         ...             ...             ...  ...
         row_n_column 0  ...             ...
-    
+
     Parameters
     ----------
     filename : str
         The path to the file to load.
-        
+
     Returns
     -------
     image : std::valarray<std::valarray<double>>
@@ -202,23 +203,24 @@ std::valarray<std::valarray<double>> load_image_from_txt(const char* filename) {
 
 /*
     Save a 2D image to a text file.
-    
+
     File contents:
         n_rows  n_columns
         row_0_column_0  row_0_column_1  ...  row_0_column_n
         row_1_column_0  ...             ...  ...
         ...             ...             ...  ...
         row_n_column 0  ...             ...
-    
+
     Parameters
     ----------
     filename : str
         The path to the file to load.
-        
+
     image : std::valarray<std::valarray<double>>
         The 2D image array to save.
 */
-void save_image_to_txt(const char* filename, std::valarray<std::valarray<double>> image) {
+void save_image_to_txt(
+    const char* filename, std::valarray<std::valarray<double>> image) {
     FILE* f = fopen(filename, "w");
     if (!f) error("Failed to open file '%s'", filename);
 

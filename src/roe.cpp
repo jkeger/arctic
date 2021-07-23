@@ -1,9 +1,11 @@
 
+#include "roe.hpp"
+
 #include <math.h>
 #include <stdio.h>
+
 #include <valarray>
 
-#include "roe.hpp"
 #include "util.hpp"
 
 // ========
@@ -86,7 +88,7 @@ ROEStepPhase::ROEStepPhase(
     empty_traps_for_first_transfers : bool (opt.)
         If true (and express != n_rows), then tweak the express algorithm to
         treat every first pixel-to-pixel transfer separately to the rest.
-        Default true.
+        Default false.
 
         Physically, the first pixel that a charge cloud finds itself in will
         start with empty traps, whereas every subsequent transfer sees traps
@@ -95,7 +97,8 @@ ROEStepPhase::ROEStepPhase(
         be replicated many times for some pixels but not others. This
         modification prevents that issue by modelling the first single
         transfer for each pixel separately and then using the express
-        algorithm normally for the remainder.
+        algorithm normally for the remainder, at the cost of modelling more
+        transfers.
 
     force_release_away_from_readout : bool (opt.)
         If true then force electrons to be released in a pixel not closer to
@@ -808,13 +811,12 @@ void ROETrapPumping::set_express_matrix_from_rows_and_express(
 
         n_express_passes = express + 1;
         tmp_col.resize(n_express_passes);
-        // Set the non-zero elements, which won't include the final entry for 
+        // Set the non-zero elements, which won't include the final entry for
         // mismatched integer multipliers
         if ((use_integer_express_matrix) && (n_pumps % express != 0)) {
             // (Using slice here doesn't compile on mac for some odd reason...)
-            for (int i = 0; i < n_express_passes - 1; i++)
-                tmp_col[i] = tmp_col_2[i];
-            
+            for (int i = 0; i < n_express_passes - 1; i++) tmp_col[i] = tmp_col_2[i];
+
             // Put back the final zero
             tmp_col[n_express_passes - 1] = 0.0;
         } else

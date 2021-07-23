@@ -1,10 +1,12 @@
 
+#include "cti.hpp"
+
 #include <stdio.h>
 #include <sys/time.h>
+
 #include <valarray>
 
 #include "ccd.hpp"
-#include "cti.hpp"
 #include "roe.hpp"
 #include "trap_managers.hpp"
 #include "traps.hpp"
@@ -27,7 +29,10 @@
 
     roe : ROE*
     ccd : CCD*
-    traps : std::valarray<std::valarray<Trap>>*
+    traps_ic : std::valarray<TrapInstantCapture>*
+    traps_sc : std::valarray<TrapSlowCapture>*
+    traps_ic_co : std::valarray<TrapInstantCaptureContinuum>*
+    traps_sc_co : std::valarray<TrapSlowCaptureContinuum>*
     express : int (opt.)
     offset : int (opt.)
         See add_cti()'s docstring. Same as the corresponding parallel_*
@@ -37,7 +42,7 @@
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
-        
+
         For trap pumping, it is currently assumed that only a single pixel is
         active and contains traps, so row_stop must be row_start + 1. See
         ROETrapPumping for more detail.
@@ -54,8 +59,11 @@
 */
 std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     std::valarray<std::valarray<double>>& image_in, ROE* roe, CCD* ccd,
-    std::valarray<std::valarray<Trap>>* traps, int express, int offset, int row_start,
-    int row_stop, int column_start, int column_stop) {
+    std::valarray<TrapInstantCapture>* traps_ic,
+    std::valarray<TrapSlowCapture>* traps_sc,
+    std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
+    std::valarray<TrapSlowCaptureContinuum>* traps_sc_co, int express, int offset,
+    int row_start, int row_stop, int column_start, int column_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -71,6 +79,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Number of active rows and columns
     unsigned int n_active_rows = row_stop - row_start;
     unsigned int n_active_columns = column_stop - column_start;
+    unsigned int max_n_transfers = n_active_rows + offset;
     print_v(
         1, "Clock charge in %d column(s) [%d to %d] and %d row(s) [%d to %d] \n",
         n_active_columns, column_start, column_stop, n_active_rows, row_start,
@@ -79,7 +88,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Checks for non-standard modes
     if ((roe->type == roe_type_trap_pumping) && (n_active_rows != 1))
         error(
-            "Trap pumping currently requires the number of active rows (%d) to be 1",
+            "TrapSlowCapture pumping currently requires the number of active rows (%d) "
+            "to be 1",
             n_active_rows);
 
     // Set up the readout electronics and express arrays
@@ -90,10 +100,34 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         error(
             "Number of CCD phases (%d) and ROE phases (%d) don't match.", ccd->n_phases,
             roe->n_phases);
+    if (!roe->empty_traps_between_columns) {
+        // Account for the complete set of capture/release events that might
+        // need to be tracked if the traps are never reset
+        max_n_transfers *= n_columns;
+    }
+
+    // Set empty arrays for nullptr trap lists
+    if (traps_ic == nullptr) {
+        std::valarray<TrapInstantCapture> no_traps_ic = {};
+        traps_ic = &no_traps_ic;
+    }
+    if (traps_sc == nullptr) {
+        std::valarray<TrapSlowCapture> no_traps_sc = {};
+        traps_sc = &no_traps_sc;
+    }
+    if (traps_ic_co == nullptr) {
+        std::valarray<TrapInstantCaptureContinuum> no_continuum_traps = {};
+        traps_ic_co = &no_continuum_traps;
+    }
+    if (traps_sc_co == nullptr) {
+        std::valarray<TrapSlowCaptureContinuum> no_traps_sc_co = {};
+        traps_sc_co = &no_traps_sc_co;
+    }
 
     // Set up the trap managers
     TrapManagerManager trap_manager_manager(
-        *traps, row_stop - row_start, *ccd, roe->dwell_times);
+        *traps_ic, *traps_sc, *traps_ic_co, *traps_sc_co, max_n_transfers, *ccd,
+        roe->dwell_times);
 
     unsigned int column_index;
     unsigned int row_index;
@@ -103,47 +137,104 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     double n_electrons_released_and_captured;
     double express_multiplier;
     ROEStepPhase* roe_step_phase;
-    
+
     // Print all inputs
     if (verbosity >= 2) {
         printf("\n");
         printf(
             "express = %d \n"
-            "offset = %d, row_start = %d, row_stop = %d, column_start = %d, column_stop = %d \n",
+            "offset = %d, row_start = %d, row_stop = %d, column_start = %d, "
+            "column_stop = %d \n",
             express, offset, row_start, row_stop, column_start, column_stop);
-            
+
         printf("ROE n_steps = %d \n", roe->n_steps);
         printf("  dwell_times = ");
         print_array(roe->dwell_times);
-        printf("  empty_traps_between_columns = %d \n", roe->empty_traps_between_columns);
-        printf("  empty_traps_for_first_transfers = %d \n", roe->empty_traps_for_first_transfers);
-        printf("  force_release_away_from_readout = %d \n", roe->force_release_away_from_readout);
+        printf(
+            "  empty_traps_between_columns = %d \n", roe->empty_traps_between_columns);
+        printf(
+            "  empty_traps_for_first_transfers = %d \n",
+            roe->empty_traps_for_first_transfers);
+        printf(
+            "  force_release_away_from_readout = %d \n",
+            roe->force_release_away_from_readout);
         printf("  use_integer_express_matrix = %d \n", roe->use_integer_express_matrix);
-        
+
         printf("CCD n_phases = %d \n", ccd->n_phases);
         printf("  fraction_of_traps_per_phase = ");
         print_array(ccd->fraction_of_traps_per_phase);
-        for (int i_phase=0; i_phase < ccd->n_phases; i_phase++) {
-            printf("  full_well_depth = %g, well_notch_depth = %g, well_fill_power = %g \n", 
-            ccd->phases[i_phase].full_well_depth,
-            ccd->phases[i_phase].well_notch_depth,
-            ccd->phases[i_phase].well_fill_power);
-        }
-        
-        printf("Standard traps n = %d \n", trap_manager_manager.n_standard_traps);
-        for (int i_trap=0; i_trap < trap_manager_manager.n_standard_traps; i_trap++) {
+        for (int i_phase = 0; i_phase < ccd->n_phases; i_phase++) {
             printf(
-                "  density = %g, release_timescale = %g, capture_timescale = %g \n", 
-                trap_manager_manager.trap_managers_standard[0].traps[i_trap].density,
-                trap_manager_manager.trap_managers_standard[0].traps[i_trap].release_timescale,
-                trap_manager_manager.trap_managers_standard[0].traps[i_trap].capture_timescale);
+                "  full_well_depth = %g, well_notch_depth = %g, well_fill_power = %g "
+                "\n",
+                ccd->phases[i_phase].full_well_depth,
+                ccd->phases[i_phase].well_notch_depth,
+                ccd->phases[i_phase].well_fill_power);
         }
-        printf("Instant-capture traps n = %d \n", trap_manager_manager.n_instant_capture_traps);
-        for (int i_trap=0; i_trap < trap_manager_manager.n_instant_capture_traps; i_trap++) {
+
+        printf("Instant-capture traps n = %d \n", trap_manager_manager.n_traps_ic);
+        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_ic; i_trap++) {
             printf(
-                "  density = %g, release_timescale = %g \n", 
-                trap_manager_manager.trap_managers_instant_capture[0].traps[i_trap].density,
-                trap_manager_manager.trap_managers_instant_capture[0].traps[i_trap].release_timescale);
+                "  density = %g, release_timescale = %g \n",
+                trap_manager_manager.trap_managers_ic[0].traps[i_trap].density,
+                trap_manager_manager.trap_managers_ic[0]
+                    .traps[i_trap]
+                    .release_timescale);
+            if (trap_manager_manager.trap_managers_ic[0]
+                    .traps[i_trap]
+                    .fractional_volume_full_exposed != 0.0)
+                printf(
+                    "    fractional_volume_none_exposed = %g, "
+                    "fractional_volume_full_exposed = %g \n",
+                    trap_manager_manager.trap_managers_ic[0]
+                        .traps[i_trap]
+                        .fractional_volume_none_exposed,
+                    trap_manager_manager.trap_managers_ic[0]
+                        .traps[i_trap]
+                        .fractional_volume_full_exposed);
+        }
+        printf("Slow-capture traps n = %d \n", trap_manager_manager.n_traps_sc);
+        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc; i_trap++) {
+            printf(
+                "  density = %g, release_timescale = %g, capture_timescale = %g \n",
+                trap_manager_manager.trap_managers_sc[0].traps[i_trap].density,
+                trap_manager_manager.trap_managers_sc[0]
+                    .traps[i_trap]
+                    .release_timescale,
+                trap_manager_manager.trap_managers_sc[0]
+                    .traps[i_trap]
+                    .capture_timescale);
+        }
+        printf("Continuum traps n = %d \n", trap_manager_manager.n_traps_ic_co);
+        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_ic_co; i_trap++) {
+            printf(
+                "  density = %g, release_timescale = %g, release_timescale_sigma = %g "
+                "\n",
+                trap_manager_manager.trap_managers_ic_co[0].traps[i_trap].density,
+                trap_manager_manager.trap_managers_ic_co[0]
+                    .traps[i_trap]
+                    .release_timescale,
+                trap_manager_manager.trap_managers_ic_co[0]
+                    .traps[i_trap]
+                    .release_timescale_sigma);
+        }
+        printf(
+            "Slow-capture continuum traps n = %d \n",
+            trap_manager_manager.n_traps_sc_co);
+        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc_co; i_trap++) {
+            printf(
+                "  density = %g, release_timescale = %g, release_timescale_sigma = %g, "
+                "capture_timescale = %g \n",
+                trap_manager_manager.trap_managers_sc_co[0].traps[i_trap].density,
+                trap_manager_manager.trap_managers_sc_co[0]
+                    .traps[i_trap]
+                    .release_timescale,
+                trap_manager_manager.trap_managers_sc_co[0]
+                    .traps[i_trap]
+                    .release_timescale_sigma,
+                trap_manager_manager.trap_managers_sc_co[0]
+                    .traps[i_trap]
+                    .capture_timescale);
         }
         printf("\n");
     }
@@ -216,17 +307,30 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                         // Release and capture electrons with the traps in this
                         // pixel/phase, for each type of traps
                         n_electrons_released_and_captured = 0;
-                        if (trap_manager_manager.n_standard_traps > 0)
+                        if (trap_manager_manager.n_traps_ic > 0)
                             n_electrons_released_and_captured +=
-                                trap_manager_manager.trap_managers_standard[i_phase]
+                                trap_manager_manager.trap_managers_ic[i_phase]
                                     .n_electrons_released_and_captured(
-                                        n_free_electrons);
-                        if (trap_manager_manager.n_instant_capture_traps > 0)
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
+                        if (trap_manager_manager.n_traps_sc > 0)
                             n_electrons_released_and_captured +=
-                                trap_manager_manager
-                                    .trap_managers_instant_capture[i_phase]
+                                trap_manager_manager.trap_managers_sc[i_phase]
                                     .n_electrons_released_and_captured(
-                                        n_free_electrons);
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
+                        if (trap_manager_manager.n_traps_ic_co > 0)
+                            n_electrons_released_and_captured +=
+                                trap_manager_manager.trap_managers_ic_co[i_phase]
+                                    .n_electrons_released_and_captured(
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
+                        if (trap_manager_manager.n_traps_sc_co > 0)
+                            n_electrons_released_and_captured +=
+                                trap_manager_manager.trap_managers_sc_co[i_phase]
+                                    .n_electrons_released_and_captured(
+                                        n_free_electrons +
+                                        n_electrons_released_and_captured);
 
                         print_v(
                             2, "n_electrons_released_and_captured  %g \n",
@@ -321,15 +425,12 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     parallel_ccd : CCD* (opt.)
         The object describing the CCD volume, for parallel clocking.
 
-    parallel_traps : std::valarray<std::valarray<Trap>>* (opt.)
-        A 2D array of one or more trap species objects, for parallel clocking.
-
-        The first dimension must be n_watermark_types long, with one array of
-        traps (which can be empty) for each type.
-
-        e.g. {{trap_1, trap_2}, {trap_3}} for two standard traps and one
-        instant-capture trap. Or {{}, {trap_1, trap_2}} for no standard traps
-        and two instant-capture traps.
+    parallel_traps_ic : std::valarray<TrapInstantCapture>* (opt.)
+    parallel_traps_sc : std::valarray<TrapSlowCapture>* (opt.)
+    parallel_traps_ic_co : std::valarray<TrapInstantCaptureContinuum>* (opt.)
+    parallel_traps_sc_co : std::valarray<TrapSlowCaptureContinuum>* (opt.)
+        The arrays of trap species objects, one for each type (which can be
+        empty, or nullptr), for parallel clocking.
 
     parallel_express : int (opt.)
        The number of times the transfers are computed, determining the
@@ -370,30 +471,39 @@ std::valarray<std::valarray<double>> add_cti(
     std::valarray<std::valarray<double>>& image_in,
     // Parallel
     ROE* parallel_roe, CCD* parallel_ccd,
-    std::valarray<std::valarray<Trap>>* parallel_traps, int parallel_express,
+    std::valarray<TrapInstantCapture>* parallel_traps_ic,
+    std::valarray<TrapSlowCapture>* parallel_traps_sc,
+    std::valarray<TrapInstantCaptureContinuum>* parallel_traps_ic_co,
+    std::valarray<TrapSlowCaptureContinuum>* parallel_traps_sc_co, int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
     // Serial
-    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
-    int serial_express, int serial_offset, int serial_window_start,
-    int serial_window_stop) {
+    ROE* serial_roe, CCD* serial_ccd,
+    std::valarray<TrapInstantCapture>* serial_traps_ic,
+    std::valarray<TrapSlowCapture>* serial_traps_sc,
+    std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
+    std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
+    int serial_offset, int serial_window_start, int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
 
     // Parallel clocking along columns, transfer charge towards row 0
-    if (parallel_traps) {
+    if (parallel_traps_ic || parallel_traps_sc || parallel_traps_ic_co ||
+        parallel_traps_sc_co) {
         image = clock_charge_in_one_direction(
-            image, parallel_roe, parallel_ccd, parallel_traps, parallel_express,
+            image, parallel_roe, parallel_ccd, parallel_traps_ic, parallel_traps_sc,
+            parallel_traps_ic_co, parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             serial_window_start, serial_window_stop);
     }
 
     // Serial clocking along rows, transfer charge towards column 0
-    if (serial_traps) {
+    if (serial_traps_ic || serial_traps_sc || serial_traps_sc) {
         image = transpose(image);
 
         image = clock_charge_in_one_direction(
-            image, serial_roe, serial_ccd, serial_traps, serial_express, serial_offset,
+            image, serial_roe, serial_ccd, serial_traps_ic, serial_traps_sc,
+            serial_traps_ic_co, serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop, parallel_window_start,
             parallel_window_stop);
 
@@ -427,15 +537,21 @@ std::valarray<std::valarray<double>> add_cti(
         The output array of pixel values with CTI removed.
 */
 std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in,
+    std::valarray<std::valarray<double>>& image_in, int n_iterations,
     // Parallel
-    int n_iterations, ROE* parallel_roe, CCD* parallel_ccd,
-    std::valarray<std::valarray<Trap>>* parallel_traps, int parallel_express,
+    ROE* parallel_roe, CCD* parallel_ccd,
+    std::valarray<TrapInstantCapture>* parallel_traps_ic,
+    std::valarray<TrapSlowCapture>* parallel_traps_sc,
+    std::valarray<TrapInstantCaptureContinuum>* parallel_traps_ic_co,
+    std::valarray<TrapSlowCaptureContinuum>* parallel_traps_sc_co, int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
     // Serial
-    ROE* serial_roe, CCD* serial_ccd, std::valarray<std::valarray<Trap>>* serial_traps,
-    int serial_express, int serial_offset, int serial_window_start,
-    int serial_window_stop) {
+    ROE* serial_roe, CCD* serial_ccd,
+    std::valarray<TrapInstantCapture>* serial_traps_ic,
+    std::valarray<TrapSlowCapture>* serial_traps_sc,
+    std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
+    std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
+    int serial_offset, int serial_window_start, int serial_window_stop) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image_remove_cti = image_in;
@@ -447,9 +563,11 @@ std::valarray<std::valarray<double>> remove_cti(
     for (int iteration = 1; iteration <= n_iterations; iteration++) {
         // Model the effect of adding CTI trails
         image_add_cti = add_cti(
-            image_remove_cti, parallel_roe, parallel_ccd, parallel_traps,
+            image_remove_cti, parallel_roe, parallel_ccd, parallel_traps_ic,
+            parallel_traps_sc, parallel_traps_ic_co, parallel_traps_sc_co,
             parallel_express, parallel_offset, parallel_window_start,
-            parallel_window_stop, serial_roe, serial_ccd, serial_traps, serial_express,
+            parallel_window_stop, serial_roe, serial_ccd, serial_traps_ic,
+            serial_traps_sc, serial_traps_ic_co, serial_traps_sc_co, serial_express,
             serial_offset, serial_window_start, serial_window_stop);
 
         // Improve the estimate of the image with CTI trails removed

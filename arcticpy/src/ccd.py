@@ -2,12 +2,7 @@ import numpy as np
 
 
 class CCDPhase(object):
-    def __init__(
-        self,
-        full_well_depth=1e4,
-        well_notch_depth=0.0,
-        well_fill_power=0.58,
-    ):
+    def __init__(self, full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=0.58):
         self.full_well_depth = full_well_depth
         self.well_notch_depth = well_notch_depth
         self.well_fill_power = well_fill_power
@@ -18,8 +13,24 @@ class CCD(object):
         self,
         phases=[CCDPhase()],
         fraction_of_traps_per_phase=[1.0],
+        full_well_depth=None,
+        well_notch_depth=None,
+        well_fill_power=None,
     ):
-        self.phases = phases
+        """For convenience, the CCDPhase parameters can be passed directly to
+        this CCD object to override self.phases with an automatic single phase
+        with those parameters.
+        """
+        if full_well_depth is not None:
+            self.phases = [
+                CCDPhase(
+                    full_well_depth=full_well_depth,
+                    well_notch_depth=well_notch_depth,
+                    well_fill_power=well_fill_power,
+                )
+            ]
+        else:
+            self.phases = phases
         self.fraction_of_traps_per_phase = np.array(
             fraction_of_traps_per_phase, dtype=np.double
         )

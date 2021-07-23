@@ -1,7 +1,9 @@
 import os
 import sys
+from urllib.request import urlretrieve
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), ".."))
+path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(path, ".."))
 import arcticpy as ac
 import numpy as np
 import pytest
@@ -194,19 +196,9 @@ class TestCompareOldArCTIC:
                     )
                 else:
                     ax1.plot(
-                        pixels,
-                        image_post_cti,
-                        alpha=0.8,
-                        c=c,
-                        label="%d" % express,
+                        pixels, image_post_cti, alpha=0.8, c=c, label="%d" % express
                     )
-                    ax1.plot(
-                        pixels,
-                        image_idl,
-                        alpha=0.8,
-                        c=c,
-                        ls="--",
-                    )
+                    ax1.plot(pixels, image_idl, alpha=0.8, c=c, ls="--")
                     ax2.plot(
                         pixels,
                         (image_post_cti - image_idl) / image_idl,
@@ -346,19 +338,9 @@ class TestCompareOldArCTIC:
                     )
                 else:
                     ax1.plot(
-                        pixels,
-                        image_post_cti,
-                        alpha=0.8,
-                        c=c,
-                        label="%d" % express,
+                        pixels, image_post_cti, alpha=0.8, c=c, label="%d" % express
                     )
-                    ax1.plot(
-                        pixels,
-                        image_idl,
-                        alpha=0.8,
-                        c=c,
-                        ls="--",
-                    )
+                    ax1.plot(pixels, image_idl, alpha=0.8, c=c, ls="--")
                     ax2.plot(
                         pixels,
                         (image_post_cti - image_idl) / image_idl,
@@ -497,7 +479,7 @@ class TestCompareOldArCTIC:
                         0.417600,
                         0.394439,
                         0.373072,
-                    ],
+                    ]
                 ],
             )
         ):
@@ -540,19 +522,9 @@ class TestCompareOldArCTIC:
                     )
                 else:
                     ax1.plot(
-                        pixels,
-                        image_post_cti,
-                        alpha=0.8,
-                        c=c,
-                        label="%d" % express,
+                        pixels, image_post_cti, alpha=0.8, c=c, label="%d" % express
                     )
-                    ax1.plot(
-                        pixels,
-                        image_idl,
-                        alpha=0.8,
-                        c=c,
-                        ls="--",
-                    )
+                    ax1.plot(pixels, image_idl, alpha=0.8, c=c, ls="--")
                     ax2.plot(
                         pixels,
                         (image_post_cti - image_idl) / image_idl,
@@ -573,8 +545,238 @@ class TestCompareOldArCTIC:
             plt.show()
 
 
-if __name__ == "__main__":
-    # Add CTI to a test image
+class TestCompareTrapTypes:
+    def test__add_cti__all_trap_types_broadly_similar_results(self):
+
+        # Manually set True to make the plot
+        do_plot = False
+        # do_plot = True
+
+        image_pre_cti = np.zeros((20, 1))
+        image_pre_cti[2, 0] = 800
+
+        trap_ic = ac.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))
+        trap_sc = ac.TrapSlowCapture(
+            density=10, release_timescale=-1 / np.log(0.5), capture_timescale=0.1
+        )
+        trap_ic_co = ac.TrapInstantCaptureContinuum(
+            density=10, release_timescale=-1 / np.log(0.5), release_timescale_sigma=0.05
+        )
+        trap_sc_co = ac.TrapSlowCaptureContinuum(
+            density=10,
+            release_timescale=-1 / np.log(0.5),
+            release_timescale_sigma=0.05,
+            capture_timescale=0.1,
+        )
+
+        ccd = ac.CCD(
+            phases=[
+                ac.CCDPhase(well_fill_power=1, full_well_depth=1000, well_notch_depth=0)
+            ]
+        )
+        roe = ac.ROE(
+            empty_traps_between_columns=True,
+            empty_traps_for_first_transfers=False,
+            use_integer_express_matrix=True,
+        )
+        express = 5
+
+        # Standard instant-capture traps
+        image_post_cti_ic = ac.add_cti(
+            image=image_pre_cti,
+            parallel_roe=roe,
+            parallel_ccd=ccd,
+            parallel_traps=[trap_ic],
+            parallel_express=express,
+            verbosity=0,
+        ).T[0]
+
+        if do_plot:
+            pixels = np.arange(len(image_pre_cti))
+            colours = ["#1199ff", "#ee4400", "#7711dd", "#44dd44"]
+            plt.figure(figsize=(10, 6))
+            ax1 = plt.gca()
+            ax2 = ax1.twinx()
+
+            ax1.plot(
+                pixels,
+                image_post_cti_ic,
+                alpha=0.8,
+                c=colours[0],
+                label="Instant Capture",
+            )
+
+        # Other trap types
+        for i, (trap, label) in enumerate(
+            zip(
+                [trap_sc, trap_ic_co, trap_sc_co],
+                ["Slow Capture", "Instant Capture Continuum", "Slow Capture Continuum"],
+            )
+        ):
+            image_post_cti = ac.add_cti(
+                image=image_pre_cti,
+                parallel_roe=roe,
+                parallel_ccd=ccd,
+                parallel_traps=[trap],
+                parallel_express=express,
+                verbosity=0,
+            ).T[0]
+
+            if do_plot:
+                c = colours[i + 1]
+
+                ax1.plot(pixels, image_post_cti, alpha=0.8, c=c, label=label)
+                ax2.plot(
+                    pixels,
+                    (image_post_cti - image_post_cti_ic) / image_post_cti_ic,
+                    alpha=0.8,
+                    ls=":",
+                    c=c,
+                )
+
+            assert image_post_cti == pytest.approx(image_post_cti_ic, rel=0.1)
+
+        if do_plot:
+            ax1.legend(loc="lower left")
+            ax1.set_yscale("log")
+            ax1.set_xlabel("Pixel")
+            ax1.set_ylabel("Counts")
+            ax2.set_ylabel("Fractional Difference (dotted)")
+            plt.tight_layout()
+            plt.show()
+
+
+class TestRemoveCTI:
+    def test__remove_cti__better_removal_with_more_iterations(self):
+        # Add CTI to a test image, then remove it
+        image_pre_cti = np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0],
+                [200.0, 0.0, 0.0, 0.0],
+                [0.0, 200.0, 0.0, 0.0],
+                [0.0, 0.0, 200.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0],
+            ]
+        )
+
+        roe = ac.ROE(
+            dwell_times=[1.0],
+            empty_traps_between_columns=True,
+            empty_traps_for_first_transfers=False,
+            force_release_away_from_readout=True,
+            use_integer_express_matrix=False,
+        )
+        ccd = ac.CCD(
+            phases=[
+                ac.CCDPhase(
+                    full_well_depth=1e3, well_notch_depth=0.0, well_fill_power=1.0
+                )
+            ],
+            fraction_of_traps_per_phase=[1.0],
+        )
+        traps = [
+            ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))
+        ]
+        express = 0
+        offset = 0
+        start = 0
+        stop = -1
+
+        # Add CTI
+        image_add_cti = ac.add_cti(
+            image=image_pre_cti,
+            parallel_roe=roe,
+            parallel_ccd=ccd,
+            parallel_traps=traps,
+            parallel_express=express,
+            parallel_offset=offset,
+            parallel_window_start=start,
+            parallel_window_stop=stop,
+            serial_roe=roe,
+            serial_ccd=ccd,
+            serial_traps=traps,
+            serial_express=express,
+            serial_offset=offset,
+            serial_window_start=start,
+            serial_window_stop=stop,
+            verbosity=0,
+        )
+
+        # Remove CTI
+        for n_iterations in range(2, 7):
+            image_remove_cti = ac.remove_cti(
+                image=image_add_cti,
+                n_iterations=n_iterations,
+                parallel_roe=roe,
+                parallel_ccd=ccd,
+                parallel_traps=traps,
+                parallel_express=express,
+                parallel_offset=offset,
+                parallel_window_start=start,
+                parallel_window_stop=stop,
+                serial_roe=roe,
+                serial_ccd=ccd,
+                serial_traps=traps,
+                serial_express=express,
+                serial_offset=offset,
+                serial_window_start=start,
+                serial_window_stop=stop,
+                verbosity=0,
+            )
+
+            # Expect better results with more iterations
+            tolerance = 10 ** (1 - n_iterations)
+            assert image_remove_cti == pytest.approx(image_pre_cti, abs=tolerance)
+
+
+class TestCTIModelForHSTACS:
+    def test__CTI_model_for_HST_ACS(self):
+        # Julian dates
+        date_acs_launch = 2452334.5  # ACS launched, SM3B, 01 March 2002
+        date_T_change = 2453920.0  # Temperature changed, 03 July 2006
+        date_sm4_repair = 2454968.0  # ACS repaired, SM4, 16 May 2009
+
+        # Before the temperature change
+        date_1 = date_T_change - 246
+        date_2 = date_T_change - 123
+        roe_1, ccd_1, traps_1 = ac.CTI_model_for_HST_ACS(date_1)
+        roe_2, ccd_2, traps_2 = ac.CTI_model_for_HST_ACS(date_2)
+
+        # Trap density grows with time
+        total_density_1 = np.sum([trap.density for trap in traps_1])
+        total_density_2 = np.sum([trap.density for trap in traps_2])
+        assert total_density_1 < total_density_2
+
+        # After the SM4 repair
+        date_3 = date_sm4_repair + 123
+        date_4 = date_sm4_repair + 246
+        roe_3, ccd_3, traps_3 = ac.CTI_model_for_HST_ACS(date_3)
+        roe_4, ccd_4, traps_4 = ac.CTI_model_for_HST_ACS(date_4)
+
+        # Trap density grows with time
+        total_density_3 = np.sum([trap.density for trap in traps_3])
+        total_density_4 = np.sum([trap.density for trap in traps_4])
+        assert total_density_3 < total_density_4
+
+        # Constant ROE and CCD
+        for roe in [roe_1, roe_2, roe_3, roe_4]:
+            assert len(roe.dwell_times) == 1
+            assert roe.dwell_times[0] == 1.0
+            assert roe.empty_traps_between_columns == True
+            assert roe.empty_traps_for_first_transfers == False
+            assert roe.force_release_away_from_readout == True
+            assert roe.use_integer_express_matrix == False
+        for ccd in [ccd_1, ccd_2, ccd_3, ccd_4]:
+            assert len(ccd.phases) == 1
+            assert ccd.fraction_of_traps_per_phase[0] == 1.0
+            assert ccd.phases[0].full_well_depth == 84700
+            assert ccd.phases[0].well_notch_depth == 0.0
+            assert ccd.phases[0].well_fill_power == 0.478
+
+
+def run_demo():
+    # Add CTI to a test image, then remove it
     image_pre_cti = np.array(
         [
             [0.0, 0.0, 0.0, 0.0],
@@ -585,7 +787,7 @@ if __name__ == "__main__":
             [0.0, 0.0, 0.0, 0.0],
         ]
     )
-    
+
     roe = ac.ROE(
         dwell_times=[1.0],
         empty_traps_between_columns=True,
@@ -604,9 +806,9 @@ if __name__ == "__main__":
     offset = 0
     start = 0
     stop = -1
-    
+
     ac.print_array_2D(image_pre_cti)
-    
+
     image_post_cti = ac.add_cti(
         image=image_pre_cti,
         parallel_roe=roe,
@@ -625,5 +827,105 @@ if __name__ == "__main__":
         serial_window_stop=stop,
         verbosity=1,
     )
-    
+
     ac.print_array_2D(image_post_cti)
+
+    image_removed_cti = ac.remove_cti(
+        image=image_post_cti,
+        n_iterations=4,
+        parallel_roe=roe,
+        parallel_ccd=ccd,
+        parallel_traps=traps,
+        parallel_express=express,
+        parallel_offset=offset,
+        parallel_window_start=start,
+        parallel_window_stop=stop,
+        serial_roe=roe,
+        serial_ccd=ccd,
+        serial_traps=traps,
+        serial_express=express,
+        serial_offset=offset,
+        serial_window_start=start,
+        serial_window_stop=stop,
+        verbosity=0,
+    )
+
+    ac.print_array_2D(image_removed_cti)
+
+
+def run_benchmark():
+    # Download the test image
+    filename = os.path.join(os.path.join(path, ".."), "hst_acs_10_col.txt")
+    if not os.path.isfile(filename):
+        url_path = "http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt"
+        urlretrieve(url_path, filename)
+
+    # Load the image
+    image_pre_cti = np.loadtxt(filename, skiprows=1)
+
+    # CTI model parameters
+    roe = ac.ROE(
+        dwell_times=[1.0],
+        empty_traps_between_columns=True,
+        empty_traps_for_first_transfers=False,
+        force_release_away_from_readout=True,
+        use_integer_express_matrix=False,
+    )
+    ccd = ac.CCD(
+        phases=[
+            ac.CCDPhase(full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=1.0)
+        ],
+        fraction_of_traps_per_phase=[1.0],
+    )
+    traps = [ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))]
+    express = 5
+    offset = 0
+    start = 0
+    stop = -1
+
+    image_post_cti = ac.add_cti(
+        image=image_pre_cti,
+        parallel_roe=roe,
+        parallel_ccd=ccd,
+        parallel_traps=traps,
+        parallel_express=express,
+        parallel_offset=offset,
+        parallel_window_start=start,
+        parallel_window_stop=stop,
+    )
+
+
+def print_help():
+    print(
+        "ArCTICpy \n"
+        "======== \n"
+        "AlgoRithm for Charge Transfer Inefficiency (CTI) Correction: python wrapper \n"
+        "--------------------------------------------------------------------------- \n"
+        "Add or remove image trails due to charge transfer inefficiency in CCD "
+        "detectors by modelling the trapping, releasing, and moving of charge along "
+        "pixels. \n"
+        "\n"
+        "Run with pytest to perform some unit tests using the python wrapper. \n"
+        "\n"
+        "-d, --demo \n"
+        "    Execute the demo code in the run_demo() function in this file, which adds \n"
+        "    then removes CTI from a test image. \n"
+        "-b, --benchmark \n"
+        "    Execute the run_benchmark() function in this file, e.g. for profiling. \n"
+        "\n"
+        "See README.md for more information.  https://github.com/jkeger/arctic \n\n"
+    )
+
+
+if __name__ == "__main__":
+    try:
+        if sys.argv[1] in ["-d", "--demo"]:
+            print("# ArCTIC: Running demo code! \n")
+            run_demo()
+        elif sys.argv[1] in ["-b", "--benchmark"]:
+            print("# ArCTIC: Running benchmark code \n")
+            run_benchmark()
+        else:
+            print_help()
+    except IndexError:
+        print_help()
