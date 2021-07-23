@@ -12,7 +12,7 @@ TEST_CASE("Test ROE", "[roe]") {
         REQUIRE(roe.n_steps == 1);
         REQUIRE(roe.dwell_times[0] == 1.0);
         REQUIRE(roe.empty_traps_between_columns == true);
-        REQUIRE(roe.empty_traps_for_first_transfers == true);
+        REQUIRE(roe.empty_traps_for_first_transfers == false);
         REQUIRE(roe.force_release_away_from_readout == true);
         REQUIRE(roe.use_integer_express_matrix == false);
 
@@ -21,7 +21,7 @@ TEST_CASE("Test ROE", "[roe]") {
         REQUIRE(roe_2.n_steps == 1);
         REQUIRE(roe_2.dwell_times[0] == 2.0);
         REQUIRE(roe_2.empty_traps_between_columns == true);
-        REQUIRE(roe_2.empty_traps_for_first_transfers == true);
+        REQUIRE(roe_2.empty_traps_for_first_transfers == false);
         REQUIRE(roe_2.force_release_away_from_readout == true);
         REQUIRE(roe_2.use_integer_express_matrix == false);
 
@@ -30,16 +30,16 @@ TEST_CASE("Test ROE", "[roe]") {
         REQUIRE(roe_3.n_steps == 1);
         REQUIRE(roe_3.dwell_times[0] == 3.0);
         REQUIRE(roe_3.empty_traps_between_columns == false);
-        REQUIRE(roe_3.empty_traps_for_first_transfers == true);
+        REQUIRE(roe_3.empty_traps_for_first_transfers == false);
         REQUIRE(roe_3.force_release_away_from_readout == true);
         REQUIRE(roe_3.use_integer_express_matrix == false);
 
         dwell_times = {4.0};
-        ROE roe_4(dwell_times, true, false, false, true);
+        ROE roe_4(dwell_times, true, true, false, true);
         REQUIRE(roe_4.n_steps == 1);
         REQUIRE(roe_4.dwell_times[0] == 4.0);
         REQUIRE(roe_4.empty_traps_between_columns == true);
-        REQUIRE(roe_4.empty_traps_for_first_transfers == false);
+        REQUIRE(roe_4.empty_traps_for_first_transfers == true);
         REQUIRE(roe_4.force_release_away_from_readout == false);
         REQUIRE(roe_4.use_integer_express_matrix == true);
 
@@ -50,7 +50,7 @@ TEST_CASE("Test ROE", "[roe]") {
         REQUIRE(roe_6.dwell_times[1] == 0.25);
         REQUIRE(roe_6.dwell_times[2] == 0.25);
         REQUIRE(roe_6.empty_traps_between_columns == true);
-        REQUIRE(roe_6.empty_traps_for_first_transfers == true);
+        REQUIRE(roe_6.empty_traps_for_first_transfers == false);
         REQUIRE(roe_6.force_release_away_from_readout == true);
         REQUIRE(roe_6.use_integer_express_matrix == false);
     }
@@ -59,12 +59,12 @@ TEST_CASE("Test ROE", "[roe]") {
         ROE roe;
         roe.dwell_times = {0.5};
         roe.empty_traps_between_columns = false;
-        roe.empty_traps_for_first_transfers = false;
+        roe.empty_traps_for_first_transfers = true;
         roe.use_integer_express_matrix = true;
         REQUIRE(roe.dwell_times[0] == 0.5);
         REQUIRE(roe.n_steps == 1);
         REQUIRE(roe.empty_traps_between_columns == false);
-        REQUIRE(roe.empty_traps_for_first_transfers == false);
+        REQUIRE(roe.empty_traps_for_first_transfers == true);
         REQUIRE(roe.use_integer_express_matrix == true);
     }
 }

@@ -6,7 +6,7 @@ class ROE(object):
         self,
         dwell_times=[1.0],
         empty_traps_between_columns=True,
-        empty_traps_for_first_transfers=True,
+        empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
     ):

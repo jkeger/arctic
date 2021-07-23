@@ -88,7 +88,7 @@ ROEStepPhase::ROEStepPhase(
     empty_traps_for_first_transfers : bool (opt.)
         If true (and express != n_rows), then tweak the express algorithm to
         treat every first pixel-to-pixel transfer separately to the rest.
-        Default true.
+        Default false.
 
         Physically, the first pixel that a charge cloud finds itself in will
         start with empty traps, whereas every subsequent transfer sees traps
@@ -97,7 +97,8 @@ ROEStepPhase::ROEStepPhase(
         be replicated many times for some pixels but not others. This
         modification prevents that issue by modelling the first single
         transfer for each pixel separately and then using the express
-        algorithm normally for the remainder.
+        algorithm normally for the remainder, at the cost of modelling more
+        transfers.
 
     force_release_away_from_readout : bool (opt.)
         If true then force electrons to be released in a pixel not closer to
