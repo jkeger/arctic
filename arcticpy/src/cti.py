@@ -242,6 +242,8 @@ def add_cti(
         parallel_roe.empty_traps_for_first_transfers,
         parallel_roe.force_release_away_from_readout,
         parallel_roe.use_integer_express_matrix,
+        parallel_roe.n_pumps,
+        parallel_roe.type,
         # CCD
         parallel_ccd.fraction_of_traps_per_phase,
         parallel_ccd.full_well_depths,
@@ -270,6 +272,8 @@ def add_cti(
         serial_roe.empty_traps_for_first_transfers,
         serial_roe.force_release_away_from_readout,
         serial_roe.use_integer_express_matrix,
+        serial_roe.n_pumps,
+        serial_roe.type,
         # CCD
         serial_ccd.fraction_of_traps_per_phase,
         serial_ccd.full_well_depths,
@@ -382,6 +386,8 @@ def CTI_model_for_HST_ACS(date):
     The returned objects are ready to be passed to add_cti() or remove_cti(),
     for parallel clocking.
 
+    See Massey et al. (2014). Updated model and references coming soon.
+
     Parameters
     ----------
     date : float
@@ -412,7 +418,7 @@ def CTI_model_for_HST_ACS(date):
     else:
         release_times = np.array([0.74, 7.70, 37.0])
 
-    # Density evolution (Massey+2014)
+    # Density evolution
     if date < date_sm4_repair:
         initial_total_trap_density = 0.017845
         trap_growth_rate = 3.5488e-4

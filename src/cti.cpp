@@ -147,7 +147,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
             "column_stop = %d \n",
             express, offset, row_start, row_stop, column_start, column_stop);
 
-        printf("ROE n_steps = %d \n", roe->n_steps);
+        printf("ROE type = %d \n", roe->type);
+        printf("  n_steps = %d \n", roe->n_steps);
         printf("  dwell_times = ");
         print_array(roe->dwell_times);
         printf(
@@ -159,6 +160,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
             "  force_release_away_from_readout = %d \n",
             roe->force_release_away_from_readout);
         printf("  use_integer_express_matrix = %d \n", roe->use_integer_express_matrix);
+        if (roe->type == roe_type_trap_pumping)
+            printf("  n_pumps = %d \n", roe->n_pumps);
 
         printf("CCD n_phases = %d \n", ccd->n_phases);
         printf("  fraction_of_traps_per_phase = ");
