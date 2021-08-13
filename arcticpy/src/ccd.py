@@ -2,7 +2,7 @@ import numpy as np
 
 
 class CCDPhase(object):
-    def __init__(self, full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=0.58):
+    def __init__(self, full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=1.0):
         self.full_well_depth = full_well_depth
         self.well_notch_depth = well_notch_depth
         self.well_fill_power = well_fill_power
@@ -22,6 +22,11 @@ class CCD(object):
         with those parameters.
         """
         if full_well_depth is not None:
+            if well_notch_depth is None:
+                well_notch_depth = 0.0
+            if well_fill_power is None:
+                well_fill_power = 1.0
+
             self.phases = [
                 CCDPhase(
                     full_well_depth=full_well_depth,
