@@ -345,7 +345,6 @@ void ROE::set_store_trap_states_matrix() {
         electronics in each phase of the pixel at each step in the clocking
         sequence.
 
-
     The first diagram below illustrates the steps in the standard sequence
     (where the number of steps equals the number of phases) for three phases,
     where a single phase each step has its potential held high to hold the

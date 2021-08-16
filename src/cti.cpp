@@ -52,6 +52,10 @@
         region of the image is of interest. Defaults to 0, n_columns for the
         full image.
 
+    print_inputs : int (opt.)
+        Whether or not to print the model inputs. Defaults to True if
+        verbosity >= 1.
+
     Returns
     -------
     image : std::valarray<std::valarray<double>>
@@ -63,7 +67,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     std::valarray<TrapSlowCapture>* traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* traps_sc_co, int express, int offset,
-    int row_start, int row_stop, int column_start, int column_stop) {
+    int row_start, int row_stop, int column_start, int column_stop, int print_inputs) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -81,9 +85,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     unsigned int n_active_columns = column_stop - column_start;
     unsigned int max_n_transfers = n_active_rows + offset;
     print_v(
-        1, "Clock charge in %d column(s) [%d to %d] and %d row(s) [%d to %d] \n",
-        n_active_columns, column_start, column_stop, n_active_rows, row_start,
-        row_stop);
+        1, "%d column(s) [%d to %d], %d row(s) [%d to %d] \n", n_active_columns,
+        column_start, column_stop, n_active_rows, row_start, row_stop);
 
     // Checks for non-standard modes
     if ((roe->type == roe_type_trap_pumping) && (n_active_rows != 1))
@@ -138,108 +141,127 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     double express_multiplier;
     ROEStepPhase* roe_step_phase;
 
-    // Print all inputs
-    if (verbosity >= 2) {
-        printf("\n");
-        printf(
-            "express = %d \n"
-            "offset = %d, row_start = %d, row_stop = %d, column_start = %d, "
-            "column_stop = %d \n",
-            express, offset, row_start, row_stop, column_start, column_stop);
+    // Print model inputs
+    if (print_inputs == -1) print_inputs = verbosity >= 1;
 
-        printf("ROE type = %d \n", roe->type);
-        printf("  n_steps = %d \n", roe->n_steps);
-        printf("  dwell_times = ");
+    if (print_inputs) {
+        print_v(2, "\n");
+        if (offset != 0) printf("  offset = %d \n", offset);
+        printf("  express = %d \n", express);
+
+        printf("  ROE type = %d, n_steps = %d \n", roe->type, roe->n_steps);
+        printf("    dwell_times = ");
         print_array(roe->dwell_times);
         printf(
-            "  empty_traps_between_columns = %d \n", roe->empty_traps_between_columns);
+            "    empty_traps_between_columns = %d \n",
+            roe->empty_traps_between_columns);
         printf(
-            "  empty_traps_for_first_transfers = %d \n",
+            "    empty_traps_for_first_transfers = %d \n",
             roe->empty_traps_for_first_transfers);
-        printf(
-            "  force_release_away_from_readout = %d \n",
-            roe->force_release_away_from_readout);
-        printf("  use_integer_express_matrix = %d \n", roe->use_integer_express_matrix);
+        if (roe->n_steps != 1)
+            printf(
+                "    force_release_away_from_readout = %d \n",
+                roe->force_release_away_from_readout);
+        if (roe->use_integer_express_matrix)
+            printf(
+                "    use_integer_express_matrix = %d \n",
+                roe->use_integer_express_matrix);
         if (roe->type == roe_type_trap_pumping)
-            printf("  n_pumps = %d \n", roe->n_pumps);
+            printf("    n_pumps = %d \n", roe->n_pumps);
 
-        printf("CCD n_phases = %d \n", ccd->n_phases);
-        printf("  fraction_of_traps_per_phase = ");
-        print_array(ccd->fraction_of_traps_per_phase);
+        printf("  CCD n_phases = %d \n", ccd->n_phases);
+        if (ccd->n_phases != 1) {
+            printf("    fraction_of_traps_per_phase = ");
+            print_array(ccd->fraction_of_traps_per_phase);
+        }
         for (int i_phase = 0; i_phase < ccd->n_phases; i_phase++) {
             printf(
-                "  full_well_depth = %g, well_notch_depth = %g, well_fill_power = %g "
+                "    full_well_depth = %g, well_notch_depth = %g, well_fill_power = %g "
                 "\n",
                 ccd->phases[i_phase].full_well_depth,
                 ccd->phases[i_phase].well_notch_depth,
                 ccd->phases[i_phase].well_fill_power);
         }
 
-        printf("Instant-capture traps n = %d \n", trap_manager_manager.n_traps_ic);
-        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_ic; i_trap++) {
+        if (trap_manager_manager.n_traps_ic != 0) {
             printf(
-                "  density = %g, release_timescale = %g \n",
-                trap_manager_manager.trap_managers_ic[0].traps[i_trap].density,
-                trap_manager_manager.trap_managers_ic[0]
-                    .traps[i_trap]
-                    .release_timescale);
-            if (trap_manager_manager.trap_managers_ic[0]
-                    .traps[i_trap]
-                    .fractional_volume_full_exposed != 0.0)
+                "  Instant-capture traps n = %d \n", trap_manager_manager.n_traps_ic);
+            for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_ic; i_trap++) {
                 printf(
-                    "    fractional_volume_none_exposed = %g, "
-                    "fractional_volume_full_exposed = %g \n",
+                    "    density = %g, release_timescale = %g \n",
+                    trap_manager_manager.trap_managers_ic[0].traps[i_trap].density,
                     trap_manager_manager.trap_managers_ic[0]
                         .traps[i_trap]
-                        .fractional_volume_none_exposed,
-                    trap_manager_manager.trap_managers_ic[0]
+                        .release_timescale);
+                if (trap_manager_manager.trap_managers_ic[0]
                         .traps[i_trap]
-                        .fractional_volume_full_exposed);
+                        .fractional_volume_full_exposed != 0.0)
+                    printf(
+                        "      fractional_volume_none_exposed = %g, "
+                        "fractional_volume_full_exposed = %g \n",
+                        trap_manager_manager.trap_managers_ic[0]
+                            .traps[i_trap]
+                            .fractional_volume_none_exposed,
+                        trap_manager_manager.trap_managers_ic[0]
+                            .traps[i_trap]
+                            .fractional_volume_full_exposed);
+            }
         }
-        printf("Slow-capture traps n = %d \n", trap_manager_manager.n_traps_sc);
-        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc; i_trap++) {
+        if (trap_manager_manager.n_traps_sc != 0) {
+            printf("  Slow-capture traps n = %d \n", trap_manager_manager.n_traps_sc);
+            for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc; i_trap++) {
+                printf(
+                    "    density = %g, release_timescale = %g, capture_timescale = %g "
+                    "\n",
+                    trap_manager_manager.trap_managers_sc[0].traps[i_trap].density,
+                    trap_manager_manager.trap_managers_sc[0]
+                        .traps[i_trap]
+                        .release_timescale,
+                    trap_manager_manager.trap_managers_sc[0]
+                        .traps[i_trap]
+                        .capture_timescale);
+            }
+        }
+        if (trap_manager_manager.n_traps_ic_co != 0) {
+            printf("  Continuum traps n = %d \n", trap_manager_manager.n_traps_ic_co);
+            for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_ic_co;
+                 i_trap++) {
+                printf(
+                    "    density = %g, release_timescale = %g, release_timescale_sigma "
+                    "= %g "
+                    "\n",
+                    trap_manager_manager.trap_managers_ic_co[0].traps[i_trap].density,
+                    trap_manager_manager.trap_managers_ic_co[0]
+                        .traps[i_trap]
+                        .release_timescale,
+                    trap_manager_manager.trap_managers_ic_co[0]
+                        .traps[i_trap]
+                        .release_timescale_sigma);
+            }
+        }
+        if (trap_manager_manager.n_traps_sc_co != 0) {
             printf(
-                "  density = %g, release_timescale = %g, capture_timescale = %g \n",
-                trap_manager_manager.trap_managers_sc[0].traps[i_trap].density,
-                trap_manager_manager.trap_managers_sc[0]
-                    .traps[i_trap]
-                    .release_timescale,
-                trap_manager_manager.trap_managers_sc[0]
-                    .traps[i_trap]
-                    .capture_timescale);
+                "  Slow-capture continuum traps n = %d \n",
+                trap_manager_manager.n_traps_sc_co);
+            for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc_co;
+                 i_trap++) {
+                printf(
+                    "    density = %g, release_timescale = %g, release_timescale_sigma "
+                    "= %g, "
+                    "capture_timescale = %g \n",
+                    trap_manager_manager.trap_managers_sc_co[0].traps[i_trap].density,
+                    trap_manager_manager.trap_managers_sc_co[0]
+                        .traps[i_trap]
+                        .release_timescale,
+                    trap_manager_manager.trap_managers_sc_co[0]
+                        .traps[i_trap]
+                        .release_timescale_sigma,
+                    trap_manager_manager.trap_managers_sc_co[0]
+                        .traps[i_trap]
+                        .capture_timescale);
+            }
         }
-        printf("Continuum traps n = %d \n", trap_manager_manager.n_traps_ic_co);
-        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_ic_co; i_trap++) {
-            printf(
-                "  density = %g, release_timescale = %g, release_timescale_sigma = %g "
-                "\n",
-                trap_manager_manager.trap_managers_ic_co[0].traps[i_trap].density,
-                trap_manager_manager.trap_managers_ic_co[0]
-                    .traps[i_trap]
-                    .release_timescale,
-                trap_manager_manager.trap_managers_ic_co[0]
-                    .traps[i_trap]
-                    .release_timescale_sigma);
-        }
-        printf(
-            "Slow-capture continuum traps n = %d \n",
-            trap_manager_manager.n_traps_sc_co);
-        for (int i_trap = 0; i_trap < trap_manager_manager.n_traps_sc_co; i_trap++) {
-            printf(
-                "  density = %g, release_timescale = %g, release_timescale_sigma = %g, "
-                "capture_timescale = %g \n",
-                trap_manager_manager.trap_managers_sc_co[0].traps[i_trap].density,
-                trap_manager_manager.trap_managers_sc_co[0]
-                    .traps[i_trap]
-                    .release_timescale,
-                trap_manager_manager.trap_managers_sc_co[0]
-                    .traps[i_trap]
-                    .release_timescale_sigma,
-                trap_manager_manager.trap_managers_sc_co[0]
-                    .traps[i_trap]
-                    .capture_timescale);
-        }
-        printf("\n");
+        print_v(2, "\n");
     }
 
     // Measure wall-clock time taken for the primary loop
@@ -378,7 +400,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Time taken
     gettimeofday(&wall_time_end, nullptr);
     wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
-    print_v(1, "Wall-clock time elapsed:  %.4g s \n", wall_time_elapsed);
+    print_v(1, "Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
 
     return image;
 }
@@ -465,6 +487,10 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         The same as the parallel_* objects described above but for serial
         clocking instead. Default nullptr to not do serial clocking.
 
+    iteration : int (opt.)
+        The interation when being called by remove_cti(), 0 otherwise. Only
+        used to control printing.
+
     Returns
     -------
     image : std::valarray<std::valarray<double>>
@@ -485,7 +511,12 @@ std::valarray<std::valarray<double>> add_cti(
     std::valarray<TrapSlowCapture>* serial_traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop) {
+    int serial_offset, int serial_window_start, int serial_window_stop, int iteration) {
+
+    // Print unless being called by remove_cti()
+    if (!iteration) print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+    // Don't print model inputs every iteration
+    int print_inputs = (iteration > 1) ? 0 : verbosity >= 1;
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -493,22 +524,24 @@ std::valarray<std::valarray<double>> add_cti(
     // Parallel clocking along columns, transfer charge towards row 0
     if (parallel_traps_ic || parallel_traps_sc || parallel_traps_ic_co ||
         parallel_traps_sc_co) {
+        print_v(1, "Parallel clocking: ");
         image = clock_charge_in_one_direction(
             image, parallel_roe, parallel_ccd, parallel_traps_ic, parallel_traps_sc,
             parallel_traps_ic_co, parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
-            serial_window_start, serial_window_stop);
+            serial_window_start, serial_window_stop, print_inputs);
     }
 
     // Serial clocking along rows, transfer charge towards column 0
     if (serial_traps_ic || serial_traps_sc || serial_traps_sc) {
         image = transpose(image);
 
+        print_v(1, "Serial clocking: ");
         image = clock_charge_in_one_direction(
             image, serial_roe, serial_ccd, serial_traps_ic, serial_traps_sc,
             serial_traps_ic_co, serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop, parallel_window_start,
-            parallel_window_stop);
+            parallel_window_stop, print_inputs);
 
         image = transpose(image);
     }
@@ -556,6 +589,8 @@ std::valarray<std::valarray<double>> remove_cti(
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
     int serial_offset, int serial_window_start, int serial_window_stop) {
 
+    print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image_remove_cti = image_in;
     std::valarray<std::valarray<double>> image_add_cti;
@@ -564,6 +599,8 @@ std::valarray<std::valarray<double>> remove_cti(
 
     // Estimate the image with removed CTI more accurately each iteration
     for (int iteration = 1; iteration <= n_iterations; iteration++) {
+        print_v(1, "Iter %d: ", iteration);
+
         // Model the effect of adding CTI trails
         image_add_cti = add_cti(
             image_remove_cti, parallel_roe, parallel_ccd, parallel_traps_ic,
@@ -571,7 +608,7 @@ std::valarray<std::valarray<double>> remove_cti(
             parallel_express, parallel_offset, parallel_window_start,
             parallel_window_stop, serial_roe, serial_ccd, serial_traps_ic,
             serial_traps_sc, serial_traps_ic_co, serial_traps_sc_co, serial_express,
-            serial_offset, serial_window_start, serial_window_stop);
+            serial_offset, serial_window_start, serial_window_stop, iteration);
 
         // Improve the estimate of the image with CTI trails removed
         image_remove_cti += image_in - image_add_cti;

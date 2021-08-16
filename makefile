@@ -43,6 +43,7 @@ CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
 # CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 # CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := -shared
+VERSION := "1.0"
 
 # Executables
 TARGET := arctic
@@ -98,8 +99,8 @@ $(OBJECTS): $(DIR_GSL)
 
 -include $(DEPENDS)
 
-$(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@
+$(DIR_OBJ)%.o: $(DIR_SRC)%.cpp makefile
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@ -DVERSION='$(VERSION)'
 
 # Unit tests
 test: $(TEST_TARGET)

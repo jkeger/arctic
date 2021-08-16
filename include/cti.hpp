@@ -13,7 +13,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* traps_sc_co, int express = 0,
     int offset = 0, int row_start = 0, int row_stop = -1, int column_start = 0,
-    int column_stop = -1);
+    int column_stop = -1, int print_inputs = -1);
 
 std::valarray<std::valarray<double>> add_cti(
     std::valarray<std::valarray<double>>& image_in,
@@ -32,7 +32,7 @@ std::valarray<std::valarray<double>> add_cti(
     std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co = nullptr,
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co = nullptr,
     int serial_express = 0, int serial_offset = 0, int serial_window_start = 0,
-    int serial_window_stop = -1);
+    int serial_window_stop = -1, int iteration = 0);
 
 std::valarray<std::valarray<double>> remove_cti(
     std::valarray<std::valarray<double>>& image_in, int n_iterations,
