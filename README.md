@@ -77,18 +77,19 @@ CTI to a test image.
 
 Python wrapper
 --------------
-Full example correction of CTI for a Hubble Space Telescope ACS image:
+Full example correction of CTI for a Hubble Space Telescope ACS image,
+using the [https://pypi.org/project/autoarray/](autoarray) package
+to load and save the fits image with correct units and quadrant rotations, etc:
 ```python
 import arcticpy as ac
 import autoarray as aa
 
-image_path = "image_path/"
-image_name = "image_name"
+image_path = "image_path/image_name"
 
-# Load each quadrant of the image -- see pypi.org/project/autoarray
+# Load each quadrant of the image  (see pypi.org/project/autoarray)
 image_A, image_B, image_C, image_D = [
     aa.acs.ImageACS.from_fits(
-        file_path=image_path + image_name + ".fits",
+        file_path=image_path + ".fits",
         quadrant_letter=quadrant,
         bias_subtract_via_bias_file=True,
         bias_subtract_via_prescan=True,
@@ -96,11 +97,11 @@ image_A, image_B, image_C, image_D = [
     for quadrant in ["A", "B", "C", "D"]
 ]
 
-# Automatic CTI model -- see CTI_model_for_HST_ACS() in arcticpy/src/cti.py
+# Automatic CTI model  (see CTI_model_for_HST_ACS() in arcticpy/src/cti.py)
 date = 2400000.5 + image_A.header.modified_julian_date
 roe, ccd, traps = ac.CTI_model_for_HST_ACS(date)
 
-# Or manual CTI model -- see class docstrings in src/{traps,roe,ccd}.cpp
+# Or manual CTI model  (see class docstrings in src/<traps,roe,ccd>.cpp)
 traps = [
     ac.TrapInstantCapture(density=0.6, release_timescale=0.74),
     ac.TrapInstantCapture(density=1.6, release_timescale=7.70),
@@ -109,31 +110,35 @@ traps = [
 roe = ac.ROE()
 ccd = ac.CCD(full_well_depth=84700, well_fill_power=0.478)
 
-# Remove CTI -- see remove_cti() in src/cti.cpp
+# Remove CTI  (see remove_cti() in src/cti.cpp)
 image_out_A, image_out_B, image_out_C, image_out_D = [
     ac.remove_cti(
         image=image,
-        n_iterations=3,
+        n_iterations=5,
         parallel_roe=roe,
         parallel_ccd=ccd,
         parallel_traps=traps,
         parallel_express=5,
-        verbosity=0,
+        verbosity=1,
     )
     for image in [image_A, image_B, image_C, image_D]
 ]
 
 # Save the corrected image
 aa.acs.output_quadrants_to_fits(
-    file_path=image_path + image_name + "_out.fits",
+    file_path=image_path + "_out.fits",
     quadrant_a=image_out_A,
     quadrant_b=image_out_B,
     quadrant_c=image_out_C,
     quadrant_d=image_out_D,
+    header_a=image_A.header,
+    header_b=image_B.header,
+    header_c=image_C.header,
+    header_d=image_D.header,
+    overwrite=True,
 )
 ```
-using the [https://pypi.org/project/autoarray/](autoarray) package
-to load and save the fits image with correct units and quadrant rotations, etc.
+
 
 \
 C++
@@ -157,6 +162,7 @@ run directly as `./arctic` with the following command-line options:
     Execute the simple test `run_benchmark()` function in `src/main.cpp`,
     e.g. for profiling.
 
+\
 The code can also be used as a library for other C++ programs, as in the
 `lib_test` example.
 
@@ -173,8 +179,8 @@ Tests are included for most individual parts of the code, organised with Catch2.
 
 As well as making sure the code is working correctly, most tests are intended to
 be relatively reader-friendly examples to help show how all the pieces of the
-code work if you need to understand the inside details as a developer, alongside
-the more user-focused documentation.
+code work if you need to understand the internal details as a developer,
+alongside the more user-focused documentation.
 
 Compile the tests with `make test` (or `make all`) in the top directory, then
 run with `./test_arctic`.
@@ -529,9 +535,7 @@ builds the C++ objects as arguments for the core library functions.
 
 
 
-\
-\
-\
+<!--
 Dev notes
 =========
 + Non-uniform volume (e.g. surface) traps are currently only implemented for
@@ -555,3 +559,4 @@ Dev notes
     especially things like the scaling with express or the number of traps, and
     the different ROE options like empty_traps_for_first_transfers that require
     extra steps to be modelled.
+-->
