@@ -23,6 +23,11 @@ int verbosity = 1;
 void set_verbosity(int v) { verbosity = v; }
 
 /*
+    Print the compiled version, set in the makefile.
+*/
+void print_version() { print_v(1, "\nArCTIC v%s \n------ \n", VERSION); }
+
+/*
     Neatly print a 1D array.
 */
 void print_array(std::valarray<double>& array) {

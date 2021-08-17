@@ -44,7 +44,7 @@ int run_demo() {
     // Load the image
     std::valarray<std::valarray<double>> image_pre_cti =
         load_image_from_txt((char*)"image_test_pre_cti.txt");
-    print_v(1, "Loaded test image from image_test_pre_cti.txt: \n");
+    print_v(1, "\n# Loaded test image from image_test_pre_cti.txt: \n");
     print_array_2D(image_pre_cti);
 
     // CTI model parameters
@@ -62,25 +62,27 @@ int run_demo() {
     int stop = -1;
 
     // Add parallel and serial CTI
+    print_v(1, "\n# Add CTI \n");
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
         express, offset, start, stop, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
-        &traps_sc_co, express, offset, start, stop);
-    print_v(1, "Image with CTI added: \n");
+        &traps_sc_co, express, offset, start, stop, 0);
+    print_v(1, "\n# Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
     // Remove CTI
-    int n_iterations = 4;
+    print_v(1, "\n# Remove CTI \n");
+    int n_iterations = 3;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
         &traps_sc_co, express, offset, start, stop, &roe, &ccd, &traps_ic, &traps_sc,
         &traps_ic_co, &traps_sc_co, express, offset, start, stop);
-    print_v(1, "Image with CTI removed: \n");
+    print_v(1, "\n# Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 
     // Save the final image
     save_image_to_txt((char*)"image_test_cti_removed.txt", image_remove_cti);
-    print_v(1, "Saved final image to image_test_cti_removed.txt \n");
+    print_v(1, "# Saved final image to image_test_cti_removed.txt \n");
 
     return 0;
 }
@@ -235,11 +237,11 @@ int main(int argc, char** argv) {
     parse_parameters(argc, argv);
 
     if (demo_mode) {
-        print_v(1, "# ArCTIC: Running demo code! \n\n");
+        print_v(1, "# Running demo code! \n");
         return run_demo();
     }
     if (benchmark_mode) {
-        print_v(1, "# ArCTIC: Running benchmark code \n\n");
+        print_v(1, "# Running benchmark code \n");
         return run_benchmark();
     }
 

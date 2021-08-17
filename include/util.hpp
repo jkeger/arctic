@@ -47,6 +47,8 @@ void set_verbosity(int v);
         exit(1);                                                                       \
     })
 
+void print_version();
+
 void print_array(std::valarray<double>& array);
 
 void print_array_2D(std::valarray<double>& image, int n_col);
