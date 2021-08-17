@@ -488,8 +488,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         clocking instead. Default nullptr to not do serial clocking.
 
     iteration : int (opt.)
-        The interation when being called by remove_cti(), 0 otherwise. Only
-        used to control printing.
+        The interation when being called by remove_cti(), default 0 otherwise.
+        Only used to control printing.
 
     Returns
     -------
@@ -514,7 +514,8 @@ std::valarray<std::valarray<double>> add_cti(
     int serial_offset, int serial_window_start, int serial_window_stop, int iteration) {
 
     // Print unless being called by remove_cti()
-    if (!iteration) print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+    if (!iteration) print_version();
+
     // Don't print model inputs every iteration
     int print_inputs = (iteration > 1) ? 0 : verbosity >= 1;
 
@@ -524,7 +525,7 @@ std::valarray<std::valarray<double>> add_cti(
     // Parallel clocking along columns, transfer charge towards row 0
     if (parallel_traps_ic || parallel_traps_sc || parallel_traps_ic_co ||
         parallel_traps_sc_co) {
-        print_v(1, "Parallel clocking: ");
+        print_v(1, "Parallel: ");
         image = clock_charge_in_one_direction(
             image, parallel_roe, parallel_ccd, parallel_traps_ic, parallel_traps_sc,
             parallel_traps_ic_co, parallel_traps_sc_co, parallel_express,
@@ -536,7 +537,7 @@ std::valarray<std::valarray<double>> add_cti(
     if (serial_traps_ic || serial_traps_sc || serial_traps_sc) {
         image = transpose(image);
 
-        print_v(1, "Serial clocking: ");
+        print_v(1, "Serial: ");
         image = clock_charge_in_one_direction(
             image, serial_roe, serial_ccd, serial_traps_ic, serial_traps_sc,
             serial_traps_ic_co, serial_traps_sc_co, serial_express, serial_offset,
@@ -589,7 +590,7 @@ std::valarray<std::valarray<double>> remove_cti(
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
     int serial_offset, int serial_window_start, int serial_window_stop) {
 
-    print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+    print_version();
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image_remove_cti = image_in;

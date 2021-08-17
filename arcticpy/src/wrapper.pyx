@@ -2,6 +2,9 @@
 cimport numpy as np
 import numpy as np
 
+cdef extern from "util.hpp":
+    void print_version()
+
 cdef extern from "interface.hpp":
     void print_array(double* array, int length)
     void print_array_2D(double* array, int n_rows, int n_columns)
@@ -73,8 +76,14 @@ cdef extern from "interface.hpp":
         int serial_offset,
         int serial_window_start,
         int serial_window_stop,
-        int verbosity
+        # Output
+        int verbosity,
+        int iteration
     )
+
+
+def cy_print_version():
+    print_version()
 
 
 def check_contiguous(array):
@@ -161,6 +170,7 @@ def cy_add_cti(
     int serial_window_stop,
     # Output
     int verbosity,
+    int iteration,
 ):
     """
     Cython wrapper for arctic's add_cti() in src/cti.cpp.
@@ -241,6 +251,7 @@ def cy_add_cti(
         serial_window_stop,
         # Output
         verbosity,
+        iteration,
     )
 
     return image

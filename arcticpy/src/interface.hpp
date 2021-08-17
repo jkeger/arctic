@@ -55,4 +55,4 @@ void add_cti(
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
     // Output
-    int verbosity);
+    int verbosity, int iteration);

@@ -134,6 +134,7 @@ def add_cti(
     serial_window_stop=-1,
     # Output
     verbosity=1,
+    iteration=0,
 ):
     """
     Wrapper for arctic's add_cti() in src/cti.cpp, see its documentation.
@@ -295,6 +296,7 @@ def add_cti(
         serial_window_stop,
         # Output
         verbosity,
+        iteration,
     )
 
 
@@ -344,8 +346,14 @@ def remove_cti(
     image = np.copy(image).astype(np.double)
     image_remove_cti = np.copy(image).astype(np.double)
 
+    if verbosity >= 1:
+        w.cy_print_version()
+
     # Estimate the image with removed CTI more accurately each iteration
-    for iteration in range(n_iterations):
+    for iteration in range(1, n_iterations + 1):
+        if verbosity >= 1:
+            print("Iter %d: " % iteration, end="", flush=True)
+
         # Model the effect of adding CTI trails
         image_add_cti = add_cti(
             image=image_remove_cti,
@@ -367,6 +375,7 @@ def remove_cti(
             serial_window_stop=serial_window_stop,
             # Output
             verbosity=verbosity,
+            iteration=iteration,
         )
 
         # Improve the estimate of the image with CTI trails removed

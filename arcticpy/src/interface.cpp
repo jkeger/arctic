@@ -88,7 +88,7 @@ void add_cti(
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
     // Output
-    int verbosity) {
+    int verbosity, int iteration) {
 
     set_verbosity(verbosity);
 
@@ -277,7 +277,9 @@ void add_cti(
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
             &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
-            serial_window_start, serial_window_stop);
+            serial_window_start, serial_window_stop,
+            // Output
+            iteration);
     }
     // No serial, parallel only
     else if (n_traps_serial == 0) {
@@ -288,7 +290,9 @@ void add_cti(
             &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             // Serial
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1);
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            // Output
+            iteration);
     }
     // Parallel and serial
     else {
@@ -301,7 +305,9 @@ void add_cti(
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
             &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
-            serial_window_start, serial_window_stop);
+            serial_window_start, serial_window_stop,
+            // Output
+            iteration);
     }
 
     // Convert the output image back to modify the input image array

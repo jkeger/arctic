@@ -851,7 +851,7 @@ def run_demo():
         serial_offset=offset,
         serial_window_start=start,
         serial_window_stop=stop,
-        verbosity=0,
+        verbosity=1,
     )
 
     print("\n# Image with CTI removed:")
