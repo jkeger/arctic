@@ -31,6 +31,7 @@ class CCD(object):
             ]
         else:
             self.phases = phases
+
         self.fraction_of_traps_per_phase = np.array(
             fraction_of_traps_per_phase, dtype=np.double
         )
