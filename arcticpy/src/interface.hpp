@@ -19,7 +19,8 @@ void add_cti(
     bool parallel_empty_traps_between_columns,
     bool parallel_empty_traps_for_first_transfers,
     bool parallel_force_release_away_from_readout,
-    bool parallel_use_integer_express_matrix,
+    bool parallel_use_integer_express_matrix, int parallel_n_pumps,
+    int parallel_roe_type,
     // CCD
     double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
     double* parallel_full_well_depths, double* parallel_well_notch_depths,
@@ -40,6 +41,7 @@ void add_cti(
     bool serial_empty_traps_between_columns,
     bool serial_empty_traps_for_first_transfers,
     bool serial_force_release_away_from_readout, bool serial_use_integer_express_matrix,
+    int serial_n_pumps, int serial_roe_type,
     // CCD
     double* serial_fraction_of_traps_per_phase_in, int serial_n_phases,
     double* serial_full_well_depths, double* serial_well_notch_depths,
@@ -53,4 +55,4 @@ void add_cti(
     int serial_express, int serial_offset, int serial_window_start,
     int serial_window_stop,
     // Output
-    int verbosity);
+    int verbosity, int iteration);

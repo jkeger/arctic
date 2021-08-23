@@ -40,6 +40,8 @@ class ROE {
         bool use_integer_express_matrix = false);
     ~ROE(){};
 
+    ROE& operator=(const ROE& roe);
+
     std::valarray<double>& dwell_times;
     bool empty_traps_between_columns;
     bool empty_traps_for_first_transfers;
@@ -54,6 +56,7 @@ class ROE {
     int n_steps;
     int n_phases;
     int n_express_passes;
+    int n_pumps;
 
     virtual void set_express_matrix_from_rows_and_express(
         int n_rows, int express = 0, int offset = 0);
@@ -82,8 +85,6 @@ class ROETrapPumping : public ROE {
         int n_pumps = 1, bool empty_traps_for_first_transfers = true,
         bool use_integer_express_matrix = false);
     ~ROETrapPumping(){};
-
-    int n_pumps;
 
     void set_express_matrix_from_rows_and_express(
         int n_rows, int express = 0, int offset = 0);

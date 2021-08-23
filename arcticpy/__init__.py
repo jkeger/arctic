@@ -1,6 +1,6 @@
 from arcticpy.src.cti import add_cti, remove_cti, CTI_model_for_HST_ACS
 from arcticpy.src.ccd import CCDPhase, CCD
-from arcticpy.src.roe import ROE
+from arcticpy.src.roe import ROE, ROEChargeInjection, ROETrapPumping
 from arcticpy.src.traps import (
     TrapInstantCapture,
     TrapSlowCapture,

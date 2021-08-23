@@ -807,8 +807,10 @@ def run_demo():
     start = 0
     stop = -1
 
+    print("\n# Test image:")
     ac.print_array_2D(image_pre_cti)
 
+    print("\n# Add CTI")
     image_post_cti = ac.add_cti(
         image=image_pre_cti,
         parallel_roe=roe,
@@ -828,8 +830,10 @@ def run_demo():
         verbosity=1,
     )
 
+    print("\n# Image with CTI added:")
     ac.print_array_2D(image_post_cti)
 
+    print("\n# Remove CTI")
     image_removed_cti = ac.remove_cti(
         image=image_post_cti,
         n_iterations=4,
@@ -847,9 +851,10 @@ def run_demo():
         serial_offset=offset,
         serial_window_start=start,
         serial_window_stop=stop,
-        verbosity=0,
+        verbosity=1,
     )
 
+    print("\n# Image with CTI removed:")
     ac.print_array_2D(image_removed_cti)
 
 
@@ -920,10 +925,10 @@ def print_help():
 if __name__ == "__main__":
     try:
         if sys.argv[1] in ["-d", "--demo"]:
-            print("# ArCTIC: Running demo code! \n")
+            print("# Running demo code!")
             run_demo()
         elif sys.argv[1] in ["-b", "--benchmark"]:
-            print("# ArCTIC: Running benchmark code \n")
+            print("# Running benchmark code")
             run_benchmark()
         else:
             print_help()

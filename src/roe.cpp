@@ -138,6 +138,19 @@ ROE::ROE(
     n_phases = n_steps;
 }
 
+/* Assignment operator. */
+ROE& ROE::operator=(const ROE& roe) {
+    dwell_times = roe.dwell_times;
+    empty_traps_between_columns = roe.empty_traps_between_columns;
+    empty_traps_for_first_transfers = roe.empty_traps_for_first_transfers;
+    force_release_away_from_readout = roe.force_release_away_from_readout;
+    use_integer_express_matrix = roe.use_integer_express_matrix;
+    type = roe.type;
+    n_steps = roe.n_steps;
+    n_phases = roe.n_phases;
+    return *this;
+}
+
 /*
     Set the matrix of express multipliers.
 
@@ -331,7 +344,6 @@ void ROE::set_store_trap_states_matrix() {
         The array of ROEStepPhase objects to describe the state of the readout
         electronics in each phase of the pixel at each step in the clocking
         sequence.
-
 
     The first diagram below illustrates the steps in the standard sequence
     (where the number of steps equals the number of phases) for three phases,
@@ -652,7 +664,6 @@ void ROEChargeInjection::set_store_trap_states_matrix() {
     n_pumps : int
         The number of times the charge is pumped back and forth.
 
-
     The diagram below illustrates the steps in the clocking sequence produced
     by ROE::set_clock_sequence() in this mode, for three phases. The first three
     steps are the same as the standard case. However, now there are three
@@ -760,10 +771,10 @@ ROETrapPumping::ROETrapPumping(
     std::valarray<double>& dwell_times, int n_pumps,
     bool empty_traps_for_first_transfers, bool use_integer_express_matrix)
     : ROE(dwell_times, true, empty_traps_for_first_transfers, false,
-          use_integer_express_matrix),
-      n_pumps(n_pumps) {
+          use_integer_express_matrix) {
 
     type = roe_type_trap_pumping;
+    this->n_pumps = n_pumps;
 
     if (n_steps % 2 != 0)
         error("The number of steps for trap pumping (%d) must be even", n_steps);

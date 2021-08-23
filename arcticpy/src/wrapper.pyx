@@ -2,6 +2,9 @@
 cimport numpy as np
 import numpy as np
 
+cdef extern from "util.hpp":
+    void print_version()
+
 cdef extern from "interface.hpp":
     void print_array(double* array, int length)
     void print_array_2D(double* array, int n_rows, int n_columns)
@@ -19,6 +22,8 @@ cdef extern from "interface.hpp":
         int parallel_empty_traps_for_first_transfers,
         int parallel_force_release_away_from_readout,
         int parallel_use_integer_express_matrix,
+        int parallel_n_pumps,
+        int parallel_roe_type,
         # CCD
         double* parallel_fraction_of_traps_per_phase_in,
         int parallel_n_phases,
@@ -49,6 +54,8 @@ cdef extern from "interface.hpp":
         int serial_empty_traps_for_first_transfers,
         int serial_force_release_away_from_readout,
         int serial_use_integer_express_matrix,
+        int serial_n_pumps,
+        int serial_roe_type,
         # CCD
         double* serial_fraction_of_traps_per_phase_in,
         int serial_n_phases,
@@ -69,8 +76,14 @@ cdef extern from "interface.hpp":
         int serial_offset,
         int serial_window_start,
         int serial_window_stop,
-        int verbosity
+        # Output
+        int verbosity,
+        int iteration
     )
+
+
+def cy_print_version():
+    print_version()
 
 
 def check_contiguous(array):
@@ -104,6 +117,8 @@ def cy_add_cti(
     int parallel_empty_traps_for_first_transfers,
     int parallel_force_release_away_from_readout,
     int parallel_use_integer_express_matrix,
+    int parallel_n_pumps,
+    int parallel_roe_type,
     # CCD
     np.ndarray[np.double_t, ndim=1] parallel_fraction_of_traps_per_phase,
     np.ndarray[np.double_t, ndim=1] parallel_full_well_depths,
@@ -132,6 +147,8 @@ def cy_add_cti(
     int serial_empty_traps_for_first_transfers,
     int serial_force_release_away_from_readout,
     int serial_use_integer_express_matrix,
+    int serial_n_pumps,
+    int serial_roe_type,
     # CCD
     np.ndarray[np.double_t, ndim=1] serial_fraction_of_traps_per_phase,
     np.ndarray[np.double_t, ndim=1] serial_full_well_depths,
@@ -153,6 +170,7 @@ def cy_add_cti(
     int serial_window_stop,
     # Output
     int verbosity,
+    int iteration,
 ):
     """
     Cython wrapper for arctic's add_cti() in src/cti.cpp.
@@ -177,6 +195,8 @@ def cy_add_cti(
         parallel_empty_traps_for_first_transfers,
         parallel_force_release_away_from_readout,
         parallel_use_integer_express_matrix,
+        parallel_n_pumps,
+        parallel_roe_type,
         # CCD
         &parallel_fraction_of_traps_per_phase[0],
         len(parallel_fraction_of_traps_per_phase),
@@ -207,6 +227,8 @@ def cy_add_cti(
         serial_empty_traps_for_first_transfers,
         serial_force_release_away_from_readout,
         serial_use_integer_express_matrix,
+        serial_n_pumps,
+        serial_roe_type,
         # CCD
         &serial_fraction_of_traps_per_phase[0],
         len(serial_fraction_of_traps_per_phase),
@@ -229,6 +251,7 @@ def cy_add_cti(
         serial_window_stop,
         # Output
         verbosity,
+        iteration,
     )
 
     return image

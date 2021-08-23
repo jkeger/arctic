@@ -67,6 +67,19 @@ TEST_CASE("Test ROE", "[roe]") {
         REQUIRE(roe.empty_traps_for_first_transfers == true);
         REQUIRE(roe.use_integer_express_matrix == true);
     }
+
+    SECTION("Assignment operator") {
+        std::valarray<double> dwell_times = {1.0};
+        ROE roe;
+        roe = ROE(dwell_times, false, true);
+        REQUIRE(roe.type == roe_type_standard);
+        REQUIRE(roe.n_steps == 1);
+        REQUIRE(roe.dwell_times[0] == 1.0);
+        REQUIRE(roe.empty_traps_between_columns == false);
+        REQUIRE(roe.empty_traps_for_first_transfers == true);
+        REQUIRE(roe.force_release_away_from_readout == true);
+        REQUIRE(roe.use_integer_express_matrix == false);
+    }
 }
 
 TEST_CASE("Test express matrix", "[roe]") {
