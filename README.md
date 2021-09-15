@@ -55,7 +55,7 @@ python module, using Cython to interface with the precompiled core library.
 
 + `make wrapper` (or `make all`) in the root directory.  
     Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`.
-+ Import the python module, e.g. `import arcticpy as ac`.
++ Import the python module, e.g. `import arcticpy as cti.`.
 
 
 GSL
@@ -81,7 +81,7 @@ Full example correction of CTI for a Hubble Space Telescope ACS image,
 using the [https://pypi.org/project/autoarray/](autoarray) package
 to load and save the fits image with correct units and quadrant rotations, etc:
 ```python
-import arcticpy as ac
+import arcticpy as cti
 import autoarray as aa
 
 image_path = "image_path/image_name"
@@ -99,20 +99,20 @@ image_A, image_B, image_C, image_D = [
 
 # Automatic CTI model  (see CTI_model_for_HST_ACS() in arcticpy/src/cti.py)
 date = 2400000.5 + image_A.header.modified_julian_date
-roe, ccd, traps = ac.CTI_model_for_HST_ACS(date)
+roe, ccd, traps = cti.CTI_model_for_HST_ACS(date)
 
 # Or manual CTI model  (see class docstrings in src/<traps,roe,ccd>.cpp)
 traps = [
-    ac.TrapInstantCapture(density=0.6, release_timescale=0.74),
-    ac.TrapInstantCapture(density=1.6, release_timescale=7.70),
-    ac.TrapInstantCapture(density=1.4, release_timescale=37.0),
+    cti.TrapInstantCapture(density=0.6, release_timescale=0.74),
+    cti.TrapInstantCapture(density=1.6, release_timescale=7.70),
+    cti.TrapInstantCapture(density=1.4, release_timescale=37.0),
 ]
-roe = ac.ROE()
-ccd = ac.CCD(full_well_depth=84700, well_fill_power=0.478)
+roe = cti.ROE()
+ccd = cti.CCD(full_well_depth=84700, well_fill_power=0.478)
 
 # Remove CTI  (see remove_cti() in src/cti.cpp)
 image_out_A, image_out_B, image_out_C, image_out_D = [
-    ac.remove_cti(
+    cti.remove_cti(
         image=image,
         n_iterations=5,
         parallel_roe=roe,
