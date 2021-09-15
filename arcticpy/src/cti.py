@@ -399,7 +399,7 @@ def CTI_model_for_HST_ACS(date):
 
     Parameters
     ----------
-    date : float
+    date
         The Julian date. Should not be before the ACS launch date.
 
     Returns
