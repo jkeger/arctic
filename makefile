@@ -75,8 +75,8 @@ TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
 
 # Headers and library links
 INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)include/
-LIBS := -L $(DIR_GSL)lib/ -Wl,-rpath=$(DIR_GSL)lib/ -lgsl -lgslcblas -lm
-LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath=$(DIR_ROOT) -l$(TARGET)
+LIBS := -L $(DIR_GSL)lib/ -Wl,-rpath $(DIR_GSL)lib/ -lgsl -lgslcblas -lm
+LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath $(DIR_ROOT) -l$(TARGET)
 
 # ========
 # Rules
