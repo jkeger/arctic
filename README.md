@@ -47,6 +47,20 @@ See the `makefile` header documentation for all the options.
 
 See the sections below for testing and running the code.
 
+Note for Mac users: the unit tests will not compile on a mac because of the way
+Catch2 requires a second main.c file. You should run `make gsl` (if needed) 
+then `make`.
+(In fact, `make gsl` does not run for me: I have to `cd gsl-2.6` 
+`./configure --prefix=/Users/rjm/bin/arctic/gsl/` then `make -j` etc.)
+While making, I also needed to create an (empty) directory /sw/lib via 
+`sudo mount -uw /` then `sudo mkdir /sw` `sudo mkdir /sw/lib`
+
+
+Add to your 
++ $PATH  /Users/rjm/arctic/   (which contains the arctic executable)
++ $DYLD_LIBRARY_PATH  /Users/rjm/arctic  (which contains libarctic.so)
++ $PYTHONPATH  /Users/rjm/arctic/arcticpy
+
 
 Python wrapper
 --------------
@@ -54,8 +68,9 @@ ArCTIC is a standalone C++ library, but can also be used via the `arcticpy`
 python module, using Cython to interface with the precompiled core library.
 
 + `make wrapper` (or `make all`) in the root directory.  
-    Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`.
+    Or manually/on a mac `python3 arcticpy/setup.py build_ext --inplace`.
 + Import the python module, e.g. `import arcticpy as cti.`.
+
 
 
 GSL
