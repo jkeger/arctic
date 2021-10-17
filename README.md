@@ -50,7 +50,8 @@ See the sections below for testing and running the code.
 Note for Mac users: the unit tests will not compile on a mac because of the way
 Catch2 requires a second main.c file. You should run `make gsl` (if needed) 
 then `make`.
-(In fact, `make gsl` does not run for me: I have to `cd gsl-2.6` 
+(In fact, `make gsl` does not run for me because it "cannot run C compiled 
+programs": I have to `cd gsl-2.6` 
 `./configure --prefix=/Users/rjm/bin/arctic/gsl/` then `make -j` etc.)
 While making, I also needed to create an (empty) directory /sw/lib via 
 `sudo mount -uw /` then `sudo mkdir /sw` `sudo mkdir /sw/lib`
