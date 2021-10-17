@@ -50,11 +50,11 @@ GSL
 + Run `make gsl` to download and install the GNU Scientific Library to local subdirectory `gsl/bin`.
 <!-- This should create a subdirectory gsl/ that contains bin/, include/, lib/, share/. -->
 
-If your system already has GSL installed, feel free to skip this step, and edit the 
-makefile to point `DIR_GSL` to it (e.g. /usr/local/include/gsl/).
+If your system already has GSL installed, you can skip this step, and edit the 
+makefile to point to it (e.g. `DIR_GSL := /usr/local/include/gsl/`).
 
 **MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the script.
-If you don't like doing this, you can also individually run a few lines in the middle of the script.
+If you don't like doing this, you can also individually run a few lines marked with comments in the middle of the script.
 
 ArCTIc
 ------
