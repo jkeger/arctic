@@ -1,7 +1,7 @@
-ArCTIC
+ArCTIc
 ======
 
-AlgoRithm for Charge Transfer Inefficiency (CTI) Correction
+AlgoRithm for Charge Transfer Inefficiency (CTI) correction
 -----------------------------------------------------------
 
 Add or remove image trails due to charge transfer inefficiency in CCD detectors
@@ -22,8 +22,9 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
-    + Python wrapper
     + GSL
+    + ArCTIc
+    + Python wrapper
 + Usage
     + Python example
     + C++
@@ -41,58 +42,64 @@ Contents
 \
 Installation
 ============
-Compile the main code with `make` (or `make all`) in the root directory.
 
-See the `makefile` header documentation for all the options.
-
-See the sections below for testing and running the code.
-
-Note for Mac users: the unit tests will not compile on a mac because of the way
-Catch2 requires a second main.c file. You should run `sudo make gsl` (if needed;
-the sudo is to give it permission to also run ./configure). On the first build, 
-you may also need to create an (empty) directory /sw/lib via 
-`sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
-
-
-Add to your 
-+ $PATH  /Users/rjm/arctic/   (which contains the arctic executable)
-+ $DYLD_LIBRARY_PATH  /Users/rjm/arctic  (which contains libarctic.so)
-+ $PYTHONPATH  /Users/rjm/arctic/arcticpy
-
-
-Python wrapper
---------------
-ArCTIC is a standalone C++ library, but can also be used via the `arcticpy`
-python module, using Cython to interface with the precompiled core library.
-
-+ `make wrapper` (or `make all`) in the root directory.  
-    Or manually/on a mac `python3 arcticpy/setup.py build_ext --inplace`.
-+ Import the python module, e.g. `import arcticpy as cti.`.
-
-
+Download the source code via `git clone [https address above]` and `cd arctic`
 
 GSL
 ---
-The code uses a few functions from the GNU Scientific Library. The makefile will
-automatically attempt to download and install the library in the local directory
-if required. If your system already has GSL installed, then feel free to edit
-`DIR_GSL` in the makefile to point to it (e.g. /usr/local/include/gsl/).
+The code uses a few functions from the GNU Scientific Library. 
+If your system already has GSL installed, feel free to edit `DIR_GSL` in the 
+makefile to point to it (e.g. /usr/local/include/gsl/).
+If not, run `make gsl` to automatically download and install 
+a copy in the local directory. This should create a subdirectory gsl/ that 
+contains bin/, include/, lib/, share/.
 
+**MacOS:** requires `sudo make gsl` to grant permission to also run ./configure
+in the middle of the script.
 
+ArCTIc
+------
++ Run `make` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library.
++ Add `/***current*directory***/arctic/` to your `$PATH`.
+
+The `makefile` header describes additional options, including unit tests that can be compiled via `make all`
+but are only needed by developers.
+You should now get output from `./arctic -d`
+
+**MacOS:** cannot currently compile the unit tests. It gets confused because the Catch2 unit test framework uses a second main.c file. 
+If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory 
+/sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
+
+Python wrapper
+--------------
+ArCTIc is a standalone C++ library, but can also be used via the `arcticpy`
+python module, using Cython to interface with the precompiled dynamic library.
+
++ Run `make wrapper` in the root directory. This should create `arcticpy/wrapper.*.so`.
++ Add `/***current*directory***/arctic/arcticpy/` to your `$PYTHONPATH`.
++ Add `/***current*directory***/arctic/` to another system variable `$DYLD_LIBRARY_PATH`.
++ Import the python module, e.g. `import arcticpy as cti.`.
+
+**MacOS:** requires `sudo make wrapper`, or equivalently run `python3 arcticpy/setup.py build_ext --inplace`.
 
 \
 Usage
 =====
-See the `run_demo()` functions in `src/main.cpp` and `test/test_arcticpy.py` for
-more basic examples of using the main code or python wrapper to add and remove
-CTI to a test image.
 
+Check the C++ code compiled correctly via `arctic -demo`.
 
 Python wrapper
 --------------
-Full example correction of CTI for a Hubble Space Telescope ACS image,
-using the [https://pypi.org/project/autoarray/](autoarray) package
-to load and save the fits image with correct units and quadrant rotations, etc:
+ArCTIc will typically be used via the python wrapper module.
+
+Run `python3 test/test_arcticpy.py` with `-d` or `-b` for
+demo or benchmark functions. 
+
+Examples adding or removing CTI trails from a test image
+are in the `run_demo()` function of `test/test_arcticpy.py`.
+To correct CTI in a Hubble Space Telescope ACS image
+(using the [https://pypi.org/project/autoarray/](autoarray) package
+to load and save the fits image with correct units and quadrant rotations, etc):
 ```python
 import arcticpy as cti
 import autoarray as aa
@@ -156,8 +163,7 @@ aa.acs.output_quadrants_to_fits(
 \
 C++
 ---
-ArCTIC will typically be used via the python wrapper module, but the code can be
-run directly as `./arctic` with the following command-line options:
+ArCTIc can also be run directly as `./arctic` with the following command-line options:
 
 + `-h`, `--help`  
     Print help information and exit.
@@ -176,13 +182,10 @@ run directly as `./arctic` with the following command-line options:
     e.g. for profiling.
 
 \
-The code can also be used as a library for other C++ programs, as in the
-`lib_test` example.
-
-The python wrapper also has demo and benchmark functions provided.
-Run `python3 test/test_arcticpy.py` with `-d` or `-b` (or the long versions)
-as above, or with anything else to print help information.
-
+The code can also be used as a library for other C++ programs.
+See the `run_demo()` function in `src/main.cpp` for
+examples adding and removing CTI trails from a test image, 
+or the `lib_test` example described below.
 
 
 \
