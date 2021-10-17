@@ -142,7 +142,6 @@ gsl:
 	@if ! [ -d $(DIR_GSL) ]; then \
 		./get_gsl.sh $(DIR_ROOT) $(DIR_GSL) $(GSL_VERSION); \
 	fi
-	@rm -rfv $(DIR_WRAPPER)build
 
 clean-gsl:
 	@rm -rfv gsl*
