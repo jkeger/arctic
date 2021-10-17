@@ -54,13 +54,13 @@ If not, run `make gsl` to automatically download and install
 a copy in the local directory. This should create a subdirectory gsl/ that 
 contains bin/, include/, lib/, share/.
 
-**MacOS:** requires `sudo make gsl` to grant permission to also run ./configure
-in the middle of the script.
+**MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the script.
+If you don't like this, you can also individually a few lines in the middle of the script.
 
 ArCTIc
 ------
 + Run `make` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library.
-+ Add `/***current*directory***/arctic/` to your `$PATH`.
++ Add `/***current*directory***/arctic` to your `$PATH`.
 
 The `makefile` header describes additional options, including unit tests that can be compiled via `make all`
 but are only needed by developers.
@@ -75,18 +75,17 @@ Python wrapper
 ArCTIc is a standalone C++ library, but can also be used via the `arcticpy`
 python module, using Cython to interface with the precompiled dynamic library.
 
-+ Run `make wrapper` in the root directory. This should create `arcticpy/wrapper.*.so`.
-+ Add `/***current*directory***/arctic/arcticpy/` to your `$PYTHONPATH`.
-+ Add `/***current*directory***/arctic/` to another system variable `$DYLD_LIBRARY_PATH`.
++ Run `make wrapper` in the root directory. This should create `arcticpy/wrapper.cypython*.so`.
++ Add `/***current*directory***/arctic` to your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`.
 + Import the python module, e.g. `import arcticpy as cti.`.
 
-**MacOS:** requires `sudo make wrapper`, or equivalently run `python3 arcticpy/setup.py build_ext --inplace`.
+**MacOS:** requires `sudo make wrapper`, or equivalently run `cd arcticpy; python3 setup.py build_ext --inplace`.
 
 \
 Usage
 =====
 
-Check the C++ code compiled correctly via `arctic -demo`.
+Check the C++ code compiled correctly via `arctic --demo`.
 
 Python wrapper
 --------------
