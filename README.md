@@ -43,7 +43,7 @@ Contents
 Installation
 ============
 
-Download the source code via `git clone [https address above]` and `cd arctic`
+Download the source code via `git clone [https address above]` and `cd arctic`.
 
 GSL
 ---
@@ -55,16 +55,16 @@ a copy in the local directory. This should create a subdirectory gsl/ that
 contains bin/, include/, lib/, share/.
 
 **MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the script.
-If you don't like this, you can also individually a few lines in the middle of the script.
+If you don't like doing this, you can also individually a few lines in the middle of the script.
 
 ArCTIc
 ------
 + Run `make` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library.
 + Add `/***current*directory***/arctic` to your `$PATH`.
 
+You should now get output from `./arctic --demo`.
 The `makefile` header describes additional options, including unit tests that can be compiled via `make all`
 but are only needed by developers.
-You should now get output from `./arctic -d`
 
 **MacOS:** cannot currently compile the unit tests. It gets confused because the Catch2 unit test framework uses a second main.c file. 
 If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory 
@@ -79,13 +79,11 @@ python module, using Cython to interface with the precompiled dynamic library.
 + Add `/***current*directory***/arctic` to your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`.
 + Import the python module, e.g. `import arcticpy as cti.`.
 
-**MacOS:** requires `sudo make wrapper`, or equivalently run `cd arcticpy; python3 setup.py build_ext --inplace`.
+**MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
 
 \
 Usage
 =====
-
-Check the C++ code compiled correctly via `arctic --demo`.
 
 Python wrapper
 --------------
@@ -97,7 +95,7 @@ demo or benchmark functions.
 Examples adding or removing CTI trails from a test image
 are in the `run_demo()` function of `test/test_arcticpy.py`.
 To correct CTI in a Hubble Space Telescope ACS image
-(using the [https://pypi.org/project/autoarray/](autoarray) package
+(using the [autoarray](https://pypi.org/project/autoarray/) package
 to load and save the fits image with correct units and quadrant rotations, etc):
 ```python
 import arcticpy as cti
@@ -181,16 +179,17 @@ ArCTIc can also be run directly as `./arctic` with the following command-line op
     e.g. for profiling.
 
 \
-The code can also be used as a library for other C++ programs.
+The C++ code can also be used as a library for other C++ programs.
 See the `run_demo()` function in `src/main.cpp` for
 examples adding and removing CTI trails from a test image, 
-or the `lib_test` example described below.
+and the `lib_test` example described below.
 
 
 \
 Unit Tests
 ==========
-Tests are included for most individual parts of the code, organised with Catch2.
+Tests are included for most individual parts of the code, organised with 
+[Catch2](https://github.com/catchorg/Catch2).
 
 As well as making sure the code is working correctly, most tests are intended to
 be relatively reader-friendly examples to help show how all the pieces of the
