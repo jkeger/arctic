@@ -47,15 +47,14 @@ Download the source code via `git clone [https address above]` and `cd arctic`.
 
 GSL
 ---
-The code uses a few functions from the GNU Scientific Library. 
-If your system already has GSL installed, feel free to edit `DIR_GSL` in the 
-makefile to point to it (e.g. /usr/local/include/gsl/).
-If not, run `make gsl` to automatically download and install 
-a copy in the local directory. This should create a subdirectory gsl/ that 
-contains bin/, include/, lib/, share/.
++ Run `make gsl` to download and install the GNU Scientific Library to local subdirectory `gsl/bin`.
+<!-- This should create a subdirectory gsl/ that contains bin/, include/, lib/, share/. -->
+
+If your system already has GSL installed, feel free to skip this step, and edit the 
+makefile to point `DIR_GSL` to it (e.g. /usr/local/include/gsl/).
 
 **MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the script.
-If you don't like doing this, you can also individually a few lines in the middle of the script.
+If you don't like doing this, you can also individually run a few lines in the middle of the script.
 
 ArCTIc
 ------
