@@ -127,6 +127,7 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 wrapper: $(LIB_TARGET)
 	python3 $(DIR_WRAPPER)setup.py build_ext --inplace
 	@mv -v $(DIR_ROOT)*.cpython*.so $(DIR_WRAPPER)
+	@rm -rfv $(DIR_WRAPPER)build
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)test_lib.[od]
@@ -141,6 +142,7 @@ gsl:
 	@if ! [ -d $(DIR_GSL) ]; then \
 		./get_gsl.sh $(DIR_ROOT) $(DIR_GSL) $(GSL_VERSION); \
 	fi
+	@rm -rfv $(DIR_WRAPPER)build
 
 clean-gsl:
 	@rm -rfv gsl*

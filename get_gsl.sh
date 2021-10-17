@@ -23,6 +23,10 @@ mkdir -p "$dir_gsl"
 
 # Compile
 cd gsl-"$version"
+# If this is called via make on a mac, the next line will fail unless run as
+# a superuser, because ./configure is a separately-compiled C program.
+# To solve this, either run `sudo make`, or cut and paste the following lines,
+# starting with cd articpy; ./configure --prefix="../gsl"
 ./configure --prefix="$dir_gsl"
 make -j
 make check -j
