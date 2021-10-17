@@ -47,9 +47,8 @@ Download the source code via `git clone [https address above]` and `cd arctic`.
 
 GNU Scientific Library
 ----------------------
-+ Run `make gsl` to download and install the GNU Scientific Library to local subdirectory `gsl/bin`.
++ Run `make gsl` to download and install the GNU Scientific Library to local subdirectory `gsl` that contains bin/, include/, lib/, share/.
 The code uses a few library routines from here.
-<!-- This should create a subdirectory gsl/ that contains bin/, include/, lib/, share/. -->
 
 If your system already has GSL installed, you can skip this step, and edit the 
 makefile to point to it (e.g. `DIR_GSL := /usr/local/include/gsl/`).
