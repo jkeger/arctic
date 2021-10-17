@@ -53,8 +53,8 @@ GSL
 If your system already has GSL installed, you can skip this step, and edit the 
 makefile to point to it (e.g. `DIR_GSL := /usr/local/include/gsl/`).
 
-**MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the script.
-If you don't like doing this, you can also individually run a few lines marked with comments in the middle of the script.
+**MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
+If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
 
 ArCTIc
 ------
