@@ -48,13 +48,10 @@ See the `makefile` header documentation for all the options.
 See the sections below for testing and running the code.
 
 Note for Mac users: the unit tests will not compile on a mac because of the way
-Catch2 requires a second main.c file. You should run `make gsl` (if needed) 
-then `make`.
-(In fact, `make gsl` does not run for me because it "cannot run C compiled 
-programs": I have to `cd gsl-2.6` 
-`./configure --prefix=/Users/rjm/bin/arctic/gsl/` then `make -j` etc.)
-While making, I also needed to create an (empty) directory /sw/lib via 
-`sudo mount -uw /` then `sudo mkdir /sw` `sudo mkdir /sw/lib`
+Catch2 requires a second main.c file. You should run `sudo make gsl` (if needed;
+the sudo is to give it permission to also run ./configure). On the first build, 
+you may also need to create an (empty) directory /sw/lib via 
+`sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
 
 
 Add to your 
