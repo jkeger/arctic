@@ -45,9 +45,10 @@ Installation
 
 Download the source code via `git clone [https address above]` and `cd arctic`.
 
-GSL
----
+GNU Scientific Library
+----------------------
 + Run `make gsl` to download and install the GNU Scientific Library to local subdirectory `gsl/bin`.
+The code uses a few library routines from here.
 <!-- This should create a subdirectory gsl/ that contains bin/, include/, lib/, share/. -->
 
 If your system already has GSL installed, you can skip this step, and edit the 
@@ -69,8 +70,8 @@ but are only needed by developers.
 If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory 
 /sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
 
-Python wrapper
---------------
+arcticpy Python wrapper
+-----------------------
 ArCTIc is a standalone C++ library, but can also be used via the `arcticpy`
 python module, using Cython to interface with the precompiled dynamic library.
 
@@ -84,8 +85,8 @@ python module, using Cython to interface with the precompiled dynamic library.
 Usage
 =====
 
-Python wrapper
---------------
+Python
+------
 ArCTIc will typically be used via the python wrapper module.
 
 Run `python3 test/test_arcticpy.py` with `-d` or `-b` for
