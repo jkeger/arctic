@@ -305,8 +305,8 @@ void add_cti(
     }
 
     // Delete serial/parallel ROE if previously allocated
-    delete p_parallel_roe
-    delete p_serial_roe
+    delete p_parallel_roe;
+    delete p_serial_roe;
 
     // Convert the output image back to modify the input image array
     for (int i_row = 0; i_row < n_rows; i_row++) {
