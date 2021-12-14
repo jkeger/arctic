@@ -24,9 +24,9 @@ mkdir -p "$dir_gsl"
 # Compile
 cd gsl-"$version"
 ./configure --prefix="$dir_gsl"
-make
-make check
-make install
+make -j
+make check -j
+make install -j
 
 # Clean up
 cd ..

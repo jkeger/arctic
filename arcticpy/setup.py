@@ -33,7 +33,8 @@ for root, dirs, files in os.walk(dir_wrapper, topdown=False):
             os.remove(file)
 
 # Build
-os.environ["CC"] = "g++"
+if "CC" not in os.environ:
+    os.environ["CC"] = "g++"
 setup(
     ext_modules=cythonize(
         [
