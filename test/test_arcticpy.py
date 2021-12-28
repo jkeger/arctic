@@ -775,6 +775,17 @@ class TestCTIModelForHSTACS:
             assert ccd.phases[0].well_fill_power == 0.478
 
 
+class TestTraps:
+
+    def test__poisson_density_from(self):
+
+        trap = ac.TrapInstantCapture(density=1.0)
+
+        poisson_trap = trap.poisson_density_from(total_pixels=100, seed=1)
+
+        assert poisson_trap.density == 0.98
+
+
 def run_demo():
     # Add CTI to a test image, then remove it
     image_pre_cti = np.array(
