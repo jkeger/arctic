@@ -60,7 +60,10 @@ class ROE {
 
     virtual void set_express_matrix_from_rows_and_express(
         int n_rows, int express = 0, int offset = 0);
+    virtual void set_express_matrix_from_rows_and_express_ci(
+        int n_rows, int express = 0, int offset = 0);
     virtual void set_store_trap_states_matrix();
+    virtual void set_store_trap_states_matrix_ci();
     virtual void set_clock_sequence();
 };
 
@@ -75,7 +78,10 @@ class ROEChargeInjection : public ROE {
 
     void set_express_matrix_from_rows_and_express(
         int n_rows, int express = 0, int offset = 0);
+    void set_express_matrix_from_rows_and_express_ci(
+        int n_rows, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
+    void set_store_trap_states_matrix_ci();
 };
 
 class ROETrapPumping : public ROE {

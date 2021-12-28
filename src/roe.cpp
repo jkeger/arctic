@@ -294,6 +294,69 @@ void ROE::set_express_matrix_from_rows_and_express(
     express_matrix = express_matrix_trim;
 }
 
+void ROE::set_express_matrix_from_rows_and_express_ci(
+    int n_rows, int express, int offset) {
+
+    int n_transfers = n_rows + offset;
+
+    // Set default express to all transfers, and check no larger
+    if (express == 0)
+        express = n_transfers;
+    else
+        express = std::min(express, n_transfers);
+
+    // Compute the multiplier factors
+    double max_multiplier = (double)n_transfers / express;
+    if (use_integer_express_matrix) max_multiplier = ceil(max_multiplier);
+
+    // Initialise an array with enough pixels to contain the supposed image,
+    // including offset
+    std::valarray<double> tmp_express_matrix(max_multiplier, express * n_transfers);
+
+    // Adjust integer multipliers to correct the total number of transfers
+    if ((use_integer_express_matrix) && (n_transfers % express != 0)) {
+        double current_n_transfers;
+        double reduced_multiplier;
+
+        for (int express_index = express - 1; express_index >= 0; express_index--) {
+            // Count the current number of transfers for this pixel
+            current_n_transfers = 0.0;
+            for (int i = 0; i <= express_index; i++) {
+                current_n_transfers += tmp_express_matrix[i * n_transfers];
+            }
+
+            // Reduce the multipliers until no longer have too many transfers
+            if (current_n_transfers <= n_transfers) break;
+
+            reduced_multiplier =
+                std::max(0.0, max_multiplier + n_transfers - current_n_transfers);
+
+            tmp_express_matrix[std::slice(
+                express_index * n_transfers, n_transfers, 1)] = reduced_multiplier;
+        }
+    }
+
+    n_express_passes = express;
+
+    // Finished if no offset
+    if (offset == 0) {
+        express_matrix = tmp_express_matrix;
+        return;
+    }
+
+    // Remove the offset (which is not represented in the image pixels)
+    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
+
+    // Copy the post-offset slices of each row
+    for (int express_index = 0; express_index < n_express_passes; express_index++) {
+        express_matrix_trim[std::slice(express_index * n_rows, n_rows, 1)] =
+            tmp_express_matrix[std::slice(express_index * n_transfers, n_rows, 1)];
+    }
+
+    express_matrix = express_matrix_trim;
+}
+
+
 /*
     Set the accompanying array to the express matrix of when to store the trap
     occupancy states.
@@ -333,104 +396,10 @@ void ROE::set_store_trap_states_matrix() {
         store_trap_states_matrix[express_index * n_transfers + row_index] = true;
     }
 }
+void ROE::set_store_trap_states_matrix_ci() {
+    store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
+}
 
-/*
-    Set the clock sequence 2D array of ROEStepPhase objects for each clocking
-    step and phase.
-
-    Sets
-    ----
-    clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
-        The array of ROEStepPhase objects to describe the state of the readout
-        electronics in each phase of the pixel at each step in the clocking
-        sequence.
-
-    The first diagram below illustrates the steps in the standard sequence
-    (where the number of steps equals the number of phases) for three phases,
-    where a single phase each step has its potential held high to hold the
-    charge cloud. The cloud is shifted from phase 0 to phase N towards the
-    previous pixel and the readout register.
-
-    See ROETrapPumping::ROETrapPumping()'s docstring for the behaviour produced
-    by this function when the number of steps is double the number of phases,
-    to make an oscillating sequence for trap pumping.
-
-    The trap species in each phase of pixel p can capture electrons when that
-    phase's potential is high and a charge cloud is present. The "Capture from"
-    lines refer to the original pixel that the cloud was in. In this mode, this
-    is always the current pixel, but can be different for e.g. trap pumping.
-
-    When the traps release charge, it is assumed to move directly to the nearest
-    high potential, which may be in a different pixel. The "Release to" lines
-    show the pixel to which electrons released by that phase's traps will move.
-
-    Three phases
-    ============
-                #     Pixel p-1      #       Pixel p      #     Pixel p+1      #
-    Step         Phase2 Phase1 Phase0 Phase2 Phase1 Phase0 Phase2 Phase1 Phase0
-    0           +             +------+             +------+             +------+
-    Capture from|             |      |             |   p  |             |      |
-    Release to  |             |      |  p-1     p  |   p  |             |      |
-                +-------------+      +-------------+      +-------------+      +
-    1                  +------+             +------+             +------+
-    Capture from       |      |             |   p  |             |      |
-    Release to         |      |          p  |   p  |   p         |      |
-                -------+      +-------------+      +-------------+      +-------
-    2           +------+             +------+             +------+             +
-    Capture from|      |             |   p  |             |      |             |
-    Release to  |      |             |   p  |   p     p+1 |      |             |
-                +      +-------------+      +-------------+      +-------------+
-
-    Below are corresponding illustrations for one, two, and four phases. For an
-    even number of phases, one phase in each step will be equidistant from two
-    high potentials. So any released charge is assumed to split equally between
-    the two pixels, as indicated by the "Release to" lines.
-
-    One phase
-    =========
-                  Pixel p-1  Pixel p  Pixel p+1
-    Step            Phase0   Phase0   Phase0
-    0              +------+ +------+ +------+
-    Capture from   |      | |   p  | |      |
-    Release to     |      | |   p  | |      |
-                  -+      +-+      +-+      +-
-
-    Two phases
-    ==========
-                  #  Pixel p-1  #   Pixel p   #  Pixel p+1  #
-    Step           Phase1 Phase0 Phase1 Phase0 Phase1 Phase0
-    0             +      +------+      +------+      +------+
-    Capture from  |      |      |      |   p  |      |      |
-    Release to    |      |      | p-1&p|   p  |      |      |
-                  +------+      +------+      +------+      +
-    1             +------+      +------+      +------+      +
-    Capture from  |      |      |   p  |      |      |      |
-    Release to    |      |      |   p  | p&p+1|      |      |
-                  +      +------+      +------+      +------+
-
-    Four phases
-    ===========
-               Pixel p-1      #          Pixel p          #         Pixel p+1
-    Step         Phase1 Phase0 Phase3 Phase2 Phase1 Phase0 Phase3 Phase2 Phase1
-    0                  +------+                    +------+                    +
-    Capture from       |      |                    |   p  |                    |
-    Release to         |      |  p-1   p-1&p    p  |   p  |                    |
-                -------+      +--------------------+      +--------------------+
-    1           +------+                    +------+                    +------+
-    Capture from|      |                    |   p  |                    |      |
-    Release to  |      |        p-1&p    p  |   p  |   p                |      |
-                +      +--------------------+      +--------------------+      +
-    2           +                    +------+                    +------+
-    Capture from|                    |   p  |                    |      |
-    Release to  |                p   |   p  |   p    p&p+1       |      |
-                +--------------------+      +--------------------+      +-------
-    3                         +------+                    +------+
-    Capture from              |   p  |                    |      |
-    Release to                |   p  |   p    p&p+1  p+1  |      |
-                --------------+      +--------------------+      +--------------
-
-    ## Document force_release_away_from_readout = true
-*/
 void ROE::set_clock_sequence() {
 
     bool is_high;
@@ -624,6 +593,68 @@ void ROEChargeInjection::set_express_matrix_from_rows_and_express(
     express_matrix = express_matrix_trim;
 }
 
+void ROEChargeInjection::set_express_matrix_from_rows_and_express_ci(
+    int n_rows, int express, int offset) {
+
+    int n_transfers = n_rows + offset;
+
+    // Set default express to all transfers, and check no larger
+    if (express == 0)
+        express = n_transfers;
+    else
+        express = std::min(express, n_transfers);
+
+    // Compute the multiplier factors
+    double max_multiplier = (double)n_transfers / express;
+    if (use_integer_express_matrix) max_multiplier = ceil(max_multiplier);
+
+    // Initialise an array with enough pixels to contain the supposed image,
+    // including offset
+    std::valarray<double> tmp_express_matrix(max_multiplier, express * n_transfers);
+
+    // Adjust integer multipliers to correct the total number of transfers
+    if ((use_integer_express_matrix) && (n_transfers % express != 0)) {
+        double current_n_transfers;
+        double reduced_multiplier;
+
+        for (int express_index = express - 1; express_index >= 0; express_index--) {
+            // Count the current number of transfers for this pixel
+            current_n_transfers = 0.0;
+            for (int i = 0; i <= express_index; i++) {
+                current_n_transfers += tmp_express_matrix[i * n_transfers];
+            }
+
+            // Reduce the multipliers until no longer have too many transfers
+            if (current_n_transfers <= n_transfers) break;
+
+            reduced_multiplier =
+                std::max(0.0, max_multiplier + n_transfers - current_n_transfers);
+
+            tmp_express_matrix[std::slice(
+                express_index * n_transfers, n_transfers, 1)] = reduced_multiplier;
+        }
+    }
+
+    n_express_passes = express;
+
+    // Finished if no offset
+    if (offset == 0) {
+        express_matrix = tmp_express_matrix;
+        return;
+    }
+
+    // Remove the offset (which is not represented in the image pixels)
+    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
+
+    // Copy the post-offset slices of each row
+    for (int express_index = 0; express_index < n_express_passes; express_index++) {
+        express_matrix_trim[std::slice(express_index * n_rows, n_rows, 1)] =
+            tmp_express_matrix[std::slice(express_index * n_transfers, n_rows, 1)];
+    }
+
+    express_matrix = express_matrix_trim;
+}
+
 /*
     See ROE::set_store_trap_states_matrix().
 
@@ -632,6 +663,9 @@ void ROEChargeInjection::set_express_matrix_from_rows_and_express(
     between transfers.
 */
 void ROEChargeInjection::set_store_trap_states_matrix() {
+    store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
+}
+void ROEChargeInjection::set_store_trap_states_matrix_ci() {
     store_trap_states_matrix = std::valarray<bool>(false, express_matrix.size());
 }
 

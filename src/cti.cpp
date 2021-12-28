@@ -97,8 +97,14 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the readout electronics and express arrays
     roe->set_clock_sequence();
-    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
-    roe->set_store_trap_states_matrix();
+    if (roe->type == 0) {
+        roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        roe->set_store_trap_states_matrix();
+    }
+    if (roe->type == 1) {
+        roe->set_express_matrix_from_rows_and_express_ci(n_rows, express, offset);
+        roe->set_store_trap_states_matrix_ci();
+    }
     if (ccd->n_phases != roe->n_phases)
         error(
             "Number of CCD phases (%d) and ROE phases (%d) don't match.", ccd->n_phases,
