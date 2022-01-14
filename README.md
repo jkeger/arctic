@@ -62,9 +62,7 @@ Step 2 arCTIc C++ core
 
     You should now get output from `./arctic --demo`. The makefile header describes additional options, including unit tests that can be compiled via `make all` but are only needed by developers.
 
-    <!-- **MacOS:** cannot currently compile the unit tests. It gets confused because the Catch2 unit test framework uses a second main.c file. 
-If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory 
-/sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`. -->
+    <!-- **MacOS:** cannot currently compile the unit tests. It gets confused because the Catch2 unit test framework uses a second main.c file. If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory /sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`. -->
 
 Step 3 arCTIc python wrapper
 ----------------------------
