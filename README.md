@@ -22,8 +22,8 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
-    + Python wrapper
-    + GSL
+    + Quick install
+    + Troubleshooting
 + Usage
     + Python example
     + C++
@@ -36,41 +36,37 @@ Contents
     + Trap species
     + Trap managers
     + Python wrapper
++ Version history
 
 
 \
-Compilation
-===========
+Installation
+============
 
-<!-- 
-Download
---------
-+ Run `git clone https://github.com/jkeger/arctic.git` and `cd arctic`. For this branch, also `git checkout dev`.
--->
+Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
 
-Step 1 GNU Scientific Library
------------------------------
-+ Run `make gsl` to download and install the GNU Scientific Library to local subdirectory gsl/ that contains bin/, include/, lib/, share/.
-If your system already has GSL installed, you can skip this step and  DIR_GSL=/path/to/gsl make all
+Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+  
+Troubleshooting (individual steps within the makefile)
+------------------------------------------------------
 
-    **MacOS:** requires `sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
-If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
+1. Install GNU Scientific Library
+    + Run `sudo make gsl` to download and install the GNU Scientific Library. 
+    + This will create a local subdirectory gsl/ containing bin/, include/, lib/, share/.
 
-Step 2 arCTIc C++ core
-----------------------
-+ Run `make` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. -->
+        If your system already has GSL installed, you can skip this step and prefix future commands with e.g. `DIR_GSL=/path/to/gsl make all`
 
-    You should now get output from `./arctic --demo`. The makefile header describes additional options, including unit tests that can be compiled via `make all` but are only needed by developers.
+        sudo is only required on MacOS, to run ./configure from the middle of `get_gsl.sh`. If you don't like doing this, you can cut and paste the few lines marked with comments in that script.
 
-    <!-- **MacOS:** cannot currently compile the unit tests. It gets confused because the Catch2 unit test framework uses a second main.c file. If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory /sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`. -->
+2. Install arCTIc C++ core <!-- and unit tests -->
+    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. --> 
+    + You should now get output from `./arctic --demo`. 
 
-Step 3 arCTIc python wrapper
-----------------------------
-+ Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
-+ Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`.
-+ Import the python module, e.g. `import arcticpy as cti.`.
+3. arCTIc python wrapper
+    + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
+    + Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+    + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
-    You should now get output from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))` (in python).
 
 
 \
