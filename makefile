@@ -3,6 +3,10 @@
 #
 # 	Options
 # 	-------
+#
+# 	default
+# 		The main program and the shared object library (used by the python wrapper).
+#
 # 	arctic
 # 		The main program. See src/main.cpp.
 #
@@ -15,20 +19,20 @@
 # 	lib_test
 # 		A simple test for using the shared library. See test/test_lib.cpp.
 #
+# 	core
+# 		All of the above.
+#
 # 	wrapper
 # 		The cython wrapper for the arcticpy python module.
 #
-# 	default
-# 		The main program and the library.
+# 	gsl
+# 		The GNU Scientific Library (www.gnu.org/software/gsl/). See get_gsl.sh.
 #
 # 	all
 # 		All of the above.
 #
 # 	clean
 # 		Remove compiled files.
-#
-# 	gsl
-# 		The GNU Scientific Library (www.gnu.org/software/gsl/). See get_gsl.sh.
 #
 # 	clean-gsl
 # 		Remove GSL (not done by `clean`).
@@ -43,7 +47,7 @@ CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
 # CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 # CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
-VERSION := "1.0"
+VERSION := "7.0.1"
 
 # Executables
 TARGET := arctic
@@ -90,8 +94,11 @@ default: $(TARGET) $(LIB_TARGET)
 # Ignore any files with these names
 .PHONY: all default test lib lib_test wrapper clean gsl clean-gsl
 
+# Everything
+all: gsl core wrapper
+
 # Main program, unit tests, library, library test, and wrapper
-all: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) wrapper
+core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) 
 
 # Main program
 $(TARGET): $(OBJECTS)
