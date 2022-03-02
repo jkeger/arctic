@@ -261,13 +261,14 @@ void add_cti(
     // ========
     // Add CTI
     // ========
+    //printf("\nserial_window_start is equal to %d\n", serial_window_start);
     std::valarray<std::valarray<double>> image_out;
     // No parallel, serial only
     if (n_traps_parallel == 0) {
         image_out = add_cti(
             image_in,
             // Parallel
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, parallel_window_start, parallel_window_stop,
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
             &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
@@ -284,7 +285,7 @@ void add_cti(
             &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
             // Serial
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, serial_window_start, serial_window_stop,
             // Output
             iteration);
     }

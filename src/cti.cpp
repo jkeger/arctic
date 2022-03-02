@@ -512,10 +512,12 @@ std::valarray<std::valarray<double>> add_cti(
     std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
     int serial_offset, int serial_window_start, int serial_window_stop, int iteration) {
-
+    
+ 
     // Print unless being called by remove_cti()
+    //print_v(1, "# RJM in cti.cpp \n");
     if (!iteration) print_version();
-
+    
     // Don't print model inputs every iteration
     int print_inputs = (iteration > 1) ? 0 : verbosity >= 1;
 

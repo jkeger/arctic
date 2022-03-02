@@ -91,10 +91,6 @@ def _set_dummy_parameters():
     n_traps_sc = 0
     n_traps_ic_co = 0
     n_traps_sc_co = 0
-    express = 0
-    offset = 0
-    window_start = 0
-    window_stop = 0
 
     return (
         roe,
@@ -107,10 +103,6 @@ def _set_dummy_parameters():
         n_traps_sc,
         n_traps_ic_co,
         n_traps_sc_co,
-        express,
-        offset,
-        window_start,
-        window_stop,
     )
 
 
@@ -191,10 +183,6 @@ def add_cti(
             parallel_n_traps_sc,
             parallel_n_traps_ic_co,
             parallel_n_traps_sc_co,
-            parallel_express,
-            parallel_offset,
-            parallel_window_start,
-            parallel_window_stop,
         ) = _set_dummy_parameters()
 
     # Serial
@@ -222,10 +210,6 @@ def add_cti(
             serial_n_traps_sc,
             serial_n_traps_ic_co,
             serial_n_traps_sc_co,
-            serial_express,
-            serial_offset,
-            serial_window_start,
-            serial_window_stop,
         ) = _set_dummy_parameters()
 
     # ========
