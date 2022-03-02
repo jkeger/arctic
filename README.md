@@ -22,8 +22,8 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
-    + Python wrapper
-    + GSL
+    + Quick install
+    + Troubleshooting
 + Usage
     + Python example
     + C++
@@ -37,34 +37,35 @@ Contents
     + Trap managers
     + Python wrapper
 + Version history
-+ 
+
 
 \
 Installation
 ============
-Compile the main code with `make` (or `make all`) in the root directory.
 
-See the `makefile` header documentation for all the options.
+Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
 
-See the sections below for testing and running the code.
+Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+  
+Troubleshooting (individual steps within the makefile)
+------------------------------------------------------
 
+1. Install GNU Scientific Library
+    + Run `sudo make gsl` to download and install the GNU Scientific Library. 
+    + This will create a local subdirectory gsl/ containing bin/, include/, lib/, share/.
 
-Python wrapper
---------------
-ArCTIC is a standalone C++ library, but can also be used via the `arcticpy`
-python module, using Cython to interface with the precompiled core library.
+        If your system already has GSL installed, you can skip this step and prefix future commands with e.g. `DIR_GSL=/path/to/gsl make all`
 
-+ `make wrapper` (or `make all`) in the root directory.  
-    Or manually `make lib` then `python3 arcticpy/setup.py build_ext --inplace`.
-+ Import the python module, e.g. `import arcticpy as ac`.
+        sudo is only required on MacOS, to run ./configure from the middle of `get_gsl.sh`. If you don't like doing this, you can cut and paste the few lines marked with comments in that script.
 
+2. Install arCTIc C++ core <!-- and unit tests -->
+    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. --> 
+    + You should now get output from `./arctic --demo`. 
 
-GSL
----
-The code uses a few functions from the GNU Scientific Library. The makefile will
-automatically attempt to download and install the library in the local directory
-if required. If your system already has GSL installed, then feel free to edit
-`DIR_GSL` in the makefile to point to it (e.g. /usr/local/include/gsl/).
+3. arCTIc python wrapper
+    + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
+    + Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+    + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
 
 
@@ -82,7 +83,7 @@ Full example correction of CTI for a Hubble Space Telescope ACS image,
 using the [https://pypi.org/project/autoarray/](autoarray) package
 to load and save the fits image with correct units and quadrant rotations, etc:
 ```python
-import arcticpy as ac
+import arcticpy as cti
 import autoarray as aa
 
 image_path = "image_path/image_name"
@@ -100,20 +101,20 @@ image_A, image_B, image_C, image_D = [
 
 # Automatic CTI model  (see CTI_model_for_HST_ACS() in arcticpy/src/cti.py)
 date = 2400000.5 + image_A.header.modified_julian_date
-roe, ccd, traps = ac.CTI_model_for_HST_ACS(date)
+roe, ccd, traps = cti.CTI_model_for_HST_ACS(date)
 
 # Or manual CTI model  (see class docstrings in src/<traps,roe,ccd>.cpp)
 traps = [
-    ac.TrapInstantCapture(density=0.6, release_timescale=0.74),
-    ac.TrapInstantCapture(density=1.6, release_timescale=7.70),
-    ac.TrapInstantCapture(density=1.4, release_timescale=37.0),
+    cti.TrapInstantCapture(density=0.6, release_timescale=0.74),
+    cti.TrapInstantCapture(density=1.6, release_timescale=7.70),
+    cti.TrapInstantCapture(density=1.4, release_timescale=37.0),
 ]
-roe = ac.ROE()
-ccd = ac.CCD(full_well_depth=84700, well_fill_power=0.478)
+roe = cti.ROE()
+ccd = cti.CCD(full_well_depth=84700, well_fill_power=0.478)
 
 # Remove CTI  (see remove_cti() in src/cti.cpp)
 image_out_A, image_out_B, image_out_C, image_out_D = [
-    ac.remove_cti(
+    cti.remove_cti(
         image=image,
         n_iterations=5,
         parallel_roe=roe,
@@ -538,21 +539,22 @@ builds the C++ objects as arguments for the core library functions.
 Version history
 ===============
 
-+ **v7 (2022, C++/python)** Translation of v6, but now back to full speed. Includes all features seen in Euclid CCDs before launch.
++ **v7 (2022, C++/python)** Translation of v6, now back to full speed. Includes all features seen in Euclid CCDs before launch.
 
-+ **v6 (2020, [cython/python](https://github.com/jkeger/arcticpy))** Jacob Kegerreis implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps or trap pumping. Much slower than v5.
++ **v6 (2020, [cython/python](https://github.com/jkeger/arcticpy))** Jacob Kegerreis implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps, charge injection, or trap pumping. Much slower than v5.
 
-+ **v5 (2015, [C++](https://github.com/ocordes/arctic/))** Adaptive 'neo2' gridding of traps by splitting the continuous field at each electron fill level [(Massey et al. 2015)](https://arxiv.org/abs/1506.07831)
++ **v5 (2015, [C++](https://github.com/ocordes/arctic/))** Adaptive 'neo2' gridding of traps by splitting the continuous field only at each electron fill levels, and recombining grid cells when traps refill at new high watermark [(Massey et al. 2015)](https://arxiv.org/abs/1506.07831)
 
 + **v4 (2014, C++)** Oliver Cordes and Ole Marggraf implement huge speed up. Monitors the high water mark of signal electrons, and only considers traps that could have been filled. Post-correction noise-whitening. [(Massey et al. 2014)](https://arxiv.org/abs/1401.1151).
 
 + **v3 (2010, IDL)** Richard Massey implements gradual tradeoff between accuracy and speed, through variable EXPRESS option. Inter-pixel traps confirmed to be degenerate with change of effective density, and release profile well-fit by sum of exponentials. Hubble Space Telescope model updated following shuttle servicing mission [(Massey 2010)](https://arxiv.org/abs/1009.4335).
 
-+ **v2 (2009, [Java/IDL](http://www.astro.dur.ac.uk/~rjm/acs/CTE/))** Assumes a fixed grid of fractional traps (and introduces concept of well fill level) to reduce noise. Charge trap parameters measured from hot/warm pixels in Hubble Space Telescope imaging [(Massey et al. 2009)](https://arxiv.org/abs/0909.0507). Later converted to python by STScI, with EXPRESS=1 speedup also used by  and empirical f(t) trap release profile. Capture appears instant.
++ **v2 (2009, [Java/IDL](http://www.astro.dur.ac.uk/~rjm/acs/CTE/))** Assumes a fixed grid of fractional traps (and introduces concept of well fill level) to reduce noise. Charge trap parameters measured from hot/warm pixels in Hubble Space Telescope imaging [(Massey et al. 2009)](https://arxiv.org/abs/0909.0507). Later converted to python by STScI, with EXPRESS=1 speedup also used by and empirical f(t) trap release profile. Capture confirmed empirically to be instant.
 
 + **v1 (2008, Java)** Chris Stoughton extends Fortran77 code by [Bristow (2003)](https://arxiv.org/abs/astro-ph/0310714), introducing 3D pixel structure, multiple trap species, and reducing runtime by moving traps not charge. Discrete traps are distributed at random, which adds noise, and are monitored during every transfer, which is slow. Predicted effect for SNAP telescope [(Rhodes et al. 2010)](https://arxiv.org/abs/1002.1479).
 
 Older algorithms for CTI correction either approximated trailing as convolution with a flux-dependent kernel (e.g. [Rhodes et al. 2000](https://arxiv.org/abs/astro-ph/9905090)) or were additive/multiplicative factors applied to object flux/position/shape/etc at a catalogue level (e.g. [Riess et al. 2000](https://ui.adsabs.harvard.edu/link_gateway/2000wfpc.rept....4R/PUB_PDF), [2003](https://ui.adsabs.harvard.edu/link_gateway/2003acs..rept....9R/PUB_PDF), [Rhodes et al. 2007](https://arxiv.org/abs/astro-ph/0702140)).
+
 
 <!--
 Dev notes

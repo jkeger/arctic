@@ -25,7 +25,13 @@ void set_verbosity(int v) { verbosity = v; }
 /*
     Print the compiled version, set in the makefile.
 */
-void print_version() { print_v(1, "\nArCTIC v%s \n------ \n", VERSION); }
+void print_version() {
+#ifdef VERSION
+    print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+#else
+    print_v(1, "\nArCTIC \n------ \n");
+#endif
+}
 
 /*
     Neatly print a 1D array.
