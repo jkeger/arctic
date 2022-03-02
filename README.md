@@ -535,7 +535,6 @@ builds the C++ objects as arguments for the core library functions.
 
 
 
-
 \
 Version history
 ===============
