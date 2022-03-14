@@ -116,6 +116,9 @@ def add_cti(
     parallel_offset=0,
     parallel_window_start=0,
     parallel_window_stop=-1,
+    parallel_overscan=0,
+    parallel_time_start=0,
+    parallel_time_stop=-1,
     # Serial
     serial_ccd=None,
     serial_roe=None,
@@ -124,6 +127,9 @@ def add_cti(
     serial_offset=0,
     serial_window_start=0,
     serial_window_stop=-1,
+    serial_overscan=0,
+    serial_time_start=0,
+    serial_time_stop=-1,
     # Output
     verbosity=1,
     iteration=0,
@@ -248,6 +254,9 @@ def add_cti(
         parallel_offset,
         parallel_window_start,
         parallel_window_stop,
+        parallel_overscan,
+        parallel_time_start,
+        parallel_time_stop,
         # ========
         # Serial
         # ========
@@ -278,6 +287,9 @@ def add_cti(
         serial_offset,
         serial_window_start,
         serial_window_stop,
+        serial_overscan,
+        serial_time_start,
+        serial_time_stop,
         # Output
         verbosity,
         iteration,
@@ -295,6 +307,9 @@ def remove_cti(
     parallel_offset=0,
     parallel_window_start=0,
     parallel_window_stop=-1,
+    parallel_overscan=0,
+    parallel_time_start=0,
+    parallel_time_stop=-1,
     # Serial
     serial_ccd=None,
     serial_roe=None,
@@ -303,6 +318,9 @@ def remove_cti(
     serial_offset=0,
     serial_window_start=0,
     serial_window_stop=-1,
+    serial_overscan=0,
+    serial_time_start=0,
+    serial_time_stop=-1,
     # Output
     verbosity=1,
 ):
@@ -349,6 +367,9 @@ def remove_cti(
             parallel_offset=parallel_offset,
             parallel_window_start=parallel_window_start,
             parallel_window_stop=parallel_window_stop,
+            parallel_overscan=parallel_overscan,
+            parallel_time_start=parallel_time_start,
+            parallel_time_stop=parallel_time_stop,
             # Serial
             serial_ccd=serial_ccd,
             serial_roe=serial_roe,
@@ -357,6 +378,9 @@ def remove_cti(
             serial_offset=serial_offset,
             serial_window_start=serial_window_start,
             serial_window_stop=serial_window_stop,
+            serial_overscan=serial_overscan,
+            serial_time_start=serial_time_start,
+            serial_time_stop=serial_time_stop,
             # Output
             verbosity=verbosity,
             iteration=iteration,

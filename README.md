@@ -316,26 +316,26 @@ separate columns, as in this example of an image before and after calling
 
 ```C++
 // Initial image with one bright pixel in the first three columns:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  200.0,   0.0,     0.0,     0.0  },
- {  0.0,     200.0,   0.0,     0.0  },
- {  0.0,     0.0,     200.0,   0.0  },
- {  0.0,     0.0,     0.0,     0.0  },
- {  0.0,     0.0,     0.0,     0.0  }}
-// Image with parallel CTI trails:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  196.0,   0.0,     0.0,     0.0  },
- {  3.0,     194.1,   0.0,     0.0  },
- {  2.0,     3.9,     192.1,   0.0  },
- {  1.3,     2.5,     4.8,     0.0  },
- {  0.8,     1.5,     2.9,     0.0  }}
-// Final image with parallel and serial CTI trails:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  194.1,   1.9,     1.5,     0.9  },
- {  2.9,     190.3,   2.9,     1.9  },
- {  1.9,     3.8,     186.5,   3.7  },
- {  1.2,     2.4,     4.7,     0.1  },
- {  0.7,     1.4,     2.8,     0.06 }}
+{{   0.0,     0.0,     0.0,     0.0  },
+ { 200.0,     0.0,     0.0,     0.0  },
+ {   0.0,   200.0,     0.0,     0.0  },
+ {   0.0,     0.0,   200.0,     0.0  },
+ {   0.0,     0.0,     0.0,     0.0  },
+ {   0.0,     0.0,     0.0,     0.0  }}
+// Image with parallel and serial CTI trails:
+{{   0.00,    0.00,    0.00,    0.00 },
+ { 194.06,    0.98,    0.49,    0.25 },
+ {   1.96,  190.22,    1.92,    0.97 },
+ {   0.99,    2.89,  186.47,    2.82 },
+ {   0.50,    1.46,    3.80,    0.06 },
+ {   0.25,    0.74,    1.92,    0.03 }}
+// Image after correction for trailing:
+{{   0.00,    0.00,    0.00,    0.00 },
+ { 200.00, 1.30e-4, 3.15e-5,    0.00 }
+ {2.05e-4, 199.999, 8.88e-4, 2.56e-4 }
+ {1.93e-5, 1.20e-2, 199.994, 3.11e-3 }
+ {   0.00, 2.53e-4, 3.95e-3,    0.00 }
+ {   0.00,    0.00, 1.03e-3,    0.00 }}
 ```
 
 As this illustrates, by default, charge is transferred "up" from row N to row 0
@@ -360,7 +360,7 @@ As described in more detail in Massey et al. (2014) section 2.1.5, the effects
 of each individual pixel-to-pixel transfer can be very similar, so multiple
 transfers can be computed at once for efficiency.
 
-This allows much faster computation with a mild decrease in accuracy.
+This allows much faster computation with a mild decrease in accuracy. 
 
 For example, the electrons in the pixel closest to the readout have only one
 transfer, those in the 2nd pixel undergo 2, those in the 3rd have 3, and so on.
@@ -371,6 +371,10 @@ where `N` is the total number of pixels, for the full computation of every step
 without assumptions.
 
 The default `express = 0` is a convenient input for automatic `express = N`.
+
+Note that the total charge in an image is guaranteed to be conserved only with
+`express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
+length is comparable to the image size).
 
 ### Offsets and windows
 To account for additional transfers before the first image pixel reaches the

@@ -67,7 +67,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     std::valarray<TrapSlowCapture>* traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* traps_sc_co, int express, int offset,
-    int row_start, int row_stop, int column_start, int column_stop, int print_inputs) {
+    int row_start, int row_stop, int column_start, int column_stop, 
+    int overscan, int time_start, int time_stopint, int print_inputs) {
 
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double>> image = image_in;
@@ -97,7 +98,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the readout electronics and express arrays
     roe->set_clock_sequence();
-    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
+    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset, overscan);
     roe->set_store_trap_states_matrix();
     if (ccd->n_phases != roe->n_phases)
         error(
@@ -146,8 +147,9 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     if (print_inputs) {
         print_v(2, "\n");
-        if (offset != 0) printf("  offset = %d \n", offset);
         printf("  express = %d \n", express);
+        if (offset != 0) printf("  offset = %d \n", offset);
+        if (overscan != 0) printf("  overscan = %d \n", overscan);
 
         printf("  ROE type = %d, n_steps = %d \n", roe->type, roe->n_steps);
         printf("    dwell_times = ");
@@ -270,9 +272,40 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     double wall_time_elapsed;
     gettimeofday(&wall_time_start, nullptr);
 
+
+
+/*    
+    // Print express matrix
+    print_array_2D(roe->express_matrix, roe->n_express_passes);
+    for (unsigned int i_column = 0; i_column < n_active_columns; i_column++) {
+        column_index = column_start + i_column;
+        print_v(0, "express_multiplier \n", express_multiplier);
+        for (unsigned int express_index = 0; express_index < roe->n_express_passes;
+             express_index++) {
+            // Each pixel
+            for (unsigned int i_row = 0; i_row < n_active_rows; i_row++) {
+                row_index = row_start + i_row;
+                express_multiplier =
+                    roe->express_matrix[express_index * n_rows + row_index];
+                print_v(0, "%g", express_multiplier);
+
+                if (roe->store_trap_states_matrix[express_index * n_rows + row_index]) {
+                    trap_manager_manager.store_trap_states();
+
+                    print_v(0, "*");
+                }
+            }
+            print_v(0, "\n");
+        }
+    }    
+*/
+
     // ========
     // Clock each column of pixels through the column of traps
     // ========
+    // Print express matrix
+    //print_array_2D(roe->express_matrix, n_active_rows);
+    //print_array_2D((int)roe->store_trap_states_matrix, n_active_rows);
     // Loop over:
     //   Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
     for (unsigned int i_column = 0; i_column < n_active_columns; i_column++) {
@@ -357,9 +390,17 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                                         n_free_electrons +
                                         n_electrons_released_and_captured);
 
+                      
                         print_v(
                             2, "n_electrons_released_and_captured  %g \n",
                             n_electrons_released_and_captured);
+
+                        print_v(
+                           2, "n_trapped_electrons_from_watermarks  %g \n",
+                            trap_manager_manager.trap_managers_ic[i_phase].n_trapped_electrons_from_watermarks(trap_manager_manager.trap_managers_ic[i_phase].watermark_volumes,trap_manager_manager.trap_managers_ic[i_phase].watermark_fills));
+
+                        print_v(2, "n_free_electrons  %g \n", n_free_electrons);
+
 
                         // Return the charge to the relevant pixel(s)
                         for (int i = 0; i < roe_step_phase->n_release_pixels; i++) {
@@ -400,7 +441,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Time taken
     gettimeofday(&wall_time_end, nullptr);
     wall_time_elapsed = gettimelapsed(wall_time_start, wall_time_end);
-    print_v(1, "Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
+    print_v(0, "Wall-clock time elapsed: %.4g s \n", wall_time_elapsed);
 
     return image;
 }
@@ -505,17 +546,19 @@ std::valarray<std::valarray<double>> add_cti(
     std::valarray<TrapInstantCaptureContinuum>* parallel_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* parallel_traps_sc_co, int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    int parallel_overscan, int parallel_time_start, int parallel_time_stop,
     // Serial
     ROE* serial_roe, CCD* serial_ccd,
     std::valarray<TrapInstantCapture>* serial_traps_ic,
     std::valarray<TrapSlowCapture>* serial_traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop, int iteration) {
+    int serial_offset, int serial_window_start, int serial_window_stop, 
+    int serial_overscan, int serial_time_start, int serial_time_stop,
+    int iteration) {
     
  
     // Print unless being called by remove_cti()
-    //print_v(1, "# RJM in cti.cpp \n");
     if (!iteration) print_version();
     
     // Don't print model inputs every iteration
@@ -530,9 +573,12 @@ std::valarray<std::valarray<double>> add_cti(
         print_v(1, "Parallel: ");
         image = clock_charge_in_one_direction(
             image, parallel_roe, parallel_ccd, parallel_traps_ic, parallel_traps_sc,
-            parallel_traps_ic_co, parallel_traps_sc_co, parallel_express,
-            parallel_offset, parallel_window_start, parallel_window_stop,
-            serial_window_start, serial_window_stop, print_inputs);
+            parallel_traps_ic_co, parallel_traps_sc_co, 
+            parallel_express, parallel_offset, 
+            parallel_window_start, parallel_window_stop,
+            serial_window_start, serial_window_stop, 
+            parallel_overscan, parallel_time_start, parallel_time_stop,
+            print_inputs);
     }
 
     // Serial clocking along rows, transfer charge towards column 0
@@ -542,9 +588,12 @@ std::valarray<std::valarray<double>> add_cti(
         print_v(1, "Serial: ");
         image = clock_charge_in_one_direction(
             image, serial_roe, serial_ccd, serial_traps_ic, serial_traps_sc,
-            serial_traps_ic_co, serial_traps_sc_co, serial_express, serial_offset,
-            serial_window_start, serial_window_stop, parallel_window_start,
-            parallel_window_stop, print_inputs);
+            serial_traps_ic_co, serial_traps_sc_co, 
+            serial_express, serial_offset,
+            serial_window_start, serial_window_stop, 
+            parallel_window_start, parallel_window_stop, 
+            serial_overscan, serial_time_start, serial_time_stop,
+            print_inputs);
 
         image = transpose(image);
     }
@@ -584,13 +633,15 @@ std::valarray<std::valarray<double>> remove_cti(
     std::valarray<TrapInstantCaptureContinuum>* parallel_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* parallel_traps_sc_co, int parallel_express,
     int parallel_offset, int parallel_window_start, int parallel_window_stop,
+    int parallel_overscan, int parallel_time_start, int parallel_time_stop,
     // Serial
     ROE* serial_roe, CCD* serial_ccd,
     std::valarray<TrapInstantCapture>* serial_traps_ic,
     std::valarray<TrapSlowCapture>* serial_traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
-    int serial_offset, int serial_window_start, int serial_window_stop) {
+    int serial_offset, int serial_window_start, int serial_window_stop,
+    int serial_overscan, int serial_time_start, int serial_time_stop) {
 
     print_version();
 
@@ -608,10 +659,13 @@ std::valarray<std::valarray<double>> remove_cti(
         image_add_cti = add_cti(
             image_remove_cti, parallel_roe, parallel_ccd, parallel_traps_ic,
             parallel_traps_sc, parallel_traps_ic_co, parallel_traps_sc_co,
-            parallel_express, parallel_offset, parallel_window_start,
-            parallel_window_stop, serial_roe, serial_ccd, serial_traps_ic,
+            parallel_express, parallel_offset, 
+            parallel_window_start, parallel_window_stop, 
+            parallel_overscan, parallel_time_start, parallel_time_stop,
+            serial_roe, serial_ccd, serial_traps_ic,
             serial_traps_sc, serial_traps_ic_co, serial_traps_sc_co, serial_express,
-            serial_offset, serial_window_start, serial_window_stop, iteration);
+            serial_offset, serial_window_start, serial_window_stop, 
+            serial_overscan, serial_time_start, serial_time_stop, iteration);
 
         // Improve the estimate of the image with CTI trails removed
         image_remove_cti += image_in - image_add_cti;

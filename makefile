@@ -47,7 +47,7 @@ CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
 # CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 # CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
-VERSION := "7.0.1"
+VERSION := "7.0.2"
 
 # Executables
 TARGET := arctic
