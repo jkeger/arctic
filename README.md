@@ -338,12 +338,13 @@ separate columns, as in this example of an image before and after calling
  {   0.00,    0.00, 1.03e-3,    0.00 }}
 ```
 
-As this illustrates, by default, charge is transferred "up" from row N to row 0
-along each independent column, such that the charge in the first element/pixel 0
-undergoes 1 transfer, and the final row N is furthest from the readout register
-so undergoes N+1 transfers. The CTI trails appear behind bright pixels as the
-traps capture electrons from their original pixels and release them at a later
-time.
+As this illustrates, charge is transferred "up" from row N to row 0
+along each independent column, and "left" from column M to column 0.
+During the up-down (parallel) movement, charge in the first element/pixel 0
+undergoes 1 transfer, and charge in the final row N (which is farthest from the 
+readout register) undergoes N+1 transfers. Electrons from these charge packets
+are trapped, delayed, then released at a later time - to emerge as CTI trails 
+behind bright pixels.
 
 Parallel clocking is the transfer along each independent column, while serial
 clocking is across the columns and is performed after parallel clocking, if the
