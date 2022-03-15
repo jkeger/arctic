@@ -377,14 +377,22 @@ Note that the total charge in an image is guaranteed to be conserved only with
 `express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
 length is comparable to the image size).
 
-### Offsets and windows
+### Offsets, windows, and overscan
 To account for additional transfers before the first image pixel reaches the
-readout (e.g. a prescan region), the `offset` sets the number of extra pixels.
+readout (e.g. a prescan region, or if you are passing a postage stamp cut-out), 
+the `offset` sets the number of extra pixels before the first one in the image.
 
-Somewhat similarly, instead of adding CTI to the entire supplied image, only a
-subset of pixels can be selected using the `window_start` and `_stop` arguments.
-Note that, because of edge effects, the range should be started several pixels
-before the actual region of interest.
+The opposite approach is to pass arCTIc a full image, but ask it to process only
+a small region, for speed. These can be selected using the `window_start` and 
+`window_stop` arguments. Because of edge effects, the range should be started 
+several pixels before the actual region of interest - all other pixels will be
+treated as if they were empty, so if the window contains background, it will
+suffer FPR.
+
+If some of the pixels in the image array represent virtual overscan, these can
+be indicated via the `overscan` arguments. They do not start undergoing transfers 
+until they reach the physical CCD. However, they should be created in the image
+array and passed to arCTIc in order to give them e.g. bias offset.
 
 
 \
