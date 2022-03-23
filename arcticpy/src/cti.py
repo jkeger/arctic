@@ -158,7 +158,7 @@ def add_cti(
         traps to be provided in separate arrays. Here, mutliple trap types can
         be passed in a single array, which will be separated by the wrapper.
 
-    verbosity : int (opt.)
+    verbosity (opt.)
         The verbosity parameter to control the amount of printed information:
             0   No printing (except errors etc).
             1   Standard.
@@ -340,7 +340,7 @@ def remove_cti(
         traps to be provided in separate arrays. Here, mutliple trap types can
         be passed in a single array, which will be separated by the wrapper.
 
-    verbosity : int (opt.)
+    verbosity (opt.)
         The verbosity parameter to control the amount of printed information:
             0   No printing (except errors etc).
             1   Standard.

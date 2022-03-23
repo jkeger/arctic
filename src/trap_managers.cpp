@@ -27,7 +27,7 @@
         Not included in this base class, since the different managers require
         different class types for the array.
 
-    max_n_transfers : int
+    max_n_transfers
         The number of pixel transfers containing traps that charge will be
         expected to go through. This feeds in to the maximum number of possible
         capture/release events that could create new watermark levels, and is
@@ -43,7 +43,7 @@
 
     Attributes
     ----------
-    n_traps : int
+    n_traps
         The number of trap species.
 
     trap_densities : std::valarray<double>
@@ -75,10 +75,10 @@
     empty_watermark : double
         The watermark value corresponding to empty traps.
 
-    n_active_watermarks : int
+    n_active_watermarks
         The number of currently active watermark levels.
 
-    i_first_active_wmk : int
+    i_first_active_wmk
         The index of the first active watermark. The effective starting point
         for the active region of the watermark arrays. i.e. watermark levels
         below this are ignored because they've been superseded.
@@ -87,10 +87,10 @@
         will entirely fill all traps below it, making any pre-existing lower
         watermarks no longer necessary to track.
 
-    n_watermarks_per_transfer : int
+    n_watermarks_per_transfer
         The number of new watermarks that could be made in each transfer.
 
-    n_watermarks : int
+    n_watermarks
         The total number of available watermark levels, determined by the number
         of potential watermark-creating transfers and the watermarking scheme.
 */
@@ -109,7 +109,7 @@ TrapManagerBase::TrapManagerBase(
 
     Sets
     ----
-    n_watermarks : int
+    n_watermarks
         The total number of available watermarks.
 
     watermark_volumes, watermark_fills : std::valarray<double>
@@ -206,7 +206,7 @@ double TrapManagerBase::n_trapped_electrons_from_watermarks(
 
     Returns
     -------
-    i_wmk_above_cloud : int
+    i_wmk_above_cloud
         The index of the first active watermark that reaches above the cloud.
 */
 int TrapManagerBase::watermark_index_above_cloud(double cloud_fractional_volume) {
@@ -354,7 +354,7 @@ double TrapManagerInstantCapture::n_electrons_released() {
     cloud_fractional_volume : double
         The fractional volume the electron cloud reaches in the pixel well.
 
-    i_wmk_above_cloud : int
+    i_wmk_above_cloud
         The index of the first active watermark that reaches above the cloud.
 
     Updates
@@ -461,7 +461,7 @@ void TrapManagerInstantCapture::update_watermarks_capture(
     cloud_fractional_volume : double
         The fractional volume the electron cloud reaches in the pixel well.
 
-    i_wmk_above_cloud : int
+    i_wmk_above_cloud
         The index of the first active watermark that reaches above the cloud.
 
     enough : double
@@ -1064,7 +1064,7 @@ double TrapManagerSlowCapture::n_electrons_released_and_captured(
         The minimum and maximum elapsed times to set the interpolation table
         limits. See prep_fill_fraction_and_time_elapsed_tables().
 
-    n_intp : int
+    n_intp
         The number of interpolation values in the arrays. Currently set here
         manually. See prep_fill_fraction_and_time_elapsed_tables().
 */
@@ -1762,7 +1762,7 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
     traps_sc_co : std::valarray<TrapSlowCaptureContinuum>
         The arrays of trap species, one for each type (which can be empty).
 
-    max_n_transfers : int
+    max_n_transfers
         Same as TrapManagerBase. Is modified internally to include any extra
         intra-pixel transfers for multiphase clocking.
 
@@ -1779,10 +1779,10 @@ double TrapManagerSlowCaptureContinuum::n_electrons_released_and_captured(
 
     Attributes
     ----------
-    n_traps_ic : int
-    n_traps_sc : int
-    n_traps_ic_co : int
-    n_traps_sc_co : int
+    n_traps_ic
+    n_traps_sc
+    n_traps_ic_co
+    n_traps_sc_co
         The number of trap species (if any) of each watermark type.
 
     trap_managers_ic : std::valarray<TrapManagerInstantCapture>

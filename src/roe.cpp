@@ -36,7 +36,7 @@
 
     Attributes
     ----------
-    n_capture_pixels, n_release_pixels : int
+    n_capture_pixels, n_release_pixels
         The lengths of the *_which_pixels arrays.
 */
 ROEStepPhase::ROEStepPhase(
@@ -115,10 +115,10 @@ ROEStepPhase::ROEStepPhase(
     type : ROEType : enum int
         The flag for the type of ROE. Used to tweak behaviour in CTI functions.
 
-    n_steps : int
+    n_steps
         The number of steps in the clocking sequence.
 
-    n_phases : int
+    n_phases
         The number of phases in each pixel. Defaults to n_steps, but may be
         different for a non-standard type of clock sequence, e.g. trap pumping.
 */
@@ -164,12 +164,12 @@ ROE& ROE::operator=(const ROE& roe) {
 
     Parameters
     ----------
-    n_rows : int
+    n_rows
         The number of rows in each column of the image. i.e. the number of
         pixel-to-pixel transfers to move charge from the furthest pixel to the
         readout register (if there is no offset).
 
-    express : int
+    express
         The number of times the pixel-to-pixel transfers are computed for each
         pixel, determining the balance between accuracy (high values) and speed
         (low values).
@@ -182,7 +182,7 @@ ROE& ROE::operator=(const ROE& roe) {
             1           (faster, approximate) Compute the effect of each
                         transfer only once.
 
-    offset : int (opt.)
+    offset (opt.)
         Consider all pixels to be offset by this number of pixels from the
         readout register. Useful if working out the matrix for a postage
         stamp image, or to account for prescan pixels whose data is not
@@ -194,7 +194,7 @@ ROE& ROE::operator=(const ROE& roe) {
         The express multiplier value for each pixel-to-pixel transfer, as a
         2D-style 1D array.
 
-    n_express_passes : int
+    n_express_passes
         The number of express passes to run, i.e. the number of rows in the
         matrices.
 */
@@ -695,7 +695,7 @@ void ROEChargeInjection::set_store_trap_states_matrix_ci() {
     Same as ROE, but empty_traps_between_columns is automatically true, and
     force_release_away_from_readout is automatically false.
 
-    n_pumps : int
+    n_pumps
         The number of times the charge is pumped back and forth.
 
     The diagram below illustrates the steps in the clocking sequence produced

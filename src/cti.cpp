@@ -33,12 +33,12 @@
     traps_sc : std::valarray<TrapSlowCapture>*
     traps_ic_co : std::valarray<TrapInstantCaptureContinuum>*
     traps_sc_co : std::valarray<TrapSlowCaptureContinuum>*
-    express : int (opt.)
-    offset : int (opt.)
+    express (opt.)
+    offset (opt.)
         See add_cti()'s docstring. Same as the corresponding parallel_*
         parameters.
 
-    row_start, row_stop : int (opt.)
+    row_start, row_stop (opt.)
         The subset of row pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_rows for the full
         image.
@@ -47,12 +47,12 @@
         active and contains traps, so row_stop must be row_start + 1. See
         ROETrapPumping for more detail.
 
-    column_start, column_stop : int (opt.)
+    column_start, column_stop (opt.)
         The subset of column pixels to model, to save time when only a specific
         region of the image is of interest. Defaults to 0, n_columns for the
         full image.
 
-    print_inputs : int (opt.)
+    print_inputs (opt.)
         Whether or not to print the model inputs. Defaults to True if
         verbosity >= 1.
 
@@ -463,7 +463,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         The arrays of trap species objects, one for each type (which can be
         empty, or nullptr), for parallel clocking.
 
-    parallel_express : int (opt.)
+    parallel_express (opt.)
        The number of times the transfers are computed, determining the
        balance between accuracy (high values) and speed (low values), for
        parallel clocking (Massey et al. 2014, section 2.1.5).
@@ -475,13 +475,13 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
            1       (faster, approximate) Compute the effect of each
                    transfer only once.
 
-    parallel_offset : int (>= 0) (opt.)
+    parallel_offset (>= 0) (opt.)
         The number of (e.g. prescan) pixels separating the supplied image from
         the readout register. i.e. Treat the input image as a sub-image that is
         offset by this number of pixels from readout, increasing the number of
         pixel-to-pixel transfers. Defaults to 0.
 
-    parallel_window_start, parallel_window_stop : int (opt.)
+    parallel_window_start, parallel_window_stop (opt.)
         Calculate only the effect on this subset of pixels, to save time when
         only a specific region of the image is of interest. Defaults to 0,
         n_rows for the full image.
@@ -493,7 +493,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
         The same as the parallel_* objects described above but for serial
         clocking instead. Default nullptr to not do serial clocking.
 
-    iteration : int (opt.)
+    iteration (opt.)
         The interation when being called by remove_cti(), default 0 otherwise.
         Only used to control printing.
 
@@ -568,7 +568,7 @@ std::valarray<std::valarray<double>> add_cti(
     All parameters are identical to those of add_cti() as described in its
     documentation, with the exception of:
 
-    n_iterations : int
+    n_iterations
         The number of times CTI-adding clocking is run to perform the correction
         via forward modelling. More iterations provide better results at the
         cost of longer runtime. In practice, two or three iterations are often

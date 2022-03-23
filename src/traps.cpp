@@ -392,7 +392,7 @@ double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction(
         The minimum and maximum elapsed times to set the table limits, e.g. a
         single dwell time and the cumulative dwell time over all transfers.
 
-    n_intp : int
+    n_intp
         The number of interpolation values in the arrays.
 
     Sets
@@ -897,7 +897,7 @@ double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
         The minimum and maximum elapsed times to set the table limits, e.g. a
         single dwell time and the cumulative dwell time over all transfers.
 
-    n_intp : int
+    n_intp
         The number of interpolation values in the arrays.
 
     Sets

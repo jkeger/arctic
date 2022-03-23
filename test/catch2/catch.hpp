@@ -869,13 +869,13 @@ constexpr auto operator "" _catch_sr( char const* rawChars, std::size_t size ) n
 #define INTERNAL_CATCH_DECLARE_SIG_TEST_METHOD0(TestName, ClassName)
 #define INTERNAL_CATCH_DECLARE_SIG_TEST_METHOD1(TestName, ClassName, signature)\
     template<typename TestType> \
-    struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName)<TestType> { \
+    struct TestNameERNAL_CATCH_REMOVE_PARENS(ClassName)<TestType> { \
         void test();\
     }
 
 #define INTERNAL_CATCH_DECLARE_SIG_TEST_METHOD_X(TestName, ClassName, signature, ...)\
     template<INTERNAL_CATCH_REMOVE_PARENS(signature)> \
-    struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName)<__VA_ARGS__> { \
+    struct TestNameERNAL_CATCH_REMOVE_PARENS(ClassName)<__VA_ARGS__> { \
         void test();\
     }
 
@@ -990,7 +990,7 @@ struct AutoReg : NonCopyable {
         static void TestName()
     #define INTERNAL_CATCH_TESTCASE_METHOD_NO_REGISTRATION( TestName, ClassName, ... ) \
         namespace{                        \
-            struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName) { \
+            struct TestNameERNAL_CATCH_REMOVE_PARENS(ClassName) { \
                 void test();              \
             };                            \
         }                                 \
@@ -1061,7 +1061,7 @@ struct AutoReg : NonCopyable {
         CATCH_INTERNAL_START_WARNINGS_SUPPRESSION \
         CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
         namespace{ \
-            struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName) { \
+            struct TestNameERNAL_CATCH_REMOVE_PARENS(ClassName) { \
                 void test(); \
             }; \
             Catch::AutoReg INTERNAL_CATCH_UNIQUE_NAME( autoRegistrar ) ( Catch::makeTestInvoker( &TestName::test ), CATCH_INTERNAL_LINEINFO, #ClassName, Catch::NameAndTags{ __VA_ARGS__ } ); /* NOLINT */ \
@@ -1254,7 +1254,7 @@ struct AutoReg : NonCopyable {
         CATCH_INTERNAL_SUPPRESS_ZERO_VARIADIC_WARNINGS \
         CATCH_INTERNAL_SUPPRESS_UNUSED_TEMPLATE_WARNINGS \
         template<typename TestType> \
-            struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName <TestType>) { \
+            struct TestNameERNAL_CATCH_REMOVE_PARENS(ClassName <TestType>) { \
                 void test();\
             };\
         namespace {\
@@ -1305,7 +1305,7 @@ struct AutoReg : NonCopyable {
         CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
         CATCH_INTERNAL_SUPPRESS_UNUSED_TEMPLATE_WARNINGS \
         template<typename TestType> \
-        struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName <TestType>) { \
+        struct TestNameERNAL_CATCH_REMOVE_PARENS(ClassName <TestType>) { \
             void test();\
         };\
         namespace {\
