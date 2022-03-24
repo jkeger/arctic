@@ -1,5 +1,10 @@
 import numpy as np
-import arcticpy.wrapper as w
+
+try:
+    import arcticpy.wrapper as w
+except ModuleNotFoundError:
+    pass
+
 from arcticpy.src.ccd import CCDPhase, CCD
 from arcticpy.src.roe import ROE
 from arcticpy.src.traps import (
