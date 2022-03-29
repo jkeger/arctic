@@ -5,10 +5,11 @@ from urllib.request import urlretrieve
 path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(path, ".."))
 import arcticpy as cti
+import json
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-import matplotlib.pyplot as plt
-
+from os import path
 
 class TestCompareOldArCTIC:
     def test__add_cti__single_pixel__vary_express__compare_old_arctic(self):
@@ -777,6 +778,28 @@ class TestCTIModelForHSTACS:
             assert ccd.phases[0].full_well_depth == 84700
             assert ccd.phases[0].well_notch_depth == 0.0
             assert ccd.phases[0].well_fill_power == 0.478
+
+
+class TestDictable:
+
+    def test__trap_instant_capture__dictable(self):
+
+        json_file = path.join(
+            "{}".format(path.dirname(path.realpath(__file__))), "files", "trap.json"
+        )
+
+        trap = cti.TrapInstantCapture(density=1.0, release_timescale=2.0)
+
+        with open(json_file, "w+") as f:
+            json.dump(trap.dict(), f, indent=4)
+
+        with open(json_file, "r+") as f:
+            trap_load_dict = json.load(f)
+
+        trap_load = cti.TrapInstantCapture.from_dict(trap_load_dict)
+
+        assert trap_load.density == 1.0
+        assert trap_load.release_timescale == 2.0
 
 
 def run_demo():

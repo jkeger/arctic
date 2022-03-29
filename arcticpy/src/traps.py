@@ -1,7 +1,8 @@
 import numpy as np
 
+from arcticpy.src.dictable import Dictable
 
-class AbstractTrap(object):
+class AbstractTrap(Dictable):
     def __init__(self, density=1.0, release_timescale=1.0):
         self.density = density
         self.release_timescale = release_timescale
@@ -10,7 +11,7 @@ class AbstractTrap(object):
 class TrapInstantCapture(AbstractTrap):
     def __init__(
         self,
-        density=1.0,
+        density:float=1.0,
         release_timescale=1.0,
         fractional_volume_none_exposed=0.0,
         fractional_volume_full_exposed=0.0,
