@@ -116,20 +116,20 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     }
 
     // Set empty arrays for nullptr trap lists
+    std::valarray<TrapInstantCapture> no_traps_ic = {};
     if (traps_ic == nullptr) {
-        std::valarray<TrapInstantCapture> no_traps_ic = {};
         traps_ic = &no_traps_ic;
     }
+    std::valarray<TrapSlowCapture> no_traps_sc = {};
     if (traps_sc == nullptr) {
-        std::valarray<TrapSlowCapture> no_traps_sc = {};
         traps_sc = &no_traps_sc;
     }
+    std::valarray<TrapInstantCaptureContinuum> no_continuum_traps = {};
     if (traps_ic_co == nullptr) {
-        std::valarray<TrapInstantCaptureContinuum> no_continuum_traps = {};
         traps_ic_co = &no_continuum_traps;
     }
+    std::valarray<TrapSlowCaptureContinuum> no_traps_sc_co = {};
     if (traps_sc_co == nullptr) {
-        std::valarray<TrapSlowCaptureContinuum> no_traps_sc_co = {};
         traps_sc_co = &no_traps_sc_co;
     }
 
@@ -518,10 +518,12 @@ std::valarray<std::valarray<double>> add_cti(
     std::valarray<TrapInstantCaptureContinuum>* serial_traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* serial_traps_sc_co, int serial_express,
     int serial_offset, int serial_window_start, int serial_window_stop, int iteration) {
-
+    
+ 
     // Print unless being called by remove_cti()
+    //print_v(1, "# RJM in cti.cpp \n");
     if (!iteration) print_version();
-
+    
     // Don't print model inputs every iteration
     int print_inputs = (iteration > 1) ? 0 : verbosity >= 1;
 

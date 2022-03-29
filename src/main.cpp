@@ -61,7 +61,7 @@ int run_demo() {
     int start = 0;
     int stop = -1;
 
-    // Add parallel and serial CTI
+    // Add parallel and serial CTI (ic = instant capture, sc = slow capture, co = continuum release)
     print_v(1, "\n# Add CTI \n");
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,

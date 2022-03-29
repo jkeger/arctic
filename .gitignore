@@ -10,9 +10,14 @@ build/
 gsl/
 
 *.fits
+*.lnk
+*.log
+*.tar
+*.tar.gz
+
 *test*.*
 gmon.out
 callgrind.out.*
 hst_acs_10_col.txt
 dev/
-*.lnk
+

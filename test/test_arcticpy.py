@@ -4,11 +4,12 @@ from urllib.request import urlretrieve
 
 path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(path, ".."))
-import arcticpy as ac
+import arcticpy as cti
+import json
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-import matplotlib.pyplot as plt
-
+from os import path
 
 class TestCompareOldArCTIC:
     def test__add_cti__single_pixel__vary_express__compare_old_arctic(self):
@@ -21,13 +22,15 @@ class TestCompareOldArCTIC:
         image_pre_cti[2, 0] = 800
 
         # Nice numbers for easy manual checking
-        traps = [ac.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))]
-        ccd = ac.CCD(
+        traps = [cti.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))]
+        ccd = cti.CCD(
             phases=[
-                ac.CCDPhase(well_fill_power=1, full_well_depth=1000, well_notch_depth=0)
+                cti.CCDPhase(
+                    well_fill_power=1, full_well_depth=1000, well_notch_depth=0
+                )
             ]
         )
-        roe = ac.ROE(
+        roe = cti.ROE(
             empty_traps_between_columns=True,
             empty_traps_for_first_transfers=False,
             use_integer_express_matrix=True,
@@ -157,7 +160,7 @@ class TestCompareOldArCTIC:
                 ],
             )
         ):
-            image_post_cti = ac.add_cti(
+            image_post_cti = cti.add_cti(
                 image=image_pre_cti,
                 parallel_roe=roe,
                 parallel_ccd=ccd,
@@ -227,15 +230,15 @@ class TestCompareOldArCTIC:
         image_pre_cti = np.zeros((120, 1))
         image_pre_cti[102, 0] = 800
 
-        traps = [ac.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))]
-        ccd = ac.CCD(
+        traps = [cti.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))]
+        ccd = cti.CCD(
             phases=[
-                ac.CCDPhase(
+                cti.CCDPhase(
                     well_fill_power=0.5, full_well_depth=1000, well_notch_depth=0
                 )
             ]
         )
-        roe = ac.ROE(
+        roe = cti.ROE(
             empty_traps_between_columns=True,
             empty_traps_for_first_transfers=False,
             use_integer_express_matrix=True,
@@ -299,7 +302,7 @@ class TestCompareOldArCTIC:
                 ],
             )
         ):
-            image_post_cti = ac.add_cti(
+            image_post_cti = cti.add_cti(
                 image=image_pre_cti,
                 parallel_traps=traps,
                 parallel_ccd=ccd,
@@ -370,15 +373,15 @@ class TestCompareOldArCTIC:
         image_pre_cti = np.zeros((40, 1))
         image_pre_cti[2, 0] = 800
 
-        traps = [ac.TrapInstantCapture(density=10, release_timescale=5)]
-        ccd = ac.CCD(
+        traps = [cti.TrapInstantCapture(density=10, release_timescale=5)]
+        ccd = cti.CCD(
             phases=[
-                ac.CCDPhase(
+                cti.CCDPhase(
                     well_fill_power=0.5, full_well_depth=1000, well_notch_depth=0
                 )
             ]
         )
-        roe = ac.ROE(
+        roe = cti.ROE(
             empty_traps_between_columns=True,
             empty_traps_for_first_transfers=False,
             use_integer_express_matrix=True,
@@ -483,7 +486,7 @@ class TestCompareOldArCTIC:
                 ],
             )
         ):
-            image_post_cti = ac.add_cti(
+            image_post_cti = cti.add_cti(
                 image=image_pre_cti,
                 parallel_traps=traps,
                 parallel_ccd=ccd,
@@ -555,26 +558,28 @@ class TestCompareTrapTypes:
         image_pre_cti = np.zeros((20, 1))
         image_pre_cti[2, 0] = 800
 
-        trap_ic = ac.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))
-        trap_sc = ac.TrapSlowCapture(
+        trap_ic = cti.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))
+        trap_sc = cti.TrapSlowCapture(
             density=10, release_timescale=-1 / np.log(0.5), capture_timescale=0.1
         )
-        trap_ic_co = ac.TrapInstantCaptureContinuum(
+        trap_ic_co = cti.TrapInstantCaptureContinuum(
             density=10, release_timescale=-1 / np.log(0.5), release_timescale_sigma=0.05
         )
-        trap_sc_co = ac.TrapSlowCaptureContinuum(
+        trap_sc_co = cti.TrapSlowCaptureContinuum(
             density=10,
             release_timescale=-1 / np.log(0.5),
             release_timescale_sigma=0.05,
             capture_timescale=0.1,
         )
 
-        ccd = ac.CCD(
+        ccd = cti.CCD(
             phases=[
-                ac.CCDPhase(well_fill_power=1, full_well_depth=1000, well_notch_depth=0)
+                cti.CCDPhase(
+                    well_fill_power=1, full_well_depth=1000, well_notch_depth=0
+                )
             ]
         )
-        roe = ac.ROE(
+        roe = cti.ROE(
             empty_traps_between_columns=True,
             empty_traps_for_first_transfers=False,
             use_integer_express_matrix=True,
@@ -582,7 +587,7 @@ class TestCompareTrapTypes:
         express = 5
 
         # Standard instant-capture traps
-        image_post_cti_ic = ac.add_cti(
+        image_post_cti_ic = cti.add_cti(
             image=image_pre_cti,
             parallel_roe=roe,
             parallel_ccd=ccd,
@@ -613,7 +618,7 @@ class TestCompareTrapTypes:
                 ["Slow Capture", "Instant Capture Continuum", "Slow Capture Continuum"],
             )
         ):
-            image_post_cti = ac.add_cti(
+            image_post_cti = cti.add_cti(
                 image=image_pre_cti,
                 parallel_roe=roe,
                 parallel_ccd=ccd,
@@ -660,23 +665,23 @@ class TestRemoveCTI:
             ]
         )
 
-        roe = ac.ROE(
+        roe = cti.ROE(
             dwell_times=[1.0],
             empty_traps_between_columns=True,
             empty_traps_for_first_transfers=False,
             force_release_away_from_readout=True,
             use_integer_express_matrix=False,
         )
-        ccd = ac.CCD(
+        ccd = cti.CCD(
             phases=[
-                ac.CCDPhase(
+                cti.CCDPhase(
                     full_well_depth=1e3, well_notch_depth=0.0, well_fill_power=1.0
                 )
             ],
             fraction_of_traps_per_phase=[1.0],
         )
         traps = [
-            ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))
+            cti.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))
         ]
         express = 0
         offset = 0
@@ -684,7 +689,7 @@ class TestRemoveCTI:
         stop = -1
 
         # Add CTI
-        image_add_cti = ac.add_cti(
+        image_add_cti = cti.add_cti(
             image=image_pre_cti,
             parallel_roe=roe,
             parallel_ccd=ccd,
@@ -705,7 +710,7 @@ class TestRemoveCTI:
 
         # Remove CTI
         for n_iterations in range(2, 7):
-            image_remove_cti = ac.remove_cti(
+            image_remove_cti = cti.remove_cti(
                 image=image_add_cti,
                 n_iterations=n_iterations,
                 parallel_roe=roe,
@@ -740,8 +745,8 @@ class TestCTIModelForHSTACS:
         # Before the temperature change
         date_1 = date_T_change - 246
         date_2 = date_T_change - 123
-        roe_1, ccd_1, traps_1 = ac.CTI_model_for_HST_ACS(date_1)
-        roe_2, ccd_2, traps_2 = ac.CTI_model_for_HST_ACS(date_2)
+        roe_1, ccd_1, traps_1 = cti.CTI_model_for_HST_ACS(date_1)
+        roe_2, ccd_2, traps_2 = cti.CTI_model_for_HST_ACS(date_2)
 
         # Trap density grows with time
         total_density_1 = np.sum([trap.density for trap in traps_1])
@@ -751,8 +756,8 @@ class TestCTIModelForHSTACS:
         # After the SM4 repair
         date_3 = date_sm4_repair + 123
         date_4 = date_sm4_repair + 246
-        roe_3, ccd_3, traps_3 = ac.CTI_model_for_HST_ACS(date_3)
-        roe_4, ccd_4, traps_4 = ac.CTI_model_for_HST_ACS(date_4)
+        roe_3, ccd_3, traps_3 = cti.CTI_model_for_HST_ACS(date_3)
+        roe_4, ccd_4, traps_4 = cti.CTI_model_for_HST_ACS(date_4)
 
         # Trap density grows with time
         total_density_3 = np.sum([trap.density for trap in traps_3])
@@ -779,11 +784,53 @@ class TestTraps:
 
     def test__poisson_density_from(self):
 
-        trap = ac.TrapInstantCapture(density=1.0)
+        trap = cti.TrapInstantCapture(density=1.0)
 
         poisson_trap = trap.poisson_density_from(total_pixels=100, seed=1)
 
         assert poisson_trap.density == 0.98
+
+class TestDictable:
+
+
+    def test__ccd_is_dictable(self):
+
+        json_file = path.join(
+            "{}".format(path.dirname(path.realpath(__file__))), "files", "ccd.json"
+        )
+
+        ccd = cti.CCDPhase(full_well_depth=1.0, well_notch_depth=2.0, well_fill_power=3.0)
+
+        with open(json_file, "w+") as f:
+            json.dump(ccd.dict(), f, indent=4)
+
+        with open(json_file, "r+") as f:
+            ccd_load_dict = json.load(f)
+
+        ccd_load = cti.CCDPhase.from_dict(ccd_load_dict)
+
+        assert ccd_load.full_well_depth == 1.0
+        assert ccd_load.well_notch_depth == 2.0
+        assert ccd_load.well_fill_power == 3.0
+
+    def test__trap_is_dictable(self):
+
+        json_file = path.join(
+            "{}".format(path.dirname(path.realpath(__file__))), "files", "trap.json"
+        )
+
+        trap = cti.TrapInstantCapture(density=1.0, release_timescale=2.0)
+
+        with open(json_file, "w+") as f:
+            json.dump(trap.dict(), f, indent=4)
+
+        with open(json_file, "r+") as f:
+            trap_load_dict = json.load(f)
+
+        trap_load = cti.TrapInstantCapture.from_dict(trap_load_dict)
+
+        assert trap_load.density == 1.0
+        assert trap_load.release_timescale == 2.0
 
 
 def run_demo():
@@ -799,30 +846,30 @@ def run_demo():
         ]
     )
 
-    roe = ac.ROE(
+    roe = cti.ROE(
         dwell_times=[1.0],
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
     )
-    ccd = ac.CCD(
+    ccd = cti.CCD(
         phases=[
-            ac.CCDPhase(full_well_depth=1e3, well_notch_depth=0.0, well_fill_power=1.0)
+            cti.CCDPhase(full_well_depth=1e3, well_notch_depth=0.0, well_fill_power=1.0)
         ],
         fraction_of_traps_per_phase=[1.0],
     )
-    traps = [ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))]
+    traps = [cti.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))]
     express = 0
     offset = 0
     start = 0
     stop = -1
 
     print("\n# Test image:")
-    ac.print_array_2D(image_pre_cti)
+    cti.print_array_2D(image_pre_cti)
 
     print("\n# Add CTI")
-    image_post_cti = ac.add_cti(
+    image_post_cti = cti.add_cti(
         image=image_pre_cti,
         parallel_roe=roe,
         parallel_ccd=ccd,
@@ -842,10 +889,10 @@ def run_demo():
     )
 
     print("\n# Image with CTI added:")
-    ac.print_array_2D(image_post_cti)
+    cti.print_array_2D(image_post_cti)
 
     print("\n# Remove CTI")
-    image_removed_cti = ac.remove_cti(
+    image_removed_cti = cti.remove_cti(
         image=image_post_cti,
         n_iterations=4,
         parallel_roe=roe,
@@ -866,40 +913,40 @@ def run_demo():
     )
 
     print("\n# Image with CTI removed:")
-    ac.print_array_2D(image_removed_cti)
+    cti.print_array_2D(image_removed_cti)
 
 
 def run_benchmark():
     # Download the test image
     filename = os.path.join(os.path.join(path, ".."), "hst_acs_10_col.txt")
     if not os.path.isfile(filename):
-        url_path = "http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt"
+        url_path = "http://astro.dur.cti.uk/~cklv53/files/hst_acs_10_col.txt"
         urlretrieve(url_path, filename)
 
     # Load the image
     image_pre_cti = np.loadtxt(filename, skiprows=1)
 
     # CTI model parameters
-    roe = ac.ROE(
+    roe = cti.ROE(
         dwell_times=[1.0],
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
     )
-    ccd = ac.CCD(
+    ccd = cti.CCD(
         phases=[
-            ac.CCDPhase(full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=1.0)
+            cti.CCDPhase(full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=1.0)
         ],
         fraction_of_traps_per_phase=[1.0],
     )
-    traps = [ac.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))]
+    traps = [cti.TrapInstantCapture(density=10.0, release_timescale=-1.0 / np.log(0.5))]
     express = 5
     offset = 0
     start = 0
     stop = -1
 
-    image_post_cti = ac.add_cti(
+    image_post_cti = cti.add_cti(
         image=image_pre_cti,
         parallel_roe=roe,
         parallel_ccd=ccd,

@@ -1,19 +1,11 @@
 import numpy as np
 
+from arcticpy.src.dictable import Dictable
 
-class AbstractTrap:
-
-    def __init__(
-        self,
-        density=1.0,
-        release_timescale=1.0,
-    ):
+class AbstractTrap(Dictable):
+    def __init__(self, density=1.0, release_timescale=1.0):
         self.density = density
         self.release_timescale = release_timescale
-
-    @property
-    def delta_ellipticity(self):
-        raise NotImplementedError
 
 class TrapInstantCapture(AbstractTrap):
     def __init__(
@@ -70,14 +62,14 @@ class TrapInstantCapture(AbstractTrap):
         )
 
 
-class TrapSlowCapture(TrapInstantCapture):
+class TrapSlowCapture(AbstractTrap):
     def __init__(self, density=1.0, release_timescale=1.0, capture_timescale=0.0):
         super().__init__(density, release_timescale)
 
         self.capture_timescale = capture_timescale
 
 
-class TrapInstantCaptureContinuum(TrapInstantCapture):
+class TrapInstantCaptureContinuum(AbstractTrap):
     def __init__(self, density=1.0, release_timescale=1.0, release_timescale_sigma=0.0):
         super().__init__(density, release_timescale)
 
