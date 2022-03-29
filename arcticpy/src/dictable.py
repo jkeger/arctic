@@ -113,7 +113,6 @@ class Dictable:
 
         return cls.from_dict(cls_dict=cls_dict)
 
-
     def output_to_json(self, file_path: str):
         """
         Output the dictable object to a .json file, whereby all attributes are converted to a dictionary representation
