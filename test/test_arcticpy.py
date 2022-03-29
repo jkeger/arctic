@@ -792,7 +792,6 @@ class TestTraps:
 
 class TestDictable:
 
-
     def test__ccd_is_dictable(self):
 
         json_file = path.join(
