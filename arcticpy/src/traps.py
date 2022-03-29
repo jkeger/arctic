@@ -7,6 +7,9 @@ class AbstractTrap(Dictable):
         self.density = density
         self.release_timescale = release_timescale
 
+    @property
+    def delta_ellipticity(self):
+        raise NotImplementedError
 
 class TrapInstantCapture(AbstractTrap):
     def __init__(
