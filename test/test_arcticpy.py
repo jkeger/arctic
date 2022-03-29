@@ -782,7 +782,28 @@ class TestCTIModelForHSTACS:
 
 class TestDictable:
 
-    def test__trap_instant_capture__dictable(self):
+
+    def test__ccd_is_dictable(self):
+
+        json_file = path.join(
+            "{}".format(path.dirname(path.realpath(__file__))), "files", "ccd.json"
+        )
+
+        ccd = cti.CCDPhase(full_well_depth=1.0, well_notch_depth=2.0, well_fill_power=3.0)
+
+        with open(json_file, "w+") as f:
+            json.dump(ccd.dict(), f, indent=4)
+
+        with open(json_file, "r+") as f:
+            ccd_load_dict = json.load(f)
+
+        ccd_load = cti.CCDPhase.from_dict(ccd_load_dict)
+
+        assert ccd_load.full_well_depth == 1.0
+        assert ccd_load.well_notch_depth == 2.0
+        assert ccd_load.well_fill_power == 3.0
+
+    def test__trap_is_dictable(self):
 
         json_file = path.join(
             "{}".format(path.dirname(path.realpath(__file__))), "files", "trap.json"
