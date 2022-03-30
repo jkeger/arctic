@@ -77,6 +77,13 @@ ROEStepPhase::ROEStepPhase(
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default {1.0}.
 
+    overscan : int (opt.)
+        The number of pixels in the input array that correspond to a virtual
+        overscan, rather than physical pixels. Charge does not get trailed 
+        when it passes through these pixels (but it does through the rest of 
+        the CCD). This means that the input array can be larger than the CCD.
+        Default [0].
+
     empty_traps_between_columns : bool (opt.)
         true:  Each column has independent traps (appropriate for parallel
                clocking)
@@ -125,10 +132,16 @@ ROEStepPhase::ROEStepPhase(
         different for a non-standard type of clock sequence, e.g. trap pumping.
 */
 ROE::ROE(
-    std::valarray<double>& dwell_times, bool empty_traps_between_columns,
-    bool empty_traps_for_first_transfers, bool force_release_away_from_readout,
+    std::valarray<double>& dwell_times, 
+    int prescan_offset,
+    int overscan_start,
+    bool empty_traps_between_columns,
+    bool empty_traps_for_first_transfers, 
+    bool force_release_away_from_readout,
     bool use_integer_express_matrix)
     : dwell_times(dwell_times),
+      prescan_offset(prescan_offset),
+      overscan_start(overscan_start),
       empty_traps_between_columns(empty_traps_between_columns),
       empty_traps_for_first_transfers(empty_traps_for_first_transfers),
       force_release_away_from_readout(force_release_away_from_readout),
@@ -143,6 +156,8 @@ ROE::ROE(
 /* Assignment operator. */
 ROE& ROE::operator=(const ROE& roe) {
     dwell_times = roe.dwell_times;
+    prescan_offset = roe.prescan_offset;
+    overscan_start = roe.overscan_start;
     empty_traps_between_columns = roe.empty_traps_between_columns;
     empty_traps_for_first_transfers = roe.empty_traps_for_first_transfers;
     force_release_away_from_readout = roe.force_release_away_from_readout;
@@ -203,6 +218,11 @@ ROE& ROE::operator=(const ROE& roe) {
 void ROE::set_express_matrix_from_rows_and_express(
     int n_rows, int express, int offset, int overscan) {
 
+    print_v(0,"input overscan %d \n",overscan);
+    //overscan = overscans;
+    print_v(0,"roe overscan %d \n",overscans);
+    print_v(0,"roe prescan %d \n",prescan);
+    
     int n_transfers = n_rows + offset;
 
     // Set default express to all transfers, and check no larger
@@ -585,8 +605,12 @@ void ROE::set_clock_sequence() {
     will see the untouched traps.
 */
 ROEChargeInjection::ROEChargeInjection(
-    std::valarray<double>& dwell_times, bool empty_traps_between_columns,
-    bool force_release_away_from_readout, bool use_integer_express_matrix)
+    std::valarray<double>& dwell_times, 
+    int prescan,
+    int overscans,
+    bool empty_traps_between_columns,
+    bool force_release_away_from_readout, 
+    bool use_integer_express_matrix)
     : ROE(dwell_times, empty_traps_between_columns, false,
           force_release_away_from_readout, use_integer_express_matrix) {
 

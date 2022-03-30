@@ -34,6 +34,8 @@ class ROEStepPhase {
 class ROE {
    public:
     ROE(std::valarray<double>& dwell_times = dwell_times_default,
+        int prescan = 0,
+        int overscans = 0,
         bool empty_traps_between_columns = true,
         bool empty_traps_for_first_transfers = false,
         bool force_release_away_from_readout = true,
@@ -43,6 +45,8 @@ class ROE {
     ROE& operator=(const ROE& roe);
 
     std::valarray<double>& dwell_times;
+    int prescan;
+    int overscans;
     bool empty_traps_between_columns;
     bool empty_traps_for_first_transfers;
     bool force_release_away_from_readout;
@@ -68,6 +72,8 @@ class ROEChargeInjection : public ROE {
    public:
     ROEChargeInjection(
         std::valarray<double>& dwell_times = dwell_times_default,
+        int prescan = 0,
+        int overscans = 0,
         bool empty_traps_between_columns = true,
         bool force_release_away_from_readout = true,
         bool use_integer_express_matrix = false);

@@ -61,7 +61,7 @@ int run_demo() {
     int express = 0;
     int offset = 0;
     int start = 0;
-    int stop = -1;
+    int stop = -1 / start;
     int overscan = 0;
 
     // Add parallel and serial CTI (ic = instant capture, sc = slow capture, co = continuum release)
