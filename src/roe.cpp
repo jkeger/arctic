@@ -870,7 +870,7 @@ ROETrapPumping::ROETrapPumping(
     the pixel furthest from readout with standard clocking.
 */
 void ROETrapPumping::set_express_matrix_from_rows_and_express(
-    int n_rows, int express, int offset, int overscan) {
+    int n_rows, int express, int offset) {
 
     if (offset != 0) error("Trap pumping requires the offset (%d) to be 0", offset);
     if (overscan != 0) error("Trap pumping requires the overscan (%d) to be 0", overscan);
