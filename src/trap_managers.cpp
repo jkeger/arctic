@@ -395,9 +395,9 @@ void TrapManagerInstantCapture::update_watermarks_capture(
         }
 
         // Update count of active watermarks
-        print_v(0,"Adding new watermark %d\n",n_active_watermarks);
+        //print_v(0,"Adding new watermark %d\n",n_active_watermarks);
         n_active_watermarks++;
-        print_v(2,"Added new watermark %d\n",n_active_watermarks);
+        //print_v(2,"Added new watermark %d\n",n_active_watermarks);
 
         // New watermark
         watermark_volumes[i_first_active_wmk] = cloud_fractional_volume;
@@ -419,7 +419,7 @@ void TrapManagerInstantCapture::update_watermarks_capture(
             trap_densities;
 
         // Update count of active watermarks
-        print_v(0,"Resetting watermarks");
+        print_v(2,"Resetting watermarks");
         n_active_watermarks = 1;
     }
 
