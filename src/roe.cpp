@@ -622,7 +622,7 @@ ROEChargeInjection::ROEChargeInjection(
     bool empty_traps_between_columns,
     bool force_release_away_from_readout, 
     bool use_integer_express_matrix)
-    : ROE(dwell_times, empty_traps_between_columns, false,
+    : ROE(dwell_times, prescan_offset, overscan_start, empty_traps_between_columns, false,
           force_release_away_from_readout, use_integer_express_matrix) {
 
     type = roe_type_charge_injection;
@@ -635,11 +635,11 @@ ROEChargeInjection::ROEChargeInjection(
     through all the pixels to the readout register.
 */
 void ROEChargeInjection::set_express_matrix_from_rows_and_express(
-    int n_rows, int express, int offset, int overscan) {
+    int n_rows, int express, int offset) {
 
-    if (overscan != 0) error("Trap pumping can't yet handle overscan (%d)", overscan);
+    //if (overscan != 0) error("Trap pumping can't yet handle overscan (%d)", overscan);
     int n_transfers = n_rows + offset;
-
+   
     // Set default express to all transfers, and check no larger
     if (express == 0)
         express = n_transfers;
@@ -843,7 +843,7 @@ void ROEChargeInjection::set_store_trap_states_matrix() {
 ROETrapPumping::ROETrapPumping(
     std::valarray<double>& dwell_times, int n_pumps,
     bool empty_traps_for_first_transfers, bool use_integer_express_matrix)
-    : ROE(dwell_times, true, empty_traps_for_first_transfers, false,
+    : ROE(dwell_times, prescan_offset, overscan_start, true, empty_traps_for_first_transfers, false,
           use_integer_express_matrix) {
 
     type = roe_type_trap_pumping;
@@ -872,8 +872,8 @@ ROETrapPumping::ROETrapPumping(
 void ROETrapPumping::set_express_matrix_from_rows_and_express(
     int n_rows, int express, int offset) {
 
-    if (offset != 0) error("Trap pumping requires the offset (%d) to be 0", offset);
-    if (overscan != 0) error("Trap pumping requires the overscan (%d) to be 0", overscan);
+    //if (offset != 0) error("Trap pumping requires the offset (%d) to be 0", offset);
+    //if (overscan != 0) error("Trap pumping requires the overscan (%d) to be 0", overscan);
 
     // Set default express to all transfers, and check no larger
     if (express == 0)
