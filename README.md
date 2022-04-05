@@ -349,13 +349,12 @@ separate columns, as in this example of an image before and after calling
  {   0.00,    0.00, 1.03e-3,    0.00 }}
 ```
 
-As this illustrates, charge is transferred "up" from row N to row 0
-along each independent column, and "left" from column M to column 0.
-During the up-down (parallel) movement, charge in the first element/pixel 0
-undergoes 1 transfer, and charge in the final row N (which is farthest from the 
-readout register) undergoes N+1 transfers. Electrons from these charge packets
-are trapped, delayed, then released at a later time - to emerge as CTI trails 
-behind bright pixels.
+As this illustrates, by default, charge is transferred "up" from row N to row 0
+along each independent column, such that the charge in the first element/pixel 0
+undergoes 1 transfer, and the final row N is furthest from the readout register
+so undergoes N+1 transfers. The CTI trails appear behind bright pixels as the
+traps capture electrons from their original pixels and release them at a later
+time.
 
 Parallel clocking is the transfer along each independent column, while serial
 clocking is across the columns and is performed after parallel clocking, if the
@@ -388,22 +387,14 @@ Note that the total charge in an image is guaranteed to be conserved only with
 `express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
 length is comparable to the image size).
 
-### Offsets, windows, and overscan
+### Offsets and windows
 To account for additional transfers before the first image pixel reaches the
-readout (e.g. a prescan region, or if you are passing a postage stamp cut-out), 
-the `offset` sets the number of extra pixels before the first one in the image.
+readout (e.g. a prescan region), the `offset` sets the number of extra pixels.
 
-The opposite approach is to pass arCTIc a full image, but ask it to process only
-a small region, for speed. These can be selected using the `window_start` and 
-`window_stop` arguments. Because of edge effects, the range should be started 
-several pixels before the actual region of interest - all other pixels will be
-treated as if they were empty, so if the window contains background, it will
-suffer FPR.
-
-If some of the pixels in the image array represent virtual overscan, these can
-be indicated via the `overscan` arguments. They do not start undergoing transfers 
-until they reach the physical CCD. However, they should be created in the image
-array and passed to arCTIc in order to give them e.g. bias offset.
+Somewhat similarly, instead of adding CTI to the entire supplied image, only a
+subset of pixels can be selected using the `window_start` and `_stop` arguments.
+Note that, because of edge effects, the range should be started several pixels
+before the actual region of interest.
 
 
 \
