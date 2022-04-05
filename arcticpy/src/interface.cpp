@@ -271,12 +271,13 @@ void add_cti(
             image_in,
             // Parallel
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
-            0, 0, parallel_window_start, parallel_window_stop, 0, 0, 0,
+            0, 0, parallel_window_start, parallel_window_stop, 0, 0,
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
-            &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
+            &serial_traps_continuum, &serial_traps_sc_co, 
+            serial_express, serial_offset,
             serial_window_start, serial_window_stop, 
-            serial_overscan, serial_time_start, serial_time_stop,
+            serial_time_start, serial_time_stop,
             // Output
             iteration);
     }
@@ -288,10 +289,10 @@ void add_cti(
             p_parallel_roe, &parallel_ccd, &parallel_traps_ic, &parallel_traps_sc,
             &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
-            parallel_overscan, parallel_time_start, parallel_time_stop,
+            parallel_time_start, parallel_time_stop,
             // Serial
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
-            0, 0, serial_window_start, serial_window_stop, 0, 0, 0,
+            0, 0, serial_window_start, serial_window_stop, 0, 0, 
             // Output
             iteration);
     }
@@ -303,12 +304,12 @@ void add_cti(
             p_parallel_roe, &parallel_ccd, &parallel_traps_ic, &parallel_traps_sc,
             &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
-            parallel_overscan, parallel_time_start, parallel_time_stop,
+            parallel_time_start, parallel_time_stop,
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
             &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop,
-            serial_overscan, serial_time_start, serial_time_stop,
+            serial_time_start, serial_time_stop,
             // Output
             iteration);
     }

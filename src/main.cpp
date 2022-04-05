@@ -61,17 +61,16 @@ int run_demo() {
     int express = 0;
     int offset = 0;
     int start = 0;
-    int stop = -1;
-    int overscan = 0;
+    int stop = -1 / start;
 
     // Add parallel and serial CTI (ic = instant capture, sc = slow capture, co = continuum release)
     print_v(1, "\n# Add CTI \n");
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-        express, offset, start, stop, overscan, start, stop, 
+        express, offset, start, stop, start, stop, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, overscan, start, stop, 0);
+        express, offset, start, stop, start, stop, 0);
     print_v(1, "\n# Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
@@ -81,9 +80,9 @@ int run_demo() {
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, overscan, start, stop, 
+        express, offset, start, stop, start, stop, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, overscan, start, stop);
+        express, offset, start, stop, start, stop);
     print_v(1, "\n# Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 
@@ -126,12 +125,11 @@ int run_benchmark() {
     int offset = 0;
     int start = 0;
     int stop = -1;
-    int overscan = 0;
     
     // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
-        start, stop, overscan, start, stop);
+        start, stop, start, stop);
 
     return 0;
 }

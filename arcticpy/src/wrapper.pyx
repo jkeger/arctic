@@ -41,10 +41,9 @@ cdef extern from "interface.hpp":
         int parallel_n_traps_sc_co,
         # Misc
         int parallel_express,
-        int parallel_offset,
+        int parallel_window_offset,
         int parallel_window_start,
         int parallel_window_stop,
-        int parallel_overscan,
         int parallel_time_start,
         int parallel_time_stop,
         # ========
@@ -76,10 +75,9 @@ cdef extern from "interface.hpp":
         int serial_n_traps_sc_co,
         # Misc
         int serial_express,
-        int serial_offset,
+        int serial_window_offset,
         int serial_window_start,
         int serial_window_stop,
-        int serial_overscan,
         int serial_time_start,
         int serial_time_stop,
         # Output
@@ -141,10 +139,9 @@ def cy_add_cti(
     int parallel_n_traps_sc_co,
     # Misc
     int parallel_express,
-    int parallel_offset,
+    int parallel_window_offset,
     int parallel_window_start,
     int parallel_window_stop,
-    int parallel_overscan,
     int parallel_time_start,
     int parallel_time_stop,
     # ========
@@ -174,10 +171,9 @@ def cy_add_cti(
     int serial_n_traps_sc_co,
     # Misc
     int serial_express,
-    int serial_offset,
+    int serial_window_offset,
     int serial_window_start,
     int serial_window_stop,
-    int serial_overscan,
     int serial_time_start,
     int serial_time_stop,
     # Output
@@ -226,10 +222,9 @@ def cy_add_cti(
         parallel_n_traps_sc_co,
         # Misc
         parallel_express,
-        parallel_offset,
+        parallel_window_offset,
         parallel_window_start,
         parallel_window_stop,
-        parallel_overscan,
         parallel_time_start,
         parallel_time_stop,
         # ========
@@ -261,10 +256,9 @@ def cy_add_cti(
         serial_n_traps_sc_co,
         # Misc
         serial_express,
-        serial_offset,
+        serial_window_offset,
         serial_window_start,
         serial_window_stop,
-        serial_overscan,
         serial_time_start,
         serial_time_stop,
         # Output
