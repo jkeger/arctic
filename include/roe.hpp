@@ -38,7 +38,7 @@ class ROE {
         bool empty_traps_for_first_transfers = false,
         bool force_release_away_from_readout = true,
         bool use_integer_express_matrix = false);
-    ~ROE(){};
+    virtual ~ROE(){};
 
     ROE& operator=(const ROE& roe);
 
@@ -59,7 +59,7 @@ class ROE {
     int n_pumps;
 
     virtual void set_express_matrix_from_rows_and_express(
-        int n_rows, int express = 0, int offset = 0);
+        int n_rows, int express = 0, int offset = 0, int overscan = 0);
     virtual void set_store_trap_states_matrix();
     virtual void set_clock_sequence();
 };
@@ -71,10 +71,10 @@ class ROEChargeInjection : public ROE {
         bool empty_traps_between_columns = true,
         bool force_release_away_from_readout = true,
         bool use_integer_express_matrix = false);
-    ~ROEChargeInjection(){};
+    virtual ~ROEChargeInjection(){};
 
     void set_express_matrix_from_rows_and_express(
-        int n_rows, int express = 0, int offset = 0);
+        int n_rows, int express = 0, int offset = 0, int overscan = 0);
     void set_store_trap_states_matrix();
 };
 
@@ -84,10 +84,10 @@ class ROETrapPumping : public ROE {
         std::valarray<double>& dwell_times = dwell_times_trap_pumping_default,
         int n_pumps = 1, bool empty_traps_for_first_transfers = true,
         bool use_integer_express_matrix = false);
-    ~ROETrapPumping(){};
+    virtual ~ROETrapPumping(){};
 
     void set_express_matrix_from_rows_and_express(
-        int n_rows, int express = 0, int offset = 0);
+        int n_rows, int express = 0, int offset = 0, int overscan = 0);
     void set_store_trap_states_matrix();
 };
 

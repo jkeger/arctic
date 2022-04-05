@@ -31,8 +31,9 @@ void add_cti(
     int parallel_n_traps_ic, int parallel_n_traps_sc, int parallel_n_traps_ic_co,
     int parallel_n_traps_sc_co,
     // Misc
-    int parallel_express, int parallel_offset, int parallel_window_start,
-    int parallel_window_stop,
+    int parallel_express, int parallel_offset, 
+    int parallel_window_start, int parallel_window_stop, 
+    int parallel_overscan, int parallel_time_start, int parallel_time_stop,
     // ========
     // Serial
     // ========
@@ -52,7 +53,8 @@ void add_cti(
     int serial_n_traps_ic, int serial_n_traps_sc, int serial_n_traps_ic_co,
     int serial_n_traps_sc_co,
     // Misc
-    int serial_express, int serial_offset, int serial_window_start,
-    int serial_window_stop,
+    int serial_express, int serial_offset, 
+    int serial_window_start, int serial_window_stop, 
+    int serial_overscan, int serial_time_start, int serial_time_stop,
     // Output
     int verbosity, int iteration);

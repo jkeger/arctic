@@ -64,8 +64,9 @@ void add_cti(
     int parallel_n_traps_ic, int parallel_n_traps_sc, int parallel_n_traps_ic_co,
     int parallel_n_traps_sc_co,
     // Misc
-    int parallel_express, int parallel_offset, int parallel_window_start,
-    int parallel_window_stop,
+    int parallel_express, int parallel_offset, 
+    int parallel_window_start, int parallel_window_stop,
+    int parallel_overscan, int parallel_time_start, int parallel_time_stop,
     // ========
     // Serial
     // ========
@@ -85,8 +86,9 @@ void add_cti(
     int serial_n_traps_ic, int serial_n_traps_sc, int serial_n_traps_ic_co,
     int serial_n_traps_sc_co,
     // Misc
-    int serial_express, int serial_offset, int serial_window_start,
-    int serial_window_stop,
+    int serial_express, int serial_offset, 
+    int serial_window_start, int serial_window_stop, 
+    int serial_overscan, int serial_time_start, int serial_time_stop,
     // Output
     int verbosity, int iteration) {
 
@@ -111,26 +113,23 @@ void add_cti(
     for (int i_step = 0; i_step < parallel_n_steps; i_step++) {
         parallel_dwell_times[i_step] = parallel_dwell_times_in[i_step];
     }
-    ROE* p_parallel_roe;
+    ROE* p_parallel_roe = NULL;
     if (parallel_roe_type == 0) {
-        ROE parallel_roe(
+        p_parallel_roe = new ROE(
             parallel_dwell_times, parallel_empty_traps_between_columns,
             parallel_empty_traps_for_first_transfers,
             parallel_force_release_away_from_readout,
             parallel_use_integer_express_matrix);
-        p_parallel_roe = (ROE*)&parallel_roe;
     } else if (parallel_roe_type == 1) {
-        ROEChargeInjection parallel_roe(
+        p_parallel_roe = new ROEChargeInjection(
             parallel_dwell_times, parallel_empty_traps_between_columns,
             parallel_force_release_away_from_readout,
             parallel_use_integer_express_matrix);
-        p_parallel_roe = (ROEChargeInjection*)&parallel_roe;
     } else {
-        ROETrapPumping parallel_roe(
+        p_parallel_roe = new ROETrapPumping(
             parallel_dwell_times, parallel_n_pumps,
             parallel_empty_traps_for_first_transfers,
             parallel_use_integer_express_matrix);
-        p_parallel_roe = (ROETrapPumping*)&parallel_roe;
     }
 
     // CCD
@@ -193,23 +192,20 @@ void add_cti(
     for (int i_step = 0; i_step < serial_n_steps; i_step++) {
         serial_dwell_times[i_step] = serial_dwell_times_in[i_step];
     }
-    ROE* p_serial_roe;
+    ROE* p_serial_roe = NULL;
     if (serial_roe_type == 0) {
-        ROE serial_roe(
+        p_serial_roe = new ROE(
             serial_dwell_times, serial_empty_traps_between_columns,
             serial_empty_traps_for_first_transfers,
             serial_force_release_away_from_readout, serial_use_integer_express_matrix);
-        p_serial_roe = (ROE*)&serial_roe;
     } else if (serial_roe_type == 1) {
-        ROEChargeInjection serial_roe(
+        p_serial_roe = new ROEChargeInjection(
             serial_dwell_times, serial_empty_traps_between_columns,
             serial_force_release_away_from_readout, serial_use_integer_express_matrix);
-        p_serial_roe = (ROEChargeInjection*)&serial_roe;
     } else {
-        ROETrapPumping serial_roe(
+        p_serial_roe = new ROETrapPumping(
             serial_dwell_times, serial_n_pumps, serial_empty_traps_for_first_transfers,
             serial_use_integer_express_matrix);
-        p_serial_roe = (ROETrapPumping*)&serial_roe;
     }
 
     // CCD
@@ -267,17 +263,20 @@ void add_cti(
     // ========
     // Add CTI
     // ========
+    //printf("\nserial_window_start is equal to %d\n", serial_window_start);
     std::valarray<std::valarray<double>> image_out;
     // No parallel, serial only
     if (n_traps_parallel == 0) {
         image_out = add_cti(
             image_in,
             // Parallel
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
+            0, 0, parallel_window_start, parallel_window_stop, 0, 0, 0,
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
             &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
-            serial_window_start, serial_window_stop,
+            serial_window_start, serial_window_stop, 
+            serial_overscan, serial_time_start, serial_time_stop,
             // Output
             iteration);
     }
@@ -289,8 +288,10 @@ void add_cti(
             p_parallel_roe, &parallel_ccd, &parallel_traps_ic, &parallel_traps_sc,
             &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
+            parallel_overscan, parallel_time_start, parallel_time_stop,
             // Serial
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0, -1,
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
+            0, 0, serial_window_start, serial_window_stop, 0, 0, 0,
             // Output
             iteration);
     }
@@ -302,13 +303,19 @@ void add_cti(
             p_parallel_roe, &parallel_ccd, &parallel_traps_ic, &parallel_traps_sc,
             &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
             parallel_offset, parallel_window_start, parallel_window_stop,
+            parallel_overscan, parallel_time_start, parallel_time_stop,
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
             &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
             serial_window_start, serial_window_stop,
+            serial_overscan, serial_time_start, serial_time_stop,
             // Output
             iteration);
     }
+
+    // Delete serial/parallel ROE if previously allocated
+    delete p_parallel_roe;
+    delete p_serial_roe;
 
     // Convert the output image back to modify the input image array
     for (int i_row = 0; i_row < n_rows; i_row++) {

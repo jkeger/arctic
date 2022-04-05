@@ -22,6 +22,8 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
+    + Quick install
+    + Troubleshooting
 + Usage
     + Python example
     + C++
@@ -34,41 +36,46 @@ Contents
     + Trap species
     + Trap managers
     + Python wrapper
++ Version history
 
 
 \
 Installation
 ============
 
-<!-- 
-Download
---------
-+ Run `git clone https://github.com/jkeger/arctic.git` and `cd arctic`. For this branch, also `git checkout mac`.
--->
 
-GNU Scientific Library
-----------------------
-+ Run `make gsl` to download and install the GNU Scientific Library to local subdirectory gsl/ that contains bin/, include/, lib/, share/.
-If your system already has GSL installed, you can skip this step, and edit the makefile to point to e.g. `DIR_GSL := /usr/local/include/gsl/`.
-
+<!--
     **MacOS:** requires `mkdir build; sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
 If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
-
-ArCTIc C++ core
----------------
-+ Run `make` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. -->
-
-    You should now get output from `./arctic --demo`. The makefile header describes additional options, including unit tests that can be compiled via `make all` but are only needed by developers.
-
-    **MacOS:** cannot currently compile the unit tests. It gets confused because the Catch2 unit test framework uses a second main.c file. 
-If you know how to circumvent this, please tell us! On the first build, mac users may also need to create an (empty) directory 
+    **MacOS:** On the first build, mac users may also need to create an (empty) directory 
 /sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
+ Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
+-->
 
-ArCTIc python wrapper
----------------------
-+ Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
-+ Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`.
-+ Import the python module, e.g. `import arcticpy as cti.`.
+Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
+
+Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+  
+Troubleshooting (individual steps within the makefile)
+------------------------------------------------------
+
+1. Install GNU Scientific Library
+    + Run `sudo make gsl` to download and install the GNU Scientific Library. 
+    + This will create a local subdirectory gsl/ containing bin/, include/, lib/, share/.
+
+        If your system already has GSL installed, you can skip this step and prefix future commands with e.g. `DIR_GSL=/path/to/gsl make all`
+
+        sudo is only required on MacOS, to run ./configure from the middle of `get_gsl.sh`. If you don't like doing this, you can cut and paste the few lines marked with comments in that script.
+
+2. Install arCTIc C++ core <!-- and unit tests -->
+    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. --> 
+    + You should now get output from `./arctic --demo`. 
+
+3. arCTIc python wrapper
+    + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
+    + Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+    + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
+
 
     **MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
 
@@ -320,34 +327,35 @@ separate columns, as in this example of an image before and after calling
 
 ```C++
 // Initial image with one bright pixel in the first three columns:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  200.0,   0.0,     0.0,     0.0  },
- {  0.0,     200.0,   0.0,     0.0  },
- {  0.0,     0.0,     200.0,   0.0  },
- {  0.0,     0.0,     0.0,     0.0  },
- {  0.0,     0.0,     0.0,     0.0  }}
-// Image with parallel CTI trails:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  196.0,   0.0,     0.0,     0.0  },
- {  3.0,     194.1,   0.0,     0.0  },
- {  2.0,     3.9,     192.1,   0.0  },
- {  1.3,     2.5,     4.8,     0.0  },
- {  0.8,     1.5,     2.9,     0.0  }}
-// Final image with parallel and serial CTI trails:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  194.1,   1.9,     1.5,     0.9  },
- {  2.9,     190.3,   2.9,     1.9  },
- {  1.9,     3.8,     186.5,   3.7  },
- {  1.2,     2.4,     4.7,     0.1  },
- {  0.7,     1.4,     2.8,     0.06 }}
+{{   0.0,     0.0,     0.0,     0.0  },
+ { 200.0,     0.0,     0.0,     0.0  },
+ {   0.0,   200.0,     0.0,     0.0  },
+ {   0.0,     0.0,   200.0,     0.0  },
+ {   0.0,     0.0,     0.0,     0.0  },
+ {   0.0,     0.0,     0.0,     0.0  }}
+// Image with parallel and serial CTI trails:
+{{   0.00,    0.00,    0.00,    0.00 },
+ { 194.06,    0.98,    0.49,    0.25 },
+ {   1.96,  190.22,    1.92,    0.97 },
+ {   0.99,    2.89,  186.47,    2.82 },
+ {   0.50,    1.46,    3.80,    0.06 },
+ {   0.25,    0.74,    1.92,    0.03 }}
+// Image after correction for trailing:
+{{   0.00,    0.00,    0.00,    0.00 },
+ { 200.00, 1.30e-4, 3.15e-5,    0.00 }
+ {2.05e-4, 199.999, 8.88e-4, 2.56e-4 }
+ {1.93e-5, 1.20e-2, 199.994, 3.11e-3 }
+ {   0.00, 2.53e-4, 3.95e-3,    0.00 }
+ {   0.00,    0.00, 1.03e-3,    0.00 }}
 ```
 
-As this illustrates, by default, charge is transferred "up" from row N to row 0
-along each independent column, such that the charge in the first element/pixel 0
-undergoes 1 transfer, and the final row N is furthest from the readout register
-so undergoes N+1 transfers. The CTI trails appear behind bright pixels as the
-traps capture electrons from their original pixels and release them at a later
-time.
+As this illustrates, charge is transferred "up" from row N to row 0
+along each independent column, and "left" from column M to column 0.
+During the up-down (parallel) movement, charge in the first element/pixel 0
+undergoes 1 transfer, and charge in the final row N (which is farthest from the 
+readout register) undergoes N+1 transfers. Electrons from these charge packets
+are trapped, delayed, then released at a later time - to emerge as CTI trails 
+behind bright pixels.
 
 Parallel clocking is the transfer along each independent column, while serial
 clocking is across the columns and is performed after parallel clocking, if the
@@ -364,7 +372,7 @@ As described in more detail in Massey et al. (2014) section 2.1.5, the effects
 of each individual pixel-to-pixel transfer can be very similar, so multiple
 transfers can be computed at once for efficiency.
 
-This allows much faster computation with a mild decrease in accuracy.
+This allows much faster computation with a mild decrease in accuracy. 
 
 For example, the electrons in the pixel closest to the readout have only one
 transfer, those in the 2nd pixel undergo 2, those in the 3rd have 3, and so on.
@@ -376,14 +384,26 @@ without assumptions.
 
 The default `express = 0` is a convenient input for automatic `express = N`.
 
-### Offsets and windows
-To account for additional transfers before the first image pixel reaches the
-readout (e.g. a prescan region), the `offset` sets the number of extra pixels.
+Note that the total charge in an image is guaranteed to be conserved only with
+`express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
+length is comparable to the image size).
 
-Somewhat similarly, instead of adding CTI to the entire supplied image, only a
-subset of pixels can be selected using the `window_start` and `_stop` arguments.
-Note that, because of edge effects, the range should be started several pixels
-before the actual region of interest.
+### Offsets, windows, and overscan
+To account for additional transfers before the first image pixel reaches the
+readout (e.g. a prescan region, or if you are passing a postage stamp cut-out), 
+the `offset` sets the number of extra pixels before the first one in the image.
+
+The opposite approach is to pass arCTIc a full image, but ask it to process only
+a small region, for speed. These can be selected using the `window_start` and 
+`window_stop` arguments. Because of edge effects, the range should be started 
+several pixels before the actual region of interest - all other pixels will be
+treated as if they were empty, so if the window contains background, it will
+suffer FPR.
+
+If some of the pixels in the image array represent virtual overscan, these can
+be indicated via the `overscan` arguments. They do not start undergoing transfers 
+until they reach the physical CCD. However, they should be created in the image
+array and passed to arCTIc in order to give them e.g. bias offset.
 
 
 \
@@ -539,6 +559,25 @@ builds the C++ objects as arguments for the core library functions.
 
 
 
+\
+Version history
+===============
+
++ **v7 (2022, C++/python)** Translation of v6, now back to full speed. Includes all features seen in Euclid CCDs before launch.
+
++ **v6 (2020, [cython/python](https://github.com/jkeger/arcticpy))** Jacob Kegerreis implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps, charge injection, or trap pumping. Much slower than v5.
+
++ **v5 (2015, [C++](https://github.com/ocordes/arctic/))** Adaptive 'neo2' gridding of traps by splitting the continuous field only at each electron fill levels, and recombining grid cells when traps refill at new high watermark [(Massey et al. 2015)](https://arxiv.org/abs/1506.07831)
+
++ **v4 (2014, C++)** Oliver Cordes and Ole Marggraf implement huge speed up. Monitors the high water mark of signal electrons, and only considers traps that could have been filled. Post-correction noise-whitening. [(Massey et al. 2014)](https://arxiv.org/abs/1401.1151).
+
++ **v3 (2010, IDL)** Richard Massey implements gradual tradeoff between accuracy and speed, through variable EXPRESS option. Inter-pixel traps confirmed to be degenerate with change of effective density, and release profile well-fit by sum of exponentials. Hubble Space Telescope model updated following shuttle servicing mission [(Massey 2010)](https://arxiv.org/abs/1009.4335).
+
++ **v2 (2009, [Java/IDL](http://www.astro.dur.ac.uk/~rjm/acs/CTE/))** Assumes a fixed grid of fractional traps (and introduces concept of well fill level) to reduce noise. Charge trap parameters measured from hot/warm pixels in Hubble Space Telescope imaging [(Massey et al. 2009)](https://arxiv.org/abs/0909.0507). Later converted to python by STScI, with EXPRESS=1 speedup also used by and empirical f(t) trap release profile. Capture confirmed empirically to be instant.
+
++ **v1 (2008, Java)** Chris Stoughton extends Fortran77 code by [Bristow (2003)](https://arxiv.org/abs/astro-ph/0310714), introducing 3D pixel structure, multiple trap species, and reducing runtime by moving traps not charge. Discrete traps are distributed at random, which adds noise, and are monitored during every transfer, which is slow. Predicted effect for SNAP telescope [(Rhodes et al. 2010)](https://arxiv.org/abs/1002.1479).
+
+Older algorithms for CTI correction either approximated trailing as convolution with a flux-dependent kernel (e.g. [Rhodes et al. 2000](https://arxiv.org/abs/astro-ph/9905090)) or were additive/multiplicative factors applied to object flux/position/shape/etc at a catalogue level (e.g. [Riess et al. 2000](https://ui.adsabs.harvard.edu/link_gateway/2000wfpc.rept....4R/PUB_PDF), [2003](https://ui.adsabs.harvard.edu/link_gateway/2003acs..rept....9R/PUB_PDF), [Rhodes et al. 2007](https://arxiv.org/abs/astro-ph/0702140)).
 
 
 <!--
