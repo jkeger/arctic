@@ -1,7 +1,7 @@
-ArCTIC
+ArCTIc
 ======
 
-AlgoRithm for Charge Transfer Inefficiency (CTI) Correction
+AlgoRithm for Charge Transfer Inefficiency (CTI) correction
 -----------------------------------------------------------
 
 Add or remove image trails due to charge transfer inefficiency in CCD detectors
@@ -43,6 +43,15 @@ Contents
 Installation
 ============
 
+
+<!--
+    **MacOS:** requires `mkdir build; sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
+If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
+    **MacOS:** On the first build, mac users may also need to create an (empty) directory 
+/sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
+ Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
+-->
+
 Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
 
 Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
@@ -68,20 +77,20 @@ Troubleshooting (individual steps within the makefile)
     + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
 
+    **MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
+
 
 \
 Usage
 =====
-See the `run_demo()` functions in `src/main.cpp` and `test/test_arcticpy.py` for
-more basic examples of using the main code or python wrapper to add and remove
-CTI to a test image.
 
+Python
+------
+ArCTIc will typically be used via the `arcticpy` python wrapper module, which uses Cython to interface with the precompiled C++ dynamic library.
 
-Python wrapper
---------------
-Full example correction of CTI for a Hubble Space Telescope ACS image,
-using the [https://pypi.org/project/autoarray/](autoarray) package
-to load and save the fits image with correct units and quadrant rotations, etc:
+For example, to correct CTI in a Hubble Space Telescope ACS image
+(using the [autoarray](https://pypi.org/project/autoarray/) package
+to load and save the fits image with correct units and quadrant rotations, etc):
 ```python
 import arcticpy as cti
 import autoarray as aa
@@ -140,13 +149,17 @@ aa.acs.output_quadrants_to_fits(
     overwrite=True,
 )
 ```
+More examples adding or removing CTI trails from a test image
+are in the `run_demo()` function of `test/test_arcticpy.py`.
+
+Run `python3 test/test_arcticpy.py` with `-d` or `-b` for
+demo or benchmark functions. 
 
 
 \
 C++
 ---
-ArCTIC will typically be used via the python wrapper module, but the code can be
-run directly as `./arctic` with the following command-line options:
+ArCTIc can also be run directly as `./arctic` with the following command-line options:
 
 + `-h`, `--help`  
     Print help information and exit.
@@ -165,19 +178,17 @@ run directly as `./arctic` with the following command-line options:
     e.g. for profiling.
 
 \
-The code can also be used as a library for other C++ programs, as in the
-`lib_test` example.
-
-The python wrapper also has demo and benchmark functions provided.
-Run `python3 test/test_arcticpy.py` with `-d` or `-b` (or the long versions)
-as above, or with anything else to print help information.
-
+The C++ code can also be used as a library for other C++ programs.
+See the `run_demo()` function in `src/main.cpp` for
+examples adding and removing CTI trails from a test image, 
+and the `lib_test` example described below.
 
 
 \
 Unit Tests
 ==========
-Tests are included for most individual parts of the code, organised with Catch2.
+Tests are included for most individual parts of the code, organised with 
+[Catch2](https://github.com/catchorg/Catch2).
 
 As well as making sure the code is working correctly, most tests are intended to
 be relatively reader-friendly examples to help show how all the pieces of the
