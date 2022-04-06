@@ -571,7 +571,7 @@ std::valarray<std::valarray<double>> add_cti(
     int serial_express, int serial_offset, 
     int serial_window_start, int serial_window_stop, 
     int serial_time_start, int serial_time_stop,
-    int iteration) {
+    int verbosity, int iteration) {
     
  
     // Print unless being called by remove_cti()

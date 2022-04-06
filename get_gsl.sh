@@ -35,4 +35,4 @@ make install -j
 # Clean up
 cd ..
 rm -rf gsl-"$version"*
-rm -rf build
+#rm -rf build

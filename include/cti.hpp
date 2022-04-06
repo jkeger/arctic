@@ -38,7 +38,7 @@ std::valarray<std::valarray<double>> add_cti(
     int serial_express = 0, int serial_window_offset = 0, 
     int serial_window_start = 0, int serial_window_stop = -1, 
     int serial_time_start = 0, int serial_time_stop = -1,
-    int iteration = 0);
+    int verbosity = 0, int iteration = 0);
 
 std::valarray<std::valarray<double>> remove_cti(
     std::valarray<std::valarray<double>>& image_in, int n_iterations,
