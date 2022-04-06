@@ -34,6 +34,8 @@ class ROEStepPhase {
 class ROE {
    public:
     ROE(std::valarray<double>& dwell_times = dwell_times_default,
+        int prescan_offset = 0,
+        int overscan_start = -1,
         bool empty_traps_between_columns = true,
         bool empty_traps_for_first_transfers = false,
         bool force_release_away_from_readout = true,
@@ -43,6 +45,8 @@ class ROE {
     ROE& operator=(const ROE& roe);
 
     std::valarray<double>& dwell_times;
+    int prescan_offset;
+    int overscan_start;
     bool empty_traps_between_columns;
     bool empty_traps_for_first_transfers;
     bool force_release_away_from_readout;
@@ -59,7 +63,7 @@ class ROE {
     int n_pumps;
 
     virtual void set_express_matrix_from_rows_and_express(
-        int n_rows, int express = 0, int offset = 0, int overscan = 0);
+        int n_rows, int express = 0, int offset = 0);
     virtual void set_store_trap_states_matrix();
     virtual void set_clock_sequence();
 };
@@ -68,13 +72,15 @@ class ROEChargeInjection : public ROE {
    public:
     ROEChargeInjection(
         std::valarray<double>& dwell_times = dwell_times_default,
+        int prescan_offset = 0,
+        int overscan_start = -1,
         bool empty_traps_between_columns = true,
         bool force_release_away_from_readout = true,
         bool use_integer_express_matrix = false);
     virtual ~ROEChargeInjection(){};
 
     void set_express_matrix_from_rows_and_express(
-        int n_rows, int express = 0, int offset = 0, int overscan = 0);
+        int n_rows, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
 };
 
@@ -87,7 +93,7 @@ class ROETrapPumping : public ROE {
     virtual ~ROETrapPumping(){};
 
     void set_express_matrix_from_rows_and_express(
-        int n_rows, int express = 0, int offset = 0, int overscan = 0);
+        int n_rows, int express = 0, int offset = 0);
     void set_store_trap_states_matrix();
 };
 

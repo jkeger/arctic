@@ -29,7 +29,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 20);
@@ -98,7 +98,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 0.5));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 120);
@@ -184,7 +184,7 @@ TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]"
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 0.5));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 40);
@@ -215,7 +215,6 @@ TEST_CASE("Test add CTI", "[cti]") {
     int offset = 0;
     int start = 0;
     int stop = -1;
-    int overscan = 0;
     int time_start = 0;
     int time_stop = -1;
 
@@ -227,7 +226,7 @@ TEST_CASE("Test add CTI", "[cti]") {
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti = {
             // clang-format off
@@ -253,9 +252,9 @@ TEST_CASE("Test add CTI", "[cti]") {
         // Add serial
         image_add = add_cti(
             image_add, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, express,
-            offset, start, stop, overscan, time_start, time_stop, 
+            offset, start, stop, time_start, time_stop, 
             &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
-            &traps_sc_co, express, offset, start, stop, overscan, time_start, time_stop);
+            &traps_sc_co, express, offset, start, stop, time_start, time_stop);
         image_clock = transpose(image_clock);
         image_clock = clock_charge_in_one_direction(
             image_clock, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
@@ -266,7 +265,7 @@ TEST_CASE("Test add CTI", "[cti]") {
         // Both at once
         image_add = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-            express, offset, start, stop, overscan, time_start, time_stop, 
+            express, offset, start, stop, time_start, time_stop, 
             &roe, &ccd, &traps_ic, &traps_sc,
             &traps_ic_co, &traps_sc_co, express, offset, start, stop);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
@@ -280,7 +279,7 @@ TEST_CASE("Test add CTI", "[cti]") {
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 20);
@@ -325,7 +324,7 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         TrapSlowCapture trap_sc(10.0, -1.0 / log(0.5), 0.1);
         std::valarray<TrapInstantCapture> traps_ic = {trap_ic};
         std::valarray<TrapSlowCapture> traps_sc = {trap_sc};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 10);
@@ -357,7 +356,7 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         TrapInstantCaptureContinuum trap_ic_co(10.0, -1.0 / log(0.5), 0.01);
         std::valarray<TrapInstantCapture> traps_ic = {trap_ic};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_ic_co};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 10);
@@ -387,7 +386,7 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         TrapSlowCaptureContinuum trap_sc_co(10.0, -1.0 / log(0.5), 0.3, 0.1);
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {trap_ic_co};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_sc_co};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 10);
@@ -422,7 +421,7 @@ TEST_CASE("Test add CTI, compare trap species", "[cti]") {
         TrapSlowCaptureContinuum trap_sc_co(10.0, -1.0 / log(0.5), 0.01, 0.3);
         std::valarray<TrapSlowCapture> traps_sc = {trap_sc};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {trap_sc_co};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 10);
@@ -452,7 +451,6 @@ TEST_CASE("Test remove CTI", "[cti]") {
     int offset = 0;
     int start = 0;
     int stop = -1;
-    int overscan = 0;
 
     SECTION("Parallel and serial, better CTI removal with more iterations") {
         // Start with the same image as "Test add CTI"
@@ -464,7 +462,7 @@ TEST_CASE("Test remove CTI", "[cti]") {
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe(dwell_times, true, false, true, true);
+        ROE roe(dwell_times, 0, -1, true, false, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti = {
             // clang-format off
@@ -481,18 +479,18 @@ TEST_CASE("Test remove CTI", "[cti]") {
         // Add CTI
         image_add_cti = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-            express, offset, start, stop, overscan, 0, -1,  
+            express, offset, start, stop, 0, -1,  
             &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-            express, offset, start, stop, overscan, 0, -1);
+            express, offset, start, stop, 0, -1);
 
         // Remove CTI
         for (int n_iterations = 2; n_iterations <= 6; n_iterations++) {
             image_remove_cti = remove_cti(
                 image_add_cti, n_iterations, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, start, stop, overscan, 0, -1, 
+                express, offset, start, stop, 0, -1, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, start, stop, overscan, 0, -1);
+                express, offset, start, stop, 0, -1);
 
             // Expect better results with more iterations
             double tolerance = pow(10.0, 1 - n_iterations);
@@ -514,7 +512,7 @@ TEST_CASE("Test offset and windows", "[cti]") {
     std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
     std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
     std::valarray<double> dwell_times = {1.0};
-    ROE roe(dwell_times, true, false, true, true);
+    ROE roe(dwell_times, 0, -1, true, false, true, true);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
 
     SECTION("Add CTI, single pixel, vary offset") {
@@ -623,7 +621,6 @@ TEST_CASE("Test offset and windows", "[cti]") {
             // clang-format on
         };
         offset = 0;
-        int overscan = 0;
         int express_tests[3] = {1, 3, 12};
 
         // Set a window on the middle region
@@ -640,17 +637,17 @@ TEST_CASE("Test offset and windows", "[cti]") {
             image_post_cti_full = add_cti(
                 image_pre_cti, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, 0, -1, overscan, 0, -1,
+                express, offset, 0, -1, 0, -1,
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, 0, -1, overscan, 0, -1);
+                express, offset, 0, -1, 0, -1);
 
             // Window
             image_post_cti = add_cti(
                 image_pre_cti, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, parallel_start, parallel_stop, overscan, 0, -1,
+                express, offset, parallel_start, parallel_stop, 0, -1,
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, serial_start, serial_stop, overscan, 0, -1);
+                express, offset, serial_start, serial_stop, 0, -1);
 
             for (int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
                 // Extract each row to compare
