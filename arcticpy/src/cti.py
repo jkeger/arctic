@@ -227,6 +227,8 @@ def add_cti(
         # ========
         # ROE
         parallel_roe.dwell_times,
+        parallel_roe.prescan_offset,
+        parallel_roe.overscan_start,
         parallel_roe.empty_traps_between_columns,
         parallel_roe.empty_traps_for_first_transfers,
         parallel_roe.force_release_away_from_readout,
@@ -259,6 +261,8 @@ def add_cti(
         # ========
         # ROE
         serial_roe.dwell_times,
+        serial_roe.prescan_offset,
+        serial_roe.overscan_start,
         serial_roe.empty_traps_between_columns,
         serial_roe.empty_traps_for_first_transfers,
         serial_roe.force_release_away_from_readout,

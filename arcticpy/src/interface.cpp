@@ -48,11 +48,15 @@ void add_cti(
     // Parallel
     // ========
     // ROE
-    double* parallel_dwell_times_in, int parallel_n_steps,
+    double* parallel_dwell_times_in, 
+    int parallel_n_steps,
+    int parallel_prescan_offset,
+    int parallel_overscan_start,
     bool parallel_empty_traps_between_columns,
     bool parallel_empty_traps_for_first_transfers,
     bool parallel_force_release_away_from_readout,
-    bool parallel_use_integer_express_matrix, int parallel_n_pumps,
+    bool parallel_use_integer_express_matrix, 
+    int parallel_n_pumps,
     int parallel_roe_type,
     // CCD
     double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
@@ -71,11 +75,16 @@ void add_cti(
     // Serial
     // ========
     // ROE
-    double* serial_dwell_times_in, int serial_n_steps,
+    double* serial_dwell_times_in, 
+    int serial_n_steps,
+    int serial_prescan_offset,
+    int serial_overscan_start,
     bool serial_empty_traps_between_columns,
     bool serial_empty_traps_for_first_transfers,
-    bool serial_force_release_away_from_readout, bool serial_use_integer_express_matrix,
-    int serial_n_pumps, int serial_roe_type,
+    bool serial_force_release_away_from_readout, 
+    bool serial_use_integer_express_matrix,
+    int serial_n_pumps, 
+    int serial_roe_type,
     // CCD
     double* serial_fraction_of_traps_per_phase_in, int serial_n_phases,
     double* serial_full_well_depths, double* serial_well_notch_depths,
@@ -116,18 +125,27 @@ void add_cti(
     ROE* p_parallel_roe = NULL;
     if (parallel_roe_type == 0) {
         p_parallel_roe = new ROE(
-            parallel_dwell_times, parallel_empty_traps_between_columns,
+            parallel_dwell_times, 
+            parallel_prescan_offset,
+            parallel_overscan_start,
+            parallel_empty_traps_between_columns,
             parallel_empty_traps_for_first_transfers,
             parallel_force_release_away_from_readout,
             parallel_use_integer_express_matrix);
     } else if (parallel_roe_type == 1) {
         p_parallel_roe = new ROEChargeInjection(
-            parallel_dwell_times, parallel_empty_traps_between_columns,
+            parallel_dwell_times, 
+            parallel_prescan_offset,
+            parallel_overscan_start,
+            parallel_empty_traps_between_columns,
             parallel_force_release_away_from_readout,
             parallel_use_integer_express_matrix);
     } else {
         p_parallel_roe = new ROETrapPumping(
-            parallel_dwell_times, parallel_n_pumps,
+            parallel_dwell_times, 
+            parallel_n_pumps,
+            parallel_prescan_offset,
+            parallel_overscan_start,
             parallel_empty_traps_for_first_transfers,
             parallel_use_integer_express_matrix);
     }
@@ -195,16 +213,28 @@ void add_cti(
     ROE* p_serial_roe = NULL;
     if (serial_roe_type == 0) {
         p_serial_roe = new ROE(
-            serial_dwell_times, serial_empty_traps_between_columns,
+            serial_dwell_times, 
+            serial_prescan_offset,
+            serial_overscan_start,
+            serial_empty_traps_between_columns,
             serial_empty_traps_for_first_transfers,
-            serial_force_release_away_from_readout, serial_use_integer_express_matrix);
+            serial_force_release_away_from_readout, 
+            serial_use_integer_express_matrix);
     } else if (serial_roe_type == 1) {
         p_serial_roe = new ROEChargeInjection(
-            serial_dwell_times, serial_empty_traps_between_columns,
-            serial_force_release_away_from_readout, serial_use_integer_express_matrix);
+            serial_dwell_times, 
+            serial_prescan_offset,
+            serial_overscan_start,
+            serial_empty_traps_between_columns,
+            serial_force_release_away_from_readout, 
+            serial_use_integer_express_matrix);
     } else {
         p_serial_roe = new ROETrapPumping(
-            serial_dwell_times, serial_n_pumps, serial_empty_traps_for_first_transfers,
+            serial_dwell_times, 
+            serial_n_pumps, 
+            serial_prescan_offset,
+            serial_overscan_start,
+            serial_empty_traps_for_first_transfers,
             serial_use_integer_express_matrix);
     }
 

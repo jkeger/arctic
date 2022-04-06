@@ -15,11 +15,15 @@ void add_cti(
     // Parallel
     // ========
     // ROE
-    double* parallel_dwell_times_in, int parallel_n_steps,
+    double* parallel_dwell_times_in, 
+    int parallel_n_steps,
+    int parallel_prescan_offset,
+    int parallel_overscan_start,
     bool parallel_empty_traps_between_columns,
     bool parallel_empty_traps_for_first_transfers,
     bool parallel_force_release_away_from_readout,
-    bool parallel_use_integer_express_matrix, int parallel_n_pumps,
+    bool parallel_use_integer_express_matrix, 
+    int parallel_n_pumps,
     int parallel_roe_type,
     // CCD
     double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
