@@ -88,7 +88,8 @@ class ROETrapPumping : public ROE {
    public:
     ROETrapPumping(
         std::valarray<double>& dwell_times = dwell_times_trap_pumping_default,
-        int n_pumps = 1, bool empty_traps_for_first_transfers = true,
+        int n_pumps = 1, 
+        bool empty_traps_for_first_transfers = true,
         bool use_integer_express_matrix = false);
     virtual ~ROETrapPumping(){};
 

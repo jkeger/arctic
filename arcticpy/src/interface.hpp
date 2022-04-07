@@ -42,7 +42,10 @@ void add_cti(
     // Serial
     // ========
     // ROE
-    double* serial_dwell_times_in, int serial_n_steps,
+    double* serial_dwell_times_in, 
+    int serial_n_steps,
+    int serial_prescan_offset,
+    int serial_overscan_start,
     bool serial_empty_traps_between_columns,
     bool serial_empty_traps_for_first_transfers,
     bool serial_force_release_away_from_readout, bool serial_use_integer_express_matrix,

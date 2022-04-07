@@ -144,8 +144,6 @@ void add_cti(
         p_parallel_roe = new ROETrapPumping(
             parallel_dwell_times, 
             parallel_n_pumps,
-            parallel_prescan_offset,
-            parallel_overscan_start,
             parallel_empty_traps_for_first_transfers,
             parallel_use_integer_express_matrix);
     }
@@ -232,8 +230,6 @@ void add_cti(
         p_serial_roe = new ROETrapPumping(
             serial_dwell_times, 
             serial_n_pumps, 
-            serial_prescan_offset,
-            serial_overscan_start,
             serial_empty_traps_for_first_transfers,
             serial_use_integer_express_matrix);
     }
