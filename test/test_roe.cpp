@@ -316,30 +316,6 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(roe.n_express_passes == 3);
 
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-   
-        
         //Prescan and overscan, charge injection readout
         ROEChargeInjection roeci(dwell_times, 0, overscan_start, true, true, true);
 
@@ -385,9 +361,6 @@ TEST_CASE("Test express matrix", "[roe]") {
         test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roeci.n_express_passes == 3);        
-    
-
-    
     
     }
 
