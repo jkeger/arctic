@@ -267,6 +267,131 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(roe.n_express_passes == 17);
     }
 
+    SECTION("Overscan in express matrix") {
+        
+        //Prescan and overscan, normal readout
+        int overscan_start = 11;
+        ROE roe(dwell_times, 0, overscan_start, true, false, true, true);
+
+        express = 1;
+        offset = 5;
+        n_rows = 12;
+        roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+
+        express = 3;
+        roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {
+            // clang-format off
+            6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+            0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 3);
+        
+        //Just overscan, no prescan
+        offset = 0;
+        express = 1;
+        roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10};
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+
+        express = 3;
+        roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {
+            // clang-format off
+            1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 4, 4,
+            0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2,
+            // clang-format on
+        };
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roe.n_express_passes == 3);
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+   
+        
+        //Prescan and overscan, charge injection readout
+        ROEChargeInjection roeci(dwell_times, 0, overscan_start, true, true, true);
+
+        express = 1;
+        offset = 5;
+        n_rows = 13;
+        roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+        test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roeci.n_express_passes == 1);
+
+        express = 3;
+        roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {
+            // clang-format off
+            4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+            // clang-format on
+        };
+        test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roeci.n_express_passes == 3);
+        
+        //Just overscan, no prescan
+        offset = 0;
+        express = 1;
+        roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+        test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
+        REQUIRE(test == answer);
+
+        express = 3;
+        roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        answer = {
+            // clang-format off
+            4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+            // clang-format on
+        };
+        test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
+        REQUIRE(test == answer);
+        REQUIRE(roeci.n_express_passes == 3);        
+    
+
+    
+    
+    }
+
+
     SECTION("Non-integer express matrix, not empty for first transfers") {
         ROE roe(dwell_times, 0, -1, true, true, true, false);
 
@@ -419,6 +544,7 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 12);
     }
+
 
     SECTION("Check always sums to n_transfers") {
         std::valarray<int> rows = {5, 7, 17};
@@ -1979,5 +2105,54 @@ TEST_CASE("Test trap pumping clock sequence", "[roe]") {
         REQUIRE(roe.clock_sequence[7][3].release_to_which_pixels[1] == 0);
         REQUIRE(roe.clock_sequence[7][3].release_fraction_to_pixels[0] == 0.5);
         REQUIRE(roe.clock_sequence[7][3].release_fraction_to_pixels[1] == 0.5);
+    }
+}
+
+
+
+TEST_CASE("Test express matrix with prescan and overscan", "[roe]") {
+    std::vector<double> test, answer;
+    int n_rows = 12;
+    int express = 0;
+    int offset = 3;
+    std::valarray<double> dwell_times = {1.0};
+
+    SECTION("Equivalent input options for (window or prescan) offset") {
+
+        // Charge injection redout 
+        ROE roe_zero(dwell_times, 0, -1, true, true, true, true);
+        roe_zero.set_express_matrix_from_rows_and_express(n_rows, express, 0);
+        
+        ROE roe_prescan(dwell_times, offset, -1, true, true, true, true);
+        roe_prescan.set_express_matrix_from_rows_and_express(n_rows, express, 0);
+        
+        ROE roe(dwell_times, 0, -1, true, true, true, true);
+        roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+        
+        answer.assign(std::begin(roe_prescan.express_matrix), std::end(roe_prescan.express_matrix));
+        test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
+        REQUIRE(test == answer);
+        
+        //Overscan increases number of transfers
+        REQUIRE(roe.express_matrix.sum() == roe_zero.express_matrix.sum() + 36);
+
+
+        // Charge injection redout 
+        ROEChargeInjection roeci_zero(dwell_times, 0, -1, true, true, true);
+        roeci_zero.set_express_matrix_from_rows_and_express(n_rows, express, 0);
+        
+        ROEChargeInjection roeci_prescan(dwell_times, offset, -1, true, true, true);
+        roeci_prescan.set_express_matrix_from_rows_and_express(n_rows, express, 0);
+        
+        ROEChargeInjection roeci(dwell_times, 0, -1, true, true, true);
+        roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
+
+        answer.assign(std::begin(roeci_prescan.express_matrix), std::end(roeci_prescan.express_matrix));
+        test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
+        REQUIRE(test == answer);
+        
+        //Overscan increases number of transfers
+        REQUIRE(roeci.express_matrix.sum() == roeci_zero.express_matrix.sum() + 36);        
+
     }
 }

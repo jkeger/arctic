@@ -687,8 +687,8 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
         std::valarray<TrapSlowCapture> traps_sc = {};
         std::valarray<TrapInstantCaptureContinuum> traps_ic_co = {};
         std::valarray<TrapSlowCaptureContinuum> traps_sc_co = {};
-        ROE roe_std(dwell_times, true, false, true);
-        ROEChargeInjection roe_ci(dwell_times, true, true);
+        ROE roe_std(dwell_times, 0, -1, true, false, true);
+        ROEChargeInjection roe_ci(dwell_times, 0, -1, true, true);
         CCD ccd(CCDPhase(1e3, 0.0, 1.0));
         image_pre_cti =
             std::valarray<std::valarray<double>>(std::valarray<double>(0.0, 1), 12);
@@ -736,6 +736,7 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
         // each other since the later pixels undergo more transfers
 
         // More charge captured from later bright pixels from more transfers
+        // Early bright pixels prefill traps, so 
         REQUIRE(image_post_cti_std[0][0] > image_post_cti_std[4][0]);
         REQUIRE(image_post_cti_std[4][0] > image_post_cti_std[8][0]);
         // More charge released into later trails from more transfers

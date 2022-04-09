@@ -149,6 +149,30 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     // Print model inputs
     if (print_inputs == -1) print_inputs = verbosity >= 1;
 
+
+
+
+
+
+
+
+
+
+
+
+    print_inputs = false; 
+
+
+
+
+
+
+
+
+
+
+
+
     if (print_inputs) {
         print_v(2, "\n");
         printf("  express = %d \n", express);

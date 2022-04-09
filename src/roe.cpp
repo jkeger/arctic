@@ -221,26 +221,26 @@ ROE& ROE::operator=(const ROE& roe) {
         matrices.
 */
 void ROE::set_express_matrix_from_rows_and_express(
-    int n_rows, int express, int offset) {
+    int n_rows, int express, int window_offset) {
 
-
-    //
-    // TBD
-    //
-    int overscan = 0; //n_rows + offset - overscan_start;
-    
-    //print_v(0,"input overscan %d \n",overscan);
-    //overscan = overscans;
-    //print_v(0,"roe overscan %d \n",overscans);
-    //print_v(0,"n e o %d %d %d \n",n_rows,express,offset);
-    
-    int n_transfers = n_rows + offset;
-
-    // Set default express to all transfers, and check no larger
+    // Set defaults
+    int offset = window_offset + prescan_offset;
+    int n_transfers = n_rows + offset; // transfers taken by farthest included pixel 
+    int overscan = 0; // number of pixels in the supplied image that are overscan
+    if (overscan_start >= 0)
+        overscan = std::max(n_rows + window_offset + 1 - overscan_start, 0);
     if (express == 0)
-        express = n_transfers;
+        express = n_transfers; // default express to all transfers, and check no larger
     else
         express = std::min(express, n_transfers);
+
+    /* print_v(
+        0,"offset: %d %d %d, n_transfers: %d, overscan: %d %d \n", 
+        offset, window_offset, prescan_offset, n_transfers, overscan, overscan_start
+    ); */
+    
+ 
+    // Set default express to all transfers, and check no larger
 
     // Temporarily ignore the first pixel-to-pixel transfer, if it is to be
     // handled differently than the rest
@@ -272,10 +272,6 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Truncate all values to between 0 and max_multiplier
     tmp_express_matrix[tmp_express_matrix < 0.0] = 0.0;
     tmp_express_matrix[tmp_express_matrix > max_multiplier] = max_multiplier;
-    //print_array_2D(tmp_express_matrix, n_transfers);
-    
-    
-    /// Need to limit transfers in overscan
 
     
     // Add an extra (first) transfer for every pixel, the effect of which
@@ -635,24 +631,36 @@ ROEChargeInjection::ROEChargeInjection(
     through all the pixels to the readout register.
 */
 void ROEChargeInjection::set_express_matrix_from_rows_and_express(
-    int n_rows, int express, int offset) {
+    int n_rows, int express, int window_offset) {
+    
+/*    
+    // Can almost do with (just) the following
+    if (overscan_start <= 0)
+        overscan_start = n_rows + window_offset + 1;
+    int overscan_start_temp = overscan_start;
+    prescan_offset += (overscan_start - 1); // Add all pixels into the "prescan"
+    overscan_start = 1; // Start overscan immediately after the prescan
+    ROE::set_express_matrix_from_rows_and_express(n_rows, express, window_offset);
+    overscan_start = overscan_start_temp;
+    prescan_offset -= (overscan_start - 1); 
+*/    
 
-    //if (overscan != 0) error("Trap pumping can't yet handle overscan (%d)", overscan);
-    int n_transfers = n_rows + offset;
-   
-    // Set default express to all transfers, and check no larger
+    // Set defaults
+    //int offset = window_offset + prescan_offset;
+    int n_transfers = prescan_offset + window_offset + n_rows; // transfers taken by farthest included pixel 
+    if (overscan_start >= 0) n_transfers = prescan_offset + overscan_start - 1;
     if (express == 0)
-        express = n_transfers;
+        express = n_transfers; // default express to all transfers, and check no larger
     else
         express = std::min(express, n_transfers);
+    n_express_passes = express;
 
     // Compute the multiplier factors
     double max_multiplier = (double)n_transfers / express;
     if (use_integer_express_matrix) max_multiplier = ceil(max_multiplier);
 
-    // Initialise an array with enough pixels to contain the supposed image,
-    // including offset
-    std::valarray<double> tmp_express_matrix(max_multiplier, express * n_transfers);
+    // Initialise an array that will become the express matrix (can't create the array itself)
+    std::valarray<double> tmp_express_matrix(max_multiplier, express * n_rows);
 
     // Adjust integer multipliers to correct the total number of transfers
     if ((use_integer_express_matrix) && (n_transfers % express != 0)) {
@@ -663,38 +671,19 @@ void ROEChargeInjection::set_express_matrix_from_rows_and_express(
             // Count the current number of transfers for this pixel
             current_n_transfers = 0.0;
             for (int i = 0; i <= express_index; i++) {
-                current_n_transfers += tmp_express_matrix[i * n_transfers];
+                current_n_transfers += tmp_express_matrix[i * n_rows];
             }
 
             // Reduce the multipliers until no longer have too many transfers
             if (current_n_transfers <= n_transfers) break;
-
             reduced_multiplier =
                 std::max(0.0, max_multiplier + n_transfers - current_n_transfers);
-
             tmp_express_matrix[std::slice(
-                express_index * n_transfers, n_transfers, 1)] = reduced_multiplier;
+                express_index * n_rows, n_rows, 1)] = reduced_multiplier;
         }
     }
+    express_matrix = tmp_express_matrix;
 
-    n_express_passes = express;
-
-    // Finished if no offset
-    if (offset == 0) {
-        express_matrix = tmp_express_matrix;
-        return;
-    }
-
-    // Remove the offset (which is not represented in the image pixels)
-    std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
-
-    // Copy the post-offset slices of each row
-    for (int express_index = 0; express_index < n_express_passes; express_index++) {
-        express_matrix_trim[std::slice(express_index * n_rows, n_rows, 1)] =
-            tmp_express_matrix[std::slice(express_index * n_transfers, n_rows, 1)];
-    }
-
-    express_matrix = express_matrix_trim;
 }
 
 /*
@@ -843,7 +832,7 @@ void ROEChargeInjection::set_store_trap_states_matrix() {
 ROETrapPumping::ROETrapPumping(
     std::valarray<double>& dwell_times, int n_pumps,
     bool empty_traps_for_first_transfers, bool use_integer_express_matrix)
-    : ROE(dwell_times, prescan_offset, overscan_start, true, empty_traps_for_first_transfers, false,
+    : ROE(dwell_times, 0, -1, true, empty_traps_for_first_transfers, false,
           use_integer_express_matrix) {
 
     type = roe_type_trap_pumping;
@@ -870,10 +859,7 @@ ROETrapPumping::ROETrapPumping(
     the pixel furthest from readout with standard clocking.
 */
 void ROETrapPumping::set_express_matrix_from_rows_and_express(
-    int n_rows, int express, int offset) {
-
-    //if (offset != 0) error("Trap pumping requires the offset (%d) to be 0", offset);
-    //if (overscan != 0) error("Trap pumping requires the overscan (%d) to be 0", overscan);
+    int n_rows, int express, int window_offset) {
 
     // Set default express to all transfers, and check no larger
     if (express == 0)
@@ -882,7 +868,7 @@ void ROETrapPumping::set_express_matrix_from_rows_and_express(
         express = std::min(express, n_pumps);
 
     // Start with the standard express matrix for n_transfers = n_pumps
-    ROE::set_express_matrix_from_rows_and_express(n_pumps, express, offset);
+    ROE::set_express_matrix_from_rows_and_express(n_pumps, express, window_offset);
 
     // Extract the relevant express multipliers of the final pixel
     std::valarray<double> tmp_col(0.0, n_express_passes);

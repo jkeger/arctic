@@ -10,7 +10,7 @@ class ROE(object):
         self,
         dwell_times=[1.0],
         prescan_offset=0,
-        overscan_start=None,
+        overscan_start=-1,
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
