@@ -76,7 +76,7 @@ int run_demo() {
 
     // Remove CTI
     print_v(1, "\n# Remove CTI \n");
-    int n_iterations = 3;
+    int n_iterations = 5;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
