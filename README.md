@@ -448,7 +448,7 @@ in exactly the same way (and adds to) any `window_offset`.
 
 Use `overscan_start` to specify the first pixel in a supplied data array that
 is virtual overscan. This effectively defines the number of physical pixels in
-the CCD as `overscan_start-1`. Unfortuantely, this needs to be specified here 
+the CCD as `overscan_start-1`. Unfortunately, this needs to be specified here 
 rather than in the CCD structure.
 
 ### Express matrix  
