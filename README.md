@@ -388,14 +388,17 @@ Note that the total charge in an image is guaranteed to be conserved only with
 length is comparable to the image size).
 
 ### Offsets and windows
-To account for additional transfers before the first image pixel reaches the
-readout (e.g. a prescan region), the `offset` sets the number of extra pixels.
+It is possible to (more quickly) process part of an image in two ways. In either
+use, because of edge effects, the region of interest should be expanded to 
+include several pixels closer to readout (when adding CTI) or in all directions
+(when correcting CTI).
 
-Somewhat similarly, instead of adding CTI to the entire supplied image, only a
-subset of pixels can be selected using the `window_start` and `_stop` arguments.
-Note that, because of edge effects, the range should be started several pixels
-before the actual region of interest.
+Either pass the full image, using the `window_start` and `_stop` arguments to 
+indicate the first and last pixel numbers to be processed; or pass a subset of 
+the image and use `offset` to indicate the number of missing, preceding pixels.
 
+### Partial readout
+TBD
 
 \
 CCD
@@ -437,6 +440,16 @@ Three different modes are available:
 See the `ROE`, `set_clock_sequence()`, and child class docstrings in `roe.cpp`
 for the full documentation, including illustrative diagrams of the multiphase
 clocking sequences.
+
+### Pre-scan and over-scan
+Use `prescan_offset` to specify the number of physical prescan pixels that are
+present in the hardware but always absent from stored data arrays. This works
+in exactly the same way (and adds to) any `window_offset`.
+
+Use `overscan_start` to specify the first pixel in a supplied data array that
+is virtual overscan. This effectively defines the number of physical pixels in
+the CCD as `overscan_start-1`. Unfortuantely, this needs to be specified here 
+rather than in the CCD structure.
 
 ### Express matrix  
 The `ROE` class also contains the `set_express_matrix_from_pixels_and_express()`
