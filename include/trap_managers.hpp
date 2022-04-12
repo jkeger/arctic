@@ -30,6 +30,7 @@ class TrapManagerBase {
     int n_watermarks;
     int stored_n_active_watermarks;
     int stored_i_first_active_wmk;
+    void prune_watermarks(double min_n_electrons = 0);
 
     std::valarray<double> trap_densities;
 
@@ -39,6 +40,8 @@ class TrapManagerBase {
     void restore_trap_states();
     virtual void setup();
 
+    virtual std::valarray<double> n_trapped_electrons_per_watermark();
+    //virtual double n_total_trapped_electrons();
     virtual double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
     int watermark_index_above_cloud(double cloud_fractional_volume);
@@ -166,6 +169,7 @@ class TrapManagerManager {
     void reset_trap_states();
     void store_trap_states();
     void restore_trap_states();
+    void prune_watermarks(double min_n_electrons = 0);
 };
 
 #endif  // ARCTIC_TRAP_MANAGERS_HPP

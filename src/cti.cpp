@@ -418,11 +418,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                                         n_electrons_released_and_captured);
 
                       
-/*                        print_v(
-                            0, "n_active_watermarks  %g \n",
+                        print_v(
+                            0, "%d ",
                             trap_manager_manager.trap_managers_ic[i_phase]
                                     .n_active_watermarks);
-                        print_array(
+/*                         print_array(
                             trap_manager_manager.trap_managers_ic[i_phase]
                                     .watermark_volumes);
                         print_array(
@@ -462,6 +462,13 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                     }
                 }
 
+                // Absorb really small watermarks  into others, for speed
+                double min_n_electrons = 9.3e-18;
+                //print_v(0,"%d ",((i_row -1) % 5));
+                if (((i_row - 1) % 5) == 0) {
+                    trap_manager_manager.prune_watermarks(min_n_electrons);
+                }
+                
                 // Store the trap states if needed for the next express pass
                 if (roe->store_trap_states_matrix[express_index * n_rows + row_index]) {
                     trap_manager_manager.store_trap_states();
