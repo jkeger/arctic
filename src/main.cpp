@@ -68,9 +68,9 @@ int run_demo() {
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-        express, offset, start, stop, start, stop, 
+        express, offset, start, stop, start, stop, 0, 1, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, start, stop, 0);
+        express, offset, start, stop, start, stop, 0, 1, 0);
     print_v(1, "\n# Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
@@ -80,9 +80,9 @@ int run_demo() {
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, start, stop, 
+        express, offset, start, stop, start, stop, 0, 1, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, start, stop);
+        express, offset, start, stop, start, stop, 0, 1);
     print_v(1, "\n# Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 
@@ -105,7 +105,7 @@ int run_benchmark() {
     FILE* f = fopen(filename, "r");
     if (!f) {
         const char* command =
-            "wget http://astro.dur.ac.uk/~cklv53/files/hst_acs_10_col.txt";
+            "wget thttp://www.astro.dur.ac.uk/~rjm/ArCTIc/hst_acs_10_col.txt";
         printf("%s\n", command);
         int status = system(command);
         if (status != 0) exit(status);
@@ -129,7 +129,7 @@ int run_benchmark() {
     // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
-        start, stop, start, stop);
+        start, stop, start, stop, 0, 1);
 
     return 0;
 }

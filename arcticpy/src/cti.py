@@ -118,6 +118,8 @@ def add_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
+    parallel_prune_n_electrons=1e-18, 
+    parallel_prune_frequency=100,
     # Serial
     serial_ccd=None,
     serial_roe=None,
@@ -128,6 +130,8 @@ def add_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
+    serial_prune_n_electrons=1e-18, 
+    serial_prune_frequency=100,
     # Output
     verbosity=1,
     iteration=0,
@@ -216,6 +220,9 @@ def add_cti(
             serial_n_traps_sc_co,
         ) = _set_dummy_parameters()
 
+    parallel_prune_n_es = np.array([parallel_prune_n_electrons], dtype=np.double)
+    serial_prune_n_es = np.array([serial_prune_n_electrons], dtype=np.double)
+
     # ========
     # Add CTI
     # ========
@@ -256,6 +263,8 @@ def add_cti(
         parallel_window_stop,
         parallel_time_start,
         parallel_time_stop,
+        parallel_prune_n_es,
+        parallel_prune_frequency,
         # ========
         # Serial
         # ========
@@ -290,6 +299,8 @@ def add_cti(
         serial_window_stop,
         serial_time_start,
         serial_time_stop,
+        serial_prune_n_es, 
+        serial_prune_frequency,
         # Output
         verbosity,
         iteration,
@@ -309,6 +320,8 @@ def remove_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
+    parallel_prune_n_electrons=1e-16,
+    parallel_prune_frequency=1,
     # Serial
     serial_ccd=None,
     serial_roe=None,
@@ -319,6 +332,8 @@ def remove_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
+    serial_prune_n_electrons=1e-16, 
+    serial_prune_frequency=1,
     # Output
     verbosity=1,
 ):
@@ -367,6 +382,8 @@ def remove_cti(
             parallel_window_stop=parallel_window_stop,
             parallel_time_start=parallel_time_start,
             parallel_time_stop=parallel_time_stop,
+            parallel_prune_n_electrons=parallel_prune_n_electrons,
+            parallel_prune_frequency=parallel_prune_frequency,
             # Serial
             serial_ccd=serial_ccd,
             serial_roe=serial_roe,
@@ -377,6 +394,8 @@ def remove_cti(
             serial_window_stop=serial_window_stop,
             serial_time_start=serial_time_start,
             serial_time_stop=serial_time_stop,
+            serial_prune_n_electrons=serial_prune_n_electrons, 
+            serial_prune_frequency=serial_prune_frequency,
             # Output
             verbosity=verbosity,
             iteration=iteration,

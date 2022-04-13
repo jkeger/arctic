@@ -38,6 +38,7 @@ void add_cti(
     int parallel_express, int parallel_offset, 
     int parallel_window_start, int parallel_window_stop, 
     int parallel_time_start, int parallel_time_stop,
+    double* parallel_prune_n_electrons, int parallel_prune_frequency,
     // ========
     // Serial
     // ========
@@ -63,5 +64,6 @@ void add_cti(
     int serial_express, int serial_offset, 
     int serial_window_start, int serial_window_stop, 
     int serial_time_start, int serial_time_stop,
+    double* serial_prune_n_electrons, int serial_prune_frequency,
     // Output
     int verbosity, int iteration);

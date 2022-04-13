@@ -252,9 +252,9 @@ TEST_CASE("Test add CTI", "[cti]") {
         // Add serial
         image_add = add_cti(
             image_add, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, express,
-            offset, start, stop, time_start, time_stop, 
+            offset, start, stop, time_start, time_stop, 0, 0, 
             &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
-            &traps_sc_co, express, offset, start, stop, time_start, time_stop);
+            &traps_sc_co, express, offset, start, stop, time_start, time_stop, 0, 0);
         image_clock = transpose(image_clock);
         image_clock = clock_charge_in_one_direction(
             image_clock, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
@@ -265,9 +265,9 @@ TEST_CASE("Test add CTI", "[cti]") {
         // Both at once
         image_add = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-            express, offset, start, stop, time_start, time_stop, 
-            &roe, &ccd, &traps_ic, &traps_sc,
-            &traps_ic_co, &traps_sc_co, express, offset, start, stop);
+            express, offset, start, stop, time_start, time_stop, 0, 0, 
+            &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
+            express, offset, start, stop, time_start, time_stop, 0, 0);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
     }
 
@@ -479,18 +479,18 @@ TEST_CASE("Test remove CTI", "[cti]") {
         // Add CTI
         image_add_cti = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-            express, offset, start, stop, 0, -1,  
+            express, offset, start, stop, 0, -1, 0, 0,  
             &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-            express, offset, start, stop, 0, -1);
+            express, offset, start, stop, 0, -1, 0, 0);
 
         // Remove CTI
         for (int n_iterations = 2; n_iterations <= 6; n_iterations++) {
             image_remove_cti = remove_cti(
                 image_add_cti, n_iterations, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, start, stop, 0, -1, 
+                express, offset, start, stop, 0, -1, 0, 0, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, start, stop, 0, -1);
+                express, offset, start, stop, 0, -1, 0, 0);
 
             // Expect better results with more iterations
             double tolerance = pow(10.0, 1 - n_iterations);
@@ -637,17 +637,17 @@ TEST_CASE("Test offset and windows", "[cti]") {
             image_post_cti_full = add_cti(
                 image_pre_cti, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, 0, -1, 0, -1,
+                express, offset, 0, -1, 0, -1, 0, 0,
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, 0, -1, 0, -1);
+                express, offset, 0, -1, 0, -1, 0, 0);
 
             // Window
             image_post_cti = add_cti(
                 image_pre_cti, 
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, parallel_start, parallel_stop, 0, -1,
+                express, offset, parallel_start, parallel_stop, 0, -1, 0, 0,
                 &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, serial_start, serial_stop, 0, -1);
+                express, offset, serial_start, serial_stop, 0, -1, 0, 0);
 
             for (int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
                 // Extract each row to compare

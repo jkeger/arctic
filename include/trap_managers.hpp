@@ -40,8 +40,9 @@ class TrapManagerBase {
     void restore_trap_states();
     virtual void setup();
 
+    virtual double n_trapped_electrons_in_watermark(int i_wmk);
     virtual std::valarray<double> n_trapped_electrons_per_watermark();
-    //virtual double n_total_trapped_electrons();
+    virtual double n_trapped_electrons_total();
     virtual double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
     int watermark_index_above_cloud(double cloud_fractional_volume);

@@ -48,6 +48,8 @@ cdef extern from "interface.hpp":
         int parallel_window_stop,
         int parallel_time_start,
         int parallel_time_stop,
+        double* parallel_prune_n_electrons, 
+        int parallel_prune_frequency,
         # ========
         # Serial
         # ========
@@ -84,6 +86,8 @@ cdef extern from "interface.hpp":
         int serial_window_stop,
         int serial_time_start,
         int serial_time_stop,
+        double* serial_prune_n_electrons, 
+        int serial_prune_frequency,
         # Output
         int verbosity,
         int iteration
@@ -150,6 +154,8 @@ def cy_add_cti(
     int parallel_window_stop,
     int parallel_time_start,
     int parallel_time_stop,
+    np.ndarray[np.double_t, ndim=1] parallel_prune_n_electrons, 
+    int parallel_prune_frequency,
     # ========
     # Serial
     # ========
@@ -184,6 +190,8 @@ def cy_add_cti(
     int serial_window_stop,
     int serial_time_start,
     int serial_time_stop,
+    np.ndarray[np.double_t, ndim=1] serial_prune_n_electrons, 
+    int serial_prune_frequency,
     # Output
     int verbosity,
     int iteration,
@@ -237,6 +245,8 @@ def cy_add_cti(
         parallel_window_stop,
         parallel_time_start,
         parallel_time_stop,
+        &parallel_prune_n_electrons[0], 
+        parallel_prune_frequency,
         # ========
         # Serial
         # ========
@@ -273,6 +283,8 @@ def cy_add_cti(
         serial_window_stop,
         serial_time_start,
         serial_time_stop,
+        &serial_prune_n_electrons[0], 
+        serial_prune_frequency,
         # Output
         verbosity,
         iteration,
