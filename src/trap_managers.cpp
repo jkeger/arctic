@@ -196,6 +196,10 @@ std::valarray<double> TrapManagerBase::n_trapped_electrons_per_watermark() {
     // Count the total number of electrons in each active watermark
     std::valarray<double> fill_fractions_this_wmk(n_traps);
     std::valarray<double> n_trapped_electrons_per_wmk(n_watermarks);
+    double n_trapped_electrons_in_total = 0;
+    double highest_watermark = 0;
+
+
     for (int i_wmk = i_first_active_wmk;
         i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
 
@@ -205,12 +209,21 @@ std::valarray<double> TrapManagerBase::n_trapped_electrons_per_watermark() {
         // Sum the fill fractions and multiply by the fractional volume
         n_trapped_electrons_per_wmk[i_wmk] = 
             fill_fractions_this_wmk.sum() * watermark_volumes[i_wmk];
-            
-        print_v(0,"watermark: %d volume: %g fill: %g n_electrons %g \n", 
+        
+//        n_trapped_electrons_in_total += n_trapped_electrons_per_wmk[i_wmk];
+//        highest_watermark += watermark_volumes[i_wmk];
+        
+
+//Shorthand       
+//        n_trapped_electrons_per_wmk[i_wmk] = n_trapped_electrons_in_watermark(i_wmk)
+        
+        print_v(3,"watermArk: %d volume: %g fill: %g n_electrons %g \n", 
             i_wmk,watermark_volumes[i_wmk],
             fill_fractions_this_wmk.sum(),
             n_trapped_electrons_per_wmk[i_wmk]);
+
     }
+//    print_v(0,"Total n_electrons %16.12g, highest watermark %16.12g\n",n_trapped_electrons_in_total,highest_watermark);
 
     return n_trapped_electrons_per_wmk;
 }
@@ -265,6 +278,17 @@ double TrapManagerBase::n_trapped_electrons_from_watermarks(
 
 /*
     Remove watermarks containing very low numbers of electrons, for speed later.
+    
+    To remove watermark i that contains Ni electrons in volume Vi,
+    we push all those electrons down to the next lower watermark b such that
+      Vb' = Vb + Vb Ni/Nb
+      fb' = fb
+      Nb' = Nb + Ni   ( = Vb' * fb' )
+    and increase the volume of the watermark above such that
+      Va' = Va + Vi - Vb Ni/Nb
+      fa' = fa * Va/Va'
+      Na' = Na        ( = Va' * fa' )
+    
     Parameters
     ----------
     min_n_electrons : double
@@ -274,11 +298,12 @@ double TrapManagerBase::n_trapped_electrons_from_watermarks(
 void TrapManagerBase::prune_watermarks(double min_n_electrons) {
 
     // With only one watermark, not much can be done
-    if (n_active_watermarks <= 1) return; // will also have problems if the first active watermark has zero fill fraction...
-    print_v(0, "prune watermarks continaing fewer than %g electrons. Watermarks: %d %d\n", min_n_electrons, i_first_active_wmk, n_active_watermarks);
+    if (n_active_watermarks <= 1) return; // Cannot prune if there is only a trunk
+    if (n_trapped_electrons_in_watermark(i_first_active_wmk) <= 0) return; // Something has gone wrong to get here
+    print_v(3, "prune watermarks continaing fewer than %g electrons. Watermarks: %d %d\n", min_n_electrons, i_first_active_wmk, n_active_watermarks);
 
     // Count the total number of electrons in each watermark
-    print_v(0,"\n\n Fill fractions before prune (first %d n %d)\n",i_first_active_wmk, n_active_watermarks);
+    print_v(3,"\n\n Fill fractions before prune (first %d n %d)\n",i_first_active_wmk, n_active_watermarks);
     std::valarray<double> n_trapped_electrons_per_wmk = n_trapped_electrons_per_watermark();
     double n_trapped_electrons_start = n_trapped_electrons_per_wmk.sum();
        
@@ -293,26 +318,36 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
         double n_trapped_electrons_in_this_wmk = n_trapped_electrons_in_watermark(i_wmk_prime);
         if (n_trapped_electrons_in_this_wmk < min_n_electrons) {
             
+
             // Push the small number of electrons down into previous watermark
             // (redistributing them between trap species by keeping fill fractions 
             // as before, but increasing the watermark volume. This is not ideal
             // but ensures no fill fractions ever exceed 1)
             double n_trapped_electrons_in_last_wmk = n_trapped_electrons_in_watermark(i_wmk_prime - 1);
-            
-/*            
-            fill_fractions_this_wmk =
-                watermark_fills[std::slice(i_wmk * n_traps, n_traps, 1)];
-            // Sum the fill fractions and multiply by the fractional volume
-            n_trapped_electrons_per_wmk[i_wmk] = 
-                fill_fractions_this_wmk.sum() * watermark_volumes[i_wmk];
-            double 
+                        
             double delta_volume_below = watermark_volumes[i_wmk_prime - 1] *
                 n_trapped_electrons_in_this_wmk / n_trapped_electrons_in_last_wmk;
+
+/*            // Temp report
+            std::valarray<double> fill_fractions_in_down_wmk =
+                watermark_fills[std::slice((i_wmk_prime-1) * n_traps, n_traps, 1)];
+            double n_trapped_electrons_in_down_wmk = 
+                fill_fractions_in_down_wmk.sum() * watermark_volumes[i_wmk_prime-1]; 
+            print_v(0,"DownIncTo: %d volume: %g fill: %g n_electrons %g \n", 
+                i_wmk_prime-1,watermark_volumes[i_wmk_prime-1],
+                fill_fractions_in_down_wmk.sum(),
+                n_trapped_electrons_in_down_wmk);
+
+            // Temp report
+            std::valarray<double> fill_fractions_in_this_wmk =
+                watermark_fills[std::slice(i_wmk_prime * n_traps, n_traps, 1)];
+            double n_trapped_electrons_in_this_wmk = 
+                fill_fractions_in_this_wmk.sum() * watermark_volumes[i_wmk_prime]; 
+            print_v(0,"ThisRemov: %d volume: %g fill: %g n_electrons %g \n", 
+                i_wmk_prime,watermark_volumes[i_wmk_prime],
+                fill_fractions_in_this_wmk.sum(),
+                n_trapped_electrons_in_this_wmk);
 */            
-            
-            double delta_volume_below = watermark_volumes[i_wmk_prime] *
-                n_trapped_electrons_in_this_wmk / n_trapped_electrons_in_last_wmk;
-            
             
             
             watermark_volumes[i_wmk_prime - 1] += delta_volume_below;
@@ -321,7 +356,18 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
             if ((i_wmk + 1) < (i_first_active_wmk + n_active_watermarks)) {
                 
                 
-                
+
+/*                // Temp report
+                std::valarray<double> fill_fractions_in_next_wmk =
+                    watermark_fills[std::slice((i_wmk_prime+1) * n_traps, n_traps, 1)];
+                double n_trapped_electrons_in_next_wmk = 
+                    fill_fractions_in_next_wmk.sum() * watermark_volumes[i_wmk_prime+1]; 
+                print_v(0,"ReplaceBy: %d volume: %g fill: %g n_electrons %g \n", 
+                    i_wmk_prime,watermark_volumes[i_wmk_prime+1],
+                    fill_fractions_in_next_wmk.sum(),
+                    n_trapped_electrons_in_next_wmk);
+*/
+         
                 
                 // ...increase its volume to compensate,
                 double delta_volume_above = watermark_volumes[i_wmk_prime] - delta_volume_below;
@@ -329,14 +375,18 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
                 // IF {delta_volume_above > 0) { \\to prevent any divisions by zero
                 
                 watermark_volumes[i_wmk_prime + 1] += delta_volume_above;
+                
+                if (watermark_volumes[i_wmk_prime + 1] > 0) {
 
-                // ...reduce its fill fraction to preserve number of electrons, 
-                double fill_multiplier = 
-                    (watermark_volumes[i_wmk_prime + 1] - delta_volume_above) /
-                    watermark_volumes[i_wmk_prime + 1];
-                for (int i_trap = 0; i_trap < n_traps; i_trap++) {
-                    watermark_fills[(i_wmk_prime + 1) * n_traps + i_trap] *= fill_multiplier;
-                }
+                    // ...reduce its fill fraction to preserve number of electrons, 
+                    double fill_multiplier = 
+                        (watermark_volumes[i_wmk_prime + 1] - delta_volume_above) /
+                        watermark_volumes[i_wmk_prime + 1];
+                    for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+                        watermark_fills[(i_wmk_prime + 1) * n_traps + i_trap] *= fill_multiplier;
+                    }
+                
+                } //else { print_v(0,"Problem watermark!\n"); }
                 
                 // ...then shuffle all higher watermarks down to earlier watermark position
                 for (int j_wmk = i_wmk + 1;
@@ -346,19 +396,30 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
                     watermark_volumes[j_wmk_prime] = watermark_volumes[j_wmk_prime + 1];
                     watermark_fills[std::slice(j_wmk_prime * n_traps, n_traps, 1)] = 
                         watermark_fills[std::slice((j_wmk_prime + 1) * n_traps, n_traps, 1)];
-                }   
+                }
             }
             n_watermarks_pruned += 1;          
+        } else {
+
+/*            // Temp report
+            std::valarray<double> fill_fractions_in_this_wmk =
+                watermark_fills[std::slice(i_wmk_prime * n_traps, n_traps, 1)];
+            double n_trapped_electrons_in_this_wmk = 
+                fill_fractions_in_this_wmk.sum() * watermark_volumes[i_wmk_prime]; 
+            print_v(0,"ThisStays: %d volume: %g fill: %g n_electrons %g \n", 
+                i_wmk_prime,watermark_volumes[i_wmk_prime],
+                fill_fractions_in_this_wmk.sum(),
+                n_trapped_electrons_in_this_wmk);
+*/        
         }
     }
     n_active_watermarks -= n_watermarks_pruned;
 
     // Count the total number of electrons in each watermark
-    print_v(0,"\n\n Fill fractions after prune (first %d n %d)\n",i_first_active_wmk, n_active_watermarks);
-    n_trapped_electrons_per_wmk = n_trapped_electrons_per_watermark();
-    //double n_trapped_electrons_start = n_trapped_electrons_per_wmk.sum();
-    int flag;
-    flag = std::cin.get();
+    print_v(3,"\n\n Fill fractions after prune (first %d n %d)\n",i_first_active_wmk, n_active_watermarks);
+    //int flag;
+    //flag = std::cin.get();
+    //if(flag == 'q') { abort(); }
 }
 
 /*
