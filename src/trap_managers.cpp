@@ -371,11 +371,9 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
                 
                 // ...increase its volume to compensate,
                 double delta_volume_above = watermark_volumes[i_wmk_prime] - delta_volume_below;
-                
-                // IF {delta_volume_above > 0) { \\to prevent any divisions by zero
-                
                 watermark_volumes[i_wmk_prime + 1] += delta_volume_above;
                 
+                // Prevent division by zero if Va = Vi = 0
                 if (watermark_volumes[i_wmk_prime + 1] > 0) {
 
                     // ...reduce its fill fraction to preserve number of electrons, 
@@ -386,7 +384,8 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
                         watermark_fills[(i_wmk_prime + 1) * n_traps + i_trap] *= fill_multiplier;
                     }
                 
-                } //else { print_v(0,"Problem watermark!\n"); }
+                } //else { print_v(0,"Problem watermark!\n"); } 
+                // These fill fractions should be zero (I hope), so don't change them anyway.
                 
                 // ...then shuffle all higher watermarks down to earlier watermark position
                 for (int j_wmk = i_wmk + 1;
