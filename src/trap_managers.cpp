@@ -200,14 +200,13 @@ std::valarray<double> TrapManagerBase::n_trapped_electrons_per_watermark() {
         i_wmk < i_first_active_wmk + n_active_watermarks; i_wmk++) {
 
         // Extract the fill fractions in a 1D array
-        //n_trapped_electrons_per_wmk_this_wmk =
         fill_fractions_this_wmk =
             watermark_fills[std::slice(i_wmk * n_traps, n_traps, 1)];
         // Sum the fill fractions and multiply by the fractional volume
         n_trapped_electrons_per_wmk[i_wmk] = 
             fill_fractions_this_wmk.sum() * watermark_volumes[i_wmk];
             
-        print_v(2,"watermark: %d volume: %g fill: %g n_electrons %g \n", 
+        print_v(0,"watermark: %d volume: %g fill: %g n_electrons %g \n", 
             i_wmk,watermark_volumes[i_wmk],
             fill_fractions_this_wmk.sum(),
             n_trapped_electrons_per_wmk[i_wmk]);
@@ -275,9 +274,14 @@ double TrapManagerBase::n_trapped_electrons_from_watermarks(
 void TrapManagerBase::prune_watermarks(double min_n_electrons) {
 
     // With only one watermark, not much can be done
-    if (n_active_watermarks <= 1) return; 
-    print_v(2, "prune watermarks continaing fewer than %g electrons. Watermarks: %d %d\n", min_n_electrons, i_first_active_wmk, n_active_watermarks);
-   
+    if (n_active_watermarks <= 1) return; // will also have problems if the first active watermark has zero fill fraction...
+    print_v(0, "prune watermarks continaing fewer than %g electrons. Watermarks: %d %d\n", min_n_electrons, i_first_active_wmk, n_active_watermarks);
+
+    // Count the total number of electrons in each watermark
+    print_v(0,"\n\n Fill fractions before prune (first %d n %d)\n",i_first_active_wmk, n_active_watermarks);
+    std::valarray<double> n_trapped_electrons_per_wmk = n_trapped_electrons_per_watermark();
+    double n_trapped_electrons_start = n_trapped_electrons_per_wmk.sum();
+       
     // Consider each active watermark
     int n_watermarks_pruned = 0;
     for (int i_wmk = i_first_active_wmk + 1;
@@ -294,15 +298,36 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
             // as before, but increasing the watermark volume. This is not ideal
             // but ensures no fill fractions ever exceed 1)
             double n_trapped_electrons_in_last_wmk = n_trapped_electrons_in_watermark(i_wmk_prime - 1);
+            
+/*            
+            fill_fractions_this_wmk =
+                watermark_fills[std::slice(i_wmk * n_traps, n_traps, 1)];
+            // Sum the fill fractions and multiply by the fractional volume
+            n_trapped_electrons_per_wmk[i_wmk] = 
+                fill_fractions_this_wmk.sum() * watermark_volumes[i_wmk];
+            double 
             double delta_volume_below = watermark_volumes[i_wmk_prime - 1] *
                 n_trapped_electrons_in_this_wmk / n_trapped_electrons_in_last_wmk;
+*/            
+            
+            double delta_volume_below = watermark_volumes[i_wmk_prime] *
+                n_trapped_electrons_in_this_wmk / n_trapped_electrons_in_last_wmk;
+            
+            
+            
             watermark_volumes[i_wmk_prime - 1] += delta_volume_below;
             
             // If there is a higher watermark...
             if ((i_wmk + 1) < (i_first_active_wmk + n_active_watermarks)) {
                 
+                
+                
+                
                 // ...increase its volume to compensate,
                 double delta_volume_above = watermark_volumes[i_wmk_prime] - delta_volume_below;
+                
+                // IF {delta_volume_above > 0) { \\to prevent any divisions by zero
+                
                 watermark_volumes[i_wmk_prime + 1] += delta_volume_above;
 
                 // ...reduce its fill fraction to preserve number of electrons, 
@@ -327,8 +352,13 @@ void TrapManagerBase::prune_watermarks(double min_n_electrons) {
         }
     }
     n_active_watermarks -= n_watermarks_pruned;
-    //int flag;
-    //flag = std::cin.get();
+
+    // Count the total number of electrons in each watermark
+    print_v(0,"\n\n Fill fractions after prune (first %d n %d)\n",i_first_active_wmk, n_active_watermarks);
+    n_trapped_electrons_per_wmk = n_trapped_electrons_per_watermark();
+    //double n_trapped_electrons_start = n_trapped_electrons_per_wmk.sum();
+    int flag;
+    flag = std::cin.get();
 }
 
 /*

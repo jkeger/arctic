@@ -464,11 +464,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 }
 
                 // Absorb really small watermarks  into others, for speed
-                //double prune_n_electrons = 1e-16;
-                //int prune_frequency = 1;
+                double prune_n_electrons = 0;
+                int prune_frequency = 1;
                 if (prune_frequency > 0) {
                     if (((i_row + 1) % prune_frequency) == 0) {
-                        trap_manager_manager.prune_watermarks(prune_n_electrons);
+                        //trap_manager_manager.prune_watermarks(prune_n_electrons);
                     }
                 }
                 
