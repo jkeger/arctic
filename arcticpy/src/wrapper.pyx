@@ -18,6 +18,8 @@ cdef extern from "interface.hpp":
         # ROE
         double* parallel_dwell_times_in,
         int parallel_n_steps,
+        int parallel_prescan_offset,
+        int parallel_overscan_start,
         int parallel_empty_traps_between_columns,
         int parallel_empty_traps_for_first_transfers,
         int parallel_force_release_away_from_readout,
@@ -41,15 +43,21 @@ cdef extern from "interface.hpp":
         int parallel_n_traps_sc_co,
         # Misc
         int parallel_express,
-        int parallel_offset,
+        int parallel_window_offset,
         int parallel_window_start,
         int parallel_window_stop,
+        int parallel_time_start,
+        int parallel_time_stop,
+        double* parallel_prune_n_electrons, 
+        int parallel_prune_frequency,
         # ========
         # Serial
         # ========
         # ROE
         double* serial_dwell_times_in,
         int serial_n_steps,
+        int serial_prescan_offset,
+        int serial_overscan_start,
         int serial_empty_traps_between_columns,
         int serial_empty_traps_for_first_transfers,
         int serial_force_release_away_from_readout,
@@ -73,9 +81,13 @@ cdef extern from "interface.hpp":
         int serial_n_traps_sc_co,
         # Misc
         int serial_express,
-        int serial_offset,
+        int serial_window_offset,
         int serial_window_start,
         int serial_window_stop,
+        int serial_time_start,
+        int serial_time_stop,
+        double* serial_prune_n_electrons, 
+        int serial_prune_frequency,
         # Output
         int verbosity,
         int iteration
@@ -113,6 +125,8 @@ def cy_add_cti(
     # ========
     # ROE
     np.ndarray[np.double_t, ndim=1] parallel_dwell_times,
+    int parallel_prescan_offset,
+    int parallel_overscan_start,
     int parallel_empty_traps_between_columns,
     int parallel_empty_traps_for_first_transfers,
     int parallel_force_release_away_from_readout,
@@ -135,14 +149,20 @@ def cy_add_cti(
     int parallel_n_traps_sc_co,
     # Misc
     int parallel_express,
-    int parallel_offset,
+    int parallel_window_offset,
     int parallel_window_start,
     int parallel_window_stop,
+    int parallel_time_start,
+    int parallel_time_stop,
+    np.ndarray[np.double_t, ndim=1] parallel_prune_n_electrons, 
+    int parallel_prune_frequency,
     # ========
     # Serial
     # ========
     # ROE
     np.ndarray[np.double_t, ndim=1] serial_dwell_times,
+    int serial_prescan_offset,
+    int serial_overscan_start,
     int serial_empty_traps_between_columns,
     int serial_empty_traps_for_first_transfers,
     int serial_force_release_away_from_readout,
@@ -165,9 +185,13 @@ def cy_add_cti(
     int serial_n_traps_sc_co,
     # Misc
     int serial_express,
-    int serial_offset,
+    int serial_window_offset,
     int serial_window_start,
     int serial_window_stop,
+    int serial_time_start,
+    int serial_time_stop,
+    np.ndarray[np.double_t, ndim=1] serial_prune_n_electrons, 
+    int serial_prune_frequency,
     # Output
     int verbosity,
     int iteration,
@@ -191,6 +215,8 @@ def cy_add_cti(
         # ROE
         &parallel_dwell_times[0],
         len(parallel_dwell_times),
+        parallel_prescan_offset,
+        parallel_overscan_start,
         parallel_empty_traps_between_columns,
         parallel_empty_traps_for_first_transfers,
         parallel_force_release_away_from_readout,
@@ -214,15 +240,21 @@ def cy_add_cti(
         parallel_n_traps_sc_co,
         # Misc
         parallel_express,
-        parallel_offset,
+        parallel_window_offset,
         parallel_window_start,
         parallel_window_stop,
+        parallel_time_start,
+        parallel_time_stop,
+        &parallel_prune_n_electrons[0], 
+        parallel_prune_frequency,
         # ========
         # Serial
         # ========
         # ROE
         &serial_dwell_times[0],
         len(serial_dwell_times),
+        serial_prescan_offset,
+        serial_overscan_start,
         serial_empty_traps_between_columns,
         serial_empty_traps_for_first_transfers,
         serial_force_release_away_from_readout,
@@ -246,9 +278,13 @@ def cy_add_cti(
         serial_n_traps_sc_co,
         # Misc
         serial_express,
-        serial_offset,
+        serial_window_offset,
         serial_window_start,
         serial_window_stop,
+        serial_time_start,
+        serial_time_stop,
+        &serial_prune_n_electrons[0], 
+        serial_prune_frequency,
         # Output
         verbosity,
         iteration,

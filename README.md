@@ -1,7 +1,7 @@
-ArCTIC
+ArCTIc
 ======
 
-AlgoRithm for Charge Transfer Inefficiency (CTI) Correction
+AlgoRithm for Charge Transfer Inefficiency (CTI) correction
 -----------------------------------------------------------
 
 Add or remove image trails due to charge transfer inefficiency in CCD detectors
@@ -43,6 +43,15 @@ Contents
 Installation
 ============
 
+
+<!--
+    **MacOS:** requires `mkdir build; sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
+If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
+    **MacOS:** On the first build, mac users may also need to create an (empty) directory 
+/sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
+ Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
+-->
+
 Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
 
 Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
@@ -68,20 +77,20 @@ Troubleshooting (individual steps within the makefile)
     + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
 
+    **MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
+
 
 \
 Usage
 =====
-See the `run_demo()` functions in `src/main.cpp` and `test/test_arcticpy.py` for
-more basic examples of using the main code or python wrapper to add and remove
-CTI to a test image.
 
+Python
+------
+ArCTIc will typically be used via the `arcticpy` python wrapper module, which uses Cython to interface with the precompiled C++ dynamic library.
 
-Python wrapper
---------------
-Full example correction of CTI for a Hubble Space Telescope ACS image,
-using the [https://pypi.org/project/autoarray/](autoarray) package
-to load and save the fits image with correct units and quadrant rotations, etc:
+For example, to correct CTI in a Hubble Space Telescope ACS image
+(using the [autoarray](https://pypi.org/project/autoarray/) package
+to load and save the fits image with correct units and quadrant rotations, etc):
 ```python
 import arcticpy as cti
 import autoarray as aa
@@ -140,13 +149,17 @@ aa.acs.output_quadrants_to_fits(
     overwrite=True,
 )
 ```
+More examples adding or removing CTI trails from a test image
+are in the `run_demo()` function of `test/test_arcticpy.py`.
+
+Run `python3 test/test_arcticpy.py` with `-d` or `-b` for
+demo or benchmark functions. 
 
 
 \
 C++
 ---
-ArCTIC will typically be used via the python wrapper module, but the code can be
-run directly as `./arctic` with the following command-line options:
+ArCTIc can also be run directly as `./arctic` with the following command-line options:
 
 + `-h`, `--help`  
     Print help information and exit.
@@ -165,19 +178,17 @@ run directly as `./arctic` with the following command-line options:
     e.g. for profiling.
 
 \
-The code can also be used as a library for other C++ programs, as in the
-`lib_test` example.
-
-The python wrapper also has demo and benchmark functions provided.
-Run `python3 test/test_arcticpy.py` with `-d` or `-b` (or the long versions)
-as above, or with anything else to print help information.
-
+The C++ code can also be used as a library for other C++ programs.
+See the `run_demo()` function in `src/main.cpp` for
+examples adding and removing CTI trails from a test image, 
+and the `lib_test` example described below.
 
 
 \
 Unit Tests
 ==========
-Tests are included for most individual parts of the code, organised with Catch2.
+Tests are included for most individual parts of the code, organised with 
+[Catch2](https://github.com/catchorg/Catch2).
 
 As well as making sure the code is working correctly, most tests are intended to
 be relatively reader-friendly examples to help show how all the pieces of the
@@ -316,26 +327,26 @@ separate columns, as in this example of an image before and after calling
 
 ```C++
 // Initial image with one bright pixel in the first three columns:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  200.0,   0.0,     0.0,     0.0  },
- {  0.0,     200.0,   0.0,     0.0  },
- {  0.0,     0.0,     200.0,   0.0  },
- {  0.0,     0.0,     0.0,     0.0  },
- {  0.0,     0.0,     0.0,     0.0  }}
-// Image with parallel CTI trails:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  196.0,   0.0,     0.0,     0.0  },
- {  3.0,     194.1,   0.0,     0.0  },
- {  2.0,     3.9,     192.1,   0.0  },
- {  1.3,     2.5,     4.8,     0.0  },
- {  0.8,     1.5,     2.9,     0.0  }}
-// Final image with parallel and serial CTI trails:
-{{  0.0,     0.0,     0.0,     0.0  },
- {  194.1,   1.9,     1.5,     0.9  },
- {  2.9,     190.3,   2.9,     1.9  },
- {  1.9,     3.8,     186.5,   3.7  },
- {  1.2,     2.4,     4.7,     0.1  },
- {  0.7,     1.4,     2.8,     0.06 }}
+{{   0.0,     0.0,     0.0,     0.0  },
+ { 200.0,     0.0,     0.0,     0.0  },
+ {   0.0,   200.0,     0.0,     0.0  },
+ {   0.0,     0.0,   200.0,     0.0  },
+ {   0.0,     0.0,     0.0,     0.0  },
+ {   0.0,     0.0,     0.0,     0.0  }}
+// Image with parallel and serial CTI trails:
+{{   0.00,    0.00,    0.00,    0.00 },
+ { 194.06,    0.98,    0.49,    0.25 },
+ {   1.96,  190.22,    1.92,    0.97 },
+ {   0.99,    2.89,  186.47,    2.82 },
+ {   0.50,    1.46,    3.80,    0.06 },
+ {   0.25,    0.74,    1.92,    0.03 }}
+// Image after correction for trailing:
+{{   0.00,    0.00,    0.00,    0.00 },
+ { 200.00, 1.30e-4, 3.15e-5,    0.00 }
+ {2.05e-4, 199.999, 8.88e-4, 2.56e-4 }
+ {1.93e-5, 1.20e-2, 199.994, 3.11e-3 }
+ {   0.00, 2.53e-4, 3.95e-3,    0.00 }
+ {   0.00,    0.00, 1.03e-3,    0.00 }}
 ```
 
 As this illustrates, by default, charge is transferred "up" from row N to row 0
@@ -360,7 +371,7 @@ As described in more detail in Massey et al. (2014) section 2.1.5, the effects
 of each individual pixel-to-pixel transfer can be very similar, so multiple
 transfers can be computed at once for efficiency.
 
-This allows much faster computation with a mild decrease in accuracy.
+This allows much faster computation with a mild decrease in accuracy. 
 
 For example, the electrons in the pixel closest to the readout have only one
 transfer, those in the 2nd pixel undergo 2, those in the 3rd have 3, and so on.
@@ -372,6 +383,10 @@ without assumptions.
 
 The default `express = 0` is a convenient input for automatic `express = N`.
 
+Note that the total charge in an image is guaranteed to be conserved only with
+`express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
+length is comparable to the image size).
+
 ### Speedup 2: Watermark pruning
 With large, noiseless images in particular, it is possible to accumulate a large
 number of watermarks containing negligible numbers of electrons. These increase
@@ -382,14 +397,17 @@ Default values are `1e-181 and `20`, but significant speedups are possible by
 tuning these for different images and different species of charge trap.
 
 ### Offsets and windows
-To account for additional transfers before the first image pixel reaches the
-readout (e.g. a prescan region), the `offset` sets the number of extra pixels.
+It is possible to (more quickly) process part of an image in two ways. In either
+use, because of edge effects, the region of interest should be expanded to 
+include several pixels closer to readout (when adding CTI) or in all directions
+(when correcting CTI).
 
-Somewhat similarly, instead of adding CTI to the entire supplied image, only a
-subset of pixels can be selected using the `window_start` and `_stop` arguments.
-Note that, because of edge effects, the range should be started several pixels
-before the actual region of interest.
+Either pass the full image, using the `window_start` and `_stop` arguments to 
+indicate the first and last pixel numbers to be processed; or pass a subset of 
+the image and use `offset` to indicate the number of missing, preceding pixels.
 
+### Partial readout
+TBD
 
 \
 CCD
@@ -431,6 +449,16 @@ Three different modes are available:
 See the `ROE`, `set_clock_sequence()`, and child class docstrings in `roe.cpp`
 for the full documentation, including illustrative diagrams of the multiphase
 clocking sequences.
+
+### Pre-scan and over-scan
+Use `prescan_offset` to specify the number of physical prescan pixels that are
+present in the hardware but always absent from stored data arrays. This works
+in exactly the same way (and adds to) any `window_offset`.
+
+Use `overscan_start` to specify the first pixel in a supplied data array that
+is virtual overscan. This effectively defines the number of physical pixels in
+the CCD as `overscan_start-1`. Unfortunately, this needs to be specified here 
+rather than in the CCD structure.
 
 ### Express matrix  
 The `ROE` class also contains the `set_express_matrix_from_pixels_and_express()`

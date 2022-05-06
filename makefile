@@ -43,11 +43,11 @@
 # ========
 # Compiler
 CXX ?= g++
-CXXFLAGS := -std=c++11 -fPIC -O3 -Wall -Wno-reorder -Wno-sign-compare
-# CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
-# CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
+CXXFLAGS := -std=c++11 -fPIC -O3 #-Wall -Wno-reorder -Wno-sign-compare
+#CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
+#CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
-VERSION := "7.0.1"
+VERSION := "7.0.3"
 
 # Executables
 TARGET := arctic
@@ -136,6 +136,7 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 wrapper: $(LIB_TARGET)
 	python3 $(DIR_WRAPPER)/setup.py build_ext --inplace
 	@mv -v $(DIR_ROOT)/*.cpython*.so $(DIR_WRAPPER)
+        # @rm -rfv $(DIR_WRAPPER)build
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)/test_lib.[od]
