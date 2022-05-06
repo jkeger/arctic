@@ -149,31 +149,6 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Print model inputs
     if (print_inputs == -1) print_inputs = verbosity >= 1;
-
-
-
-
-
-
-
-
-
-
-
-
-    print_inputs = false; 
-
-
-
-
-
-
-
-
-
-
-
-
     if (print_inputs) {
         print_v(2, "\n");
         printf("  express = %d \n", express);
@@ -464,8 +439,6 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 }
 
                 // Absorb really small watermarks  into others, for speed
-                //double prune_n_electrons = 1e-18;
-                //int prune_frequency = 0;
                 if (prune_frequency > 0) {
                     if (((i_row + 1) % prune_frequency) == 0) {
                         trap_manager_manager.prune_watermarks(prune_n_electrons);
@@ -726,7 +699,6 @@ std::valarray<std::valarray<double>> remove_cti(
             serial_offset, serial_window_start, serial_window_stop, 
             serial_time_start, serial_time_stop, 
             serial_prune_n_electrons, serial_prune_frequency,
-            
             iteration);
 
         // Improve the estimate of the image with CTI trails removed
