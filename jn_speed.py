@@ -11,9 +11,9 @@ image_model = np.zeros((200,1))+200
 image_model[0:5,:]+=700
 
 parallel_traps = [
-    #arcticpy.TrapInstantCapture(density=10.0, release_timescale=(-1/np.log(0.5))),
+    arcticpy.TrapInstantCapture(density=10.0, release_timescale=(-1/np.log(0.5))),
     #arcticpy.TrapSlowCapture(density=10.0, release_timescale=(-1/np.log(0.5)), capture_timescale=1),
-    arcticpy.TrapInstantCaptureContinuum(density=10.0, release_timescale=(1.), release_timescale_sigma=0.1),
+    #arcticpy.TrapInstantCaptureContinuum(density=10.0, release_timescale=(1.), release_timescale_sigma=0.1),
 ]
 
 parallel_ccd = arcticpy.CCD(full_well_depth=1000, well_fill_power=1.0)
@@ -22,8 +22,8 @@ parallel_roe = arcticpy.ROE(
     empty_traps_for_first_transfers=False,
     overscan_start=1990
 )
-parallel_prune_n_electrons=1e-3
-parallel_prune_frequency=3
+parallel_prune_n_electrons=1e-18
+parallel_prune_frequency=1
 parallel_roe.prescan_offset=10
 print(parallel_roe.prescan_offset)
 print(parallel_roe.overscan_start)

@@ -119,7 +119,7 @@ def add_cti(
     parallel_time_start=0,
     parallel_time_stop=-1,
     parallel_prune_n_electrons=1e-18, 
-    parallel_prune_frequency=100,
+    parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
     serial_roe=None,
@@ -131,7 +131,7 @@ def add_cti(
     serial_time_start=0,
     serial_time_stop=-1,
     serial_prune_n_electrons=1e-18, 
-    serial_prune_frequency=100,
+    serial_prune_frequency=20,
     # Output
     verbosity=1,
     iteration=0,
@@ -320,8 +320,8 @@ def remove_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-16,
-    parallel_prune_frequency=1,
+    parallel_prune_n_electrons=1e-18,
+    parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
     serial_roe=None,
@@ -332,8 +332,8 @@ def remove_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-16, 
-    serial_prune_frequency=1,
+    serial_prune_n_electrons=1e-18, 
+    serial_prune_frequency=20,
     # Output
     verbosity=1,
 ):
