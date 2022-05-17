@@ -581,7 +581,7 @@ std::valarray<std::valarray<double>> add_cti(
     int serial_time_start, int serial_time_stop,
     double serial_prune_n_electrons, int serial_prune_frequency,
     int verbosity, int iteration) {
-    
+
  
     // Print unless being called by remove_cti()
     if (!iteration) print_version();
@@ -598,10 +598,10 @@ std::valarray<std::valarray<double>> add_cti(
         print_v(1, "Parallel: ");
         image = clock_charge_in_one_direction(
             image, parallel_roe, parallel_ccd, parallel_traps_ic, parallel_traps_sc,
-            parallel_traps_ic_co, parallel_traps_sc_co, 
-            parallel_express, parallel_offset, 
+            parallel_traps_ic_co, parallel_traps_sc_co,
+            parallel_express, parallel_offset,
             parallel_window_start, parallel_window_stop,
-            serial_window_start, serial_window_stop, 
+            serial_window_start, serial_window_stop,
             parallel_time_start, parallel_time_stop,
             parallel_prune_n_electrons, parallel_prune_frequency,
             print_inputs);

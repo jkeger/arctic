@@ -7,16 +7,23 @@
 #include "traps.hpp"
 
 std::valarray<std::valarray<double>> clock_charge_in_one_direction(
-    std::valarray<std::valarray<double>>& image_in, ROE* roe, CCD* ccd,
+    std::valarray<std::valarray<double>>& image_in,
+    ROE* roe,
+    CCD* ccd,
     std::valarray<TrapInstantCapture>* traps_ic,
     std::valarray<TrapSlowCapture>* traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
     std::valarray<TrapSlowCaptureContinuum>* traps_sc_co, 
-    int express = 0, int row_offset = 0, 
-    int row_start = 0, int row_stop = -1, 
-    int column_start = 0, int column_stop = -1, 
-    int time_start = 0, int time_stop = -1,
-    double prune_n_electrons = 1e-18, int prune_frequency = 20,
+    int express = 0,
+    int row_offset = 0,
+    int row_start = 0,
+    int row_stop = -1,
+    int column_start = 0,
+    int column_stop = -1,
+    int time_start = 0,
+    int time_stop = -1,
+    double prune_n_electrons = 1e-18,
+    int prune_frequency = 20,
     int print_inputs = -1);
 
 std::valarray<std::valarray<double>> add_cti(
