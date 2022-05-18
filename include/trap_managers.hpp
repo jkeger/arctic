@@ -21,8 +21,9 @@ class TrapManagerBase {
     std::valarray<double> watermark_fills;
     std::valarray<double> stored_watermark_volumes;
     std::valarray<double> stored_watermark_fills;
+    std::valarray<double> empty_probabilities_from_release;
 
-    int n_traps;
+    int n_traps = 99;
     double empty_watermark;
     int n_active_watermarks;
     int i_first_active_wmk;
@@ -46,6 +47,7 @@ class TrapManagerBase {
     virtual double n_trapped_electrons_from_watermarks(
         std::valarray<double> wmk_volumes, std::valarray<double> wmk_fills);
     int watermark_index_above_cloud(double cloud_fractional_volume);
+    virtual double n_electrons_released_from_wmk_above_cloud(int i_wmk);
 };
 
 class TrapManagerInstantCapture : public TrapManagerBase {
@@ -57,7 +59,6 @@ class TrapManagerInstantCapture : public TrapManagerBase {
     ~TrapManagerInstantCapture(){};
 
     std::valarray<TrapInstantCapture> traps;
-
     std::valarray<double> empty_probabilities_from_release;
 
     void set_fill_probabilities();
@@ -72,6 +73,7 @@ class TrapManagerInstantCapture : public TrapManagerBase {
         double cloud_fractional_volume, int i_wmk_above_cloud, double enough);
     double n_electrons_captured(double n_free_electrons);
     double n_electrons_released_and_captured(double n_free_electrons);
+    double n_electrons_released_from_wmk_above_cloud(int i_wmk);
 };
 
 class TrapManagerSlowCapture : public TrapManagerBase {
@@ -83,15 +85,16 @@ class TrapManagerSlowCapture : public TrapManagerBase {
     ~TrapManagerSlowCapture(){};
 
     std::valarray<TrapSlowCapture> traps;
+    std::valarray<double> empty_probabilities_from_release;
 
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
-    std::valarray<double> empty_probabilities_from_release;
 
     void set_fill_probabilities();
     void setup();
 
     double n_electrons_released_and_captured(double n_free_electrons);
+    double n_electrons_released_from_wmk_above_cloud(int i_wmk);
 };
 
 class TrapManagerInstantCaptureContinuum : public TrapManagerBase {
@@ -118,6 +121,7 @@ class TrapManagerInstantCaptureContinuum : public TrapManagerBase {
         double cloud_fractional_volume, int i_wmk_above_cloud, double enough);
     double n_electrons_captured(double n_free_electrons);
     double n_electrons_released_and_captured(double n_free_electrons);
+    double n_electrons_released_from_wmk_above_cloud(int i_wmk);
 };
 
 class TrapManagerSlowCaptureContinuum : public TrapManagerBase {
@@ -138,6 +142,7 @@ class TrapManagerSlowCaptureContinuum : public TrapManagerBase {
     void setup();
 
     double n_electrons_released_and_captured(double n_free_electrons);
+    double n_electrons_released_from_wmk_above_cloud(int i_wmk);
 };
 
 class TrapManagerManager {

@@ -149,31 +149,6 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Print model inputs
     if (print_inputs == -1) print_inputs = verbosity >= 1;
-
-
-
-
-
-
-
-
-
-
-
-
-    print_inputs = false; 
-
-
-
-
-
-
-
-
-
-
-
-
     if (print_inputs) {
         print_v(2, "\n");
         printf("  express = %d \n", express);
@@ -466,15 +441,14 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 // Absorb really small watermarks  into others, for speed
                 if (prune_frequency > 0) {
                     if (((i_row + 1) % prune_frequency) == 0) {
-                        trap_manager_manager.prune_watermarks(prune_n_electrons);
+                        //trap_manager_manager.prune_watermarks(prune_n_electrons);
                     }
                 }
                 
                 // Store the trap states if needed for the next express pass
                 if (roe->store_trap_states_matrix[express_index * n_rows + row_index]) {
-                    trap_manager_manager.store_trap_states();
-
                     print_v(2, "store_trap_states \n");
+                    trap_manager_manager.store_trap_states();
                 }
             }
         }
@@ -620,7 +594,7 @@ std::valarray<std::valarray<double>> add_cti(
     // Parallel clocking along columns, transfer charge towards row 0
     if (parallel_traps_ic || parallel_traps_sc || parallel_traps_ic_co ||
         parallel_traps_sc_co) {
-        print_v(2, "Parallel: ");
+        print_v(1, "Parallel: ");
         image = clock_charge_in_one_direction(
             image, parallel_roe, parallel_ccd, parallel_traps_ic, parallel_traps_sc,
             parallel_traps_ic_co, parallel_traps_sc_co, 
@@ -636,7 +610,7 @@ std::valarray<std::valarray<double>> add_cti(
     if (serial_traps_ic || serial_traps_sc || serial_traps_sc) {
         image = transpose(image);
 
-        print_v(2, "Serial: ");
+        print_v(1, "Serial: ");
         image = clock_charge_in_one_direction(
             image, serial_roe, serial_ccd, serial_traps_ic, serial_traps_sc,
             serial_traps_ic_co, serial_traps_sc_co, 
@@ -724,7 +698,6 @@ std::valarray<std::valarray<double>> remove_cti(
             serial_offset, serial_window_start, serial_window_stop, 
             serial_time_start, serial_time_stop, 
             serial_prune_n_electrons, serial_prune_frequency,
-            
             iteration);
 
         // Improve the estimate of the image with CTI trails removed

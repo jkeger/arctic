@@ -447,9 +447,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
                 
                 // Store the trap states if needed for the next express pass
                 if (roe->store_trap_states_matrix[express_index * n_rows + row_index]) {
-                    trap_manager_manager.store_trap_states();
-
                     print_v(2, "store_trap_states \n");
+                    trap_manager_manager.store_trap_states();
                 }
             }
         }
