@@ -21,9 +21,8 @@ class TrapManagerBase {
     std::valarray<double> watermark_fills;
     std::valarray<double> stored_watermark_volumes;
     std::valarray<double> stored_watermark_fills;
-    std::valarray<double> empty_probabilities_from_release;
 
-    int n_traps = 99;
+    int n_traps;
     double empty_watermark;
     int n_active_watermarks;
     int i_first_active_wmk;
@@ -85,8 +84,8 @@ class TrapManagerSlowCapture : public TrapManagerBase {
     ~TrapManagerSlowCapture(){};
 
     std::valarray<TrapSlowCapture> traps;
-    std::valarray<double> empty_probabilities_from_release;
 
+    std::valarray<double> empty_probabilities_from_release;
     std::valarray<double> fill_probabilities_from_empty;
     std::valarray<double> fill_probabilities_from_full;
 

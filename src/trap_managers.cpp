@@ -473,6 +473,7 @@ int TrapManagerBase::watermark_index_above_cloud(double cloud_fractional_volume)
         The index of the first active watermark that reaches above the cloud.
 */
 double TrapManagerBase::n_electrons_released_from_wmk_above_cloud(int i_wmk) {
+    throw std::runtime_error( "this should get replaced for any trap type" );
     return 0;
 }
 
