@@ -7,7 +7,7 @@ roe_type_charge_injection = 1
 roe_type_trap_pumping = 2
 
 
-class ROE(Dictable):
+class ROE:
     def __init__(
         self,
         dwell_times=[1.0],
