@@ -366,7 +366,7 @@ the traps (see Watermarks below) and updates them by scanning over each pixel.
 This simplifies the code structure and keeps the image array conveniently
 static.
 
-### Express
+### Speedup 1: Express
 As described in more detail in Massey et al. (2014) section 2.1.5, the effects
 of each individual pixel-to-pixel transfer can be very similar, so multiple
 transfers can be computed at once for efficiency.
@@ -386,6 +386,15 @@ The default `express = 0` is a convenient input for automatic `express = N`.
 Note that the total charge in an image is guaranteed to be conserved only with
 `express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
 length is comparable to the image size).
+
+### Speedup 2: Watermark pruning
+With large, noiseless images in particular, it is possible to accumulate a large
+number of watermarks containing negligible numbers of electrons. These increase
+runtime without affecting output. Packets of fewer than 
+`[parallel/serial]_prune_n_electrons` can be moved into neighbouring 
+watermarks every `[parallel/serial]_prune_frequency` readout steps.
+Default values are `1e-181 and `20`, but significant speedups are possible by
+tuning these for different images and different species of charge trap.
 
 ### Offsets and windows
 It is possible to (more quickly) process part of an image in two ways. In either
