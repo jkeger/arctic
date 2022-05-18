@@ -1,19 +1,28 @@
 import numpy as np
 import arcticpy
 import time
-np.set_printoptions(linewidth=105,edgeitems=56,suppress=True)
+np.set_printoptions(linewidth=205,edgeitems=56,suppress=True)
+
+
+#
+# Test different values of pruning (edit here)
+#
+parallel_prune_n_electrons=1e-1
+parallel_prune_frequency=1
+parallel_express=5
 
 #
 # Set up test image
 #
 
-image_model = np.zeros((200,1))+200
+image_model = np.zeros((2000,1))+200
 image_model[0:5,:]+=700
 
 parallel_traps = [
     arcticpy.TrapInstantCapture(density=10.0, release_timescale=(-1/np.log(0.5))),
     #arcticpy.TrapSlowCapture(density=10.0, release_timescale=(-1/np.log(0.5)), capture_timescale=1),
     #arcticpy.TrapInstantCaptureContinuum(density=10.0, release_timescale=(1.), release_timescale_sigma=0.1),
+    #arcticpy.TrapSlowCaptureContinuum(density=10.0, release_timescale=(1.), capture_timescale=1, release_timescale_sigma=0.1),
 ]
 
 parallel_ccd = arcticpy.CCD(full_well_depth=1000, well_fill_power=1.0)
@@ -22,11 +31,7 @@ parallel_roe = arcticpy.ROE(
     empty_traps_for_first_transfers=False,
     overscan_start=1990
 )
-parallel_prune_n_electrons=1e-18
-parallel_prune_frequency=1
 parallel_roe.prescan_offset=10
-print(parallel_roe.prescan_offset)
-print(parallel_roe.overscan_start)
 
 
 
@@ -46,7 +51,7 @@ image_post_cti = arcticpy.add_cti(
     parallel_traps=parallel_traps,
     parallel_ccd=parallel_ccd,
     parallel_roe=parallel_roe,
-    parallel_express=1,
+    parallel_express=parallel_express,
     parallel_prune_n_electrons=parallel_prune_n_electrons,
     parallel_prune_frequency=parallel_prune_frequency,
     verbosity=0
@@ -69,7 +74,7 @@ image_post_cti = arcticpy.add_cti(
     parallel_traps=parallel_traps,
     parallel_ccd=parallel_ccd,
     parallel_roe=parallel_roe,
-    parallel_express=0,
+    parallel_express=parallel_express,
     parallel_prune_n_electrons=parallel_prune_n_electrons,
     parallel_prune_frequency=parallel_prune_frequency,
     verbosity=0
