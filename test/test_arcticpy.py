@@ -8,7 +8,9 @@ import arcticpy as cti
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+import copy
 import pytest
+
 from os import path
 
 class TestCompareOldArCTIC:
@@ -547,7 +549,6 @@ class TestCompareOldArCTIC:
             plt.tight_layout()
             plt.show()
 
-
 class TestCompareTrapTypes:
     def test__add_cti__all_trap_types_broadly_similar_results(self):
 
@@ -640,6 +641,114 @@ class TestCompareTrapTypes:
                 )
 
             assert image_post_cti == pytest.approx(image_post_cti_ic, rel=0.1)
+
+        if do_plot:
+            ax1.legend(loc="lower left")
+            ax1.set_yscale("log")
+            ax1.set_xlabel("Pixel")
+            ax1.set_ylabel("Counts")
+            ax2.set_ylabel("Fractional Difference (dotted)")
+            plt.tight_layout()
+            plt.show()
+
+
+
+class TestMultipleTrapTypes:
+    def test__add_cti__multiple_trap_types_together_or_consecutively(self):
+
+        # Manually set True to make the plot
+        do_plot = False
+        # do_plot = True
+
+        image_pre_cti = np.zeros((20, 1))
+        image_pre_cti[2, 0] = 800
+
+        trap_ic = cti.TrapInstantCapture(density=10, release_timescale=-1 / np.log(0.5))
+        trap_sc = cti.TrapSlowCapture(
+            density=10, release_timescale=-1 / np.log(0.5), capture_timescale=0.1
+        )
+        trap_ic_co = cti.TrapInstantCaptureContinuum(
+            density=10, release_timescale=-1 / np.log(0.5), release_timescale_sigma=0.05
+        )
+        trap_sc_co = cti.TrapSlowCaptureContinuum(
+            density=10,
+            release_timescale=-1 / np.log(0.5),
+            release_timescale_sigma=0.05,
+            capture_timescale=0.1,
+        )
+
+        ccd = cti.CCD(
+            phases=[
+                cti.CCDPhase(
+                    well_fill_power=1, full_well_depth=1000, well_notch_depth=0
+                )
+            ]
+        )
+        roe = cti.ROE(
+            empty_traps_between_columns=True,
+            empty_traps_for_first_transfers=False,
+            use_integer_express_matrix=True,
+        )
+        express = 5
+
+
+        # Implement all types of traps simultaneously
+        image_post_cti_simultaneously = cti.add_cti(
+            image=image_pre_cti,
+            parallel_roe=roe,
+            parallel_ccd=ccd,
+            parallel_traps=[trap_ic,trap_sc,trap_ic_co,trap_sc_co],
+            parallel_express=express,
+            verbosity=0,
+        ).T[0]
+        
+        if do_plot:
+            pixels = np.arange(len(image_pre_cti))
+            colours = ["#1199ff", "#ee4400", "#7711dd", "#44dd44", "#666666"]
+            plt.figure(figsize=(10, 6))
+            ax1 = plt.gca()
+            ax2 = ax1.twinx()
+
+            ax1.plot(
+                pixels,
+                image_post_cti_simultaneously,
+                alpha=0.8,
+                c=colours[0],
+                label="All types simultaneously",
+            )
+
+        # Implement trap types one after another
+        image_post_cti_separately = image_pre_cti
+        for i, (trap, label) in enumerate(
+            zip(
+                [trap_ic, trap_sc, trap_ic_co, trap_sc_co],
+                ["After Instant Capture", "After Slow Capture", "After Instant Capture Continuum", "After Slow Capture Continuum"],
+            )
+        ):
+            image_pre_cti = image_post_cti_separately
+            image_post_cti_separately = cti.add_cti(
+                image=image_pre_cti,
+                parallel_roe=roe,
+                parallel_ccd=ccd,
+                parallel_traps=[trap],
+                parallel_express=express,
+                verbosity=0,
+            )
+            
+            if do_plot:
+                c = colours[i + 1]
+
+                ax1.plot(pixels, image_post_cti_separately.T[0], alpha=0.8, c=c, label=label)
+                ax2.plot(
+                    pixels,
+                    (image_post_cti_separately.T[0] - image_post_cti_simultaneously) / image_post_cti_simultaneously,
+                    alpha=0.8,
+                    ls=":",
+                    c=c,
+                )
+
+            assert 1 == pytest.approx(1.0001, rel=0.1)
+        assert image_post_cti_separately.T[0] == pytest.approx(image_post_cti_simultaneously, rel=0.1)
 
         if do_plot:
             ax1.legend(loc="lower left")
