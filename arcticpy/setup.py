@@ -1,5 +1,5 @@
 """
-    Setup for ArCTIC cython wrapper. See README.md.
+    Setup for ArCTIc cython wrapper. See README.md.
 
     Build with:
         python3 setup.py build_ext --inplace
