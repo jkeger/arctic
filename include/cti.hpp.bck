@@ -16,7 +16,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     int row_start = 0, int row_stop = -1, 
     int column_start = 0, int column_stop = -1, 
     int time_start = 0, int time_stop = -1,
-    double prune_n_electrons = 1e-18, int prune_frequency = 100,
+    double prune_n_electrons = 1e-18, int prune_frequency = 20,
     int print_inputs = -1);
 
 std::valarray<std::valarray<double>> add_cti(
@@ -30,7 +30,7 @@ std::valarray<std::valarray<double>> add_cti(
     int parallel_express = 0, int parallel_window_offset = 0, 
     int parallel_window_start = 0, int parallel_window_stop = -1,
     int parallel_time_start = 0, int parallel_time_stop = -1,
-    double parallel_prune_n_electrons = 1e-18, int parallel_prune_frequency = 100,
+    double parallel_prune_n_electrons = 1e-18, int parallel_prune_frequency = 20,
     // Serial
     ROE* serial_roe = nullptr, CCD* serial_ccd = nullptr,
     std::valarray<TrapInstantCapture>* serial_traps_ic = nullptr,
@@ -40,7 +40,7 @@ std::valarray<std::valarray<double>> add_cti(
     int serial_express = 0, int serial_window_offset = 0, 
     int serial_window_start = 0, int serial_window_stop = -1, 
     int serial_time_start = 0, int serial_time_stop = -1,
-    double serial_prune_n_electrons = 1e-18, int serial_prune_frequency = 100,
+    double serial_prune_n_electrons = 1e-18, int serial_prune_frequency = 20,
     int verbosity = 0, int iteration = 0);
 
 std::valarray<std::valarray<double>> remove_cti(
@@ -54,7 +54,7 @@ std::valarray<std::valarray<double>> remove_cti(
     int parallel_express = 0, int parallel_window_offset = 0, 
     int parallel_window_start = 0, int parallel_window_stop = -1,
     int parallel_time_start = 0, int parallel_time_stop = -1,
-    double parallel_prune_n_electrons = 1e-18, int parallel_prune_frequency = 100,
+    double parallel_prune_n_electrons = 1e-18, int parallel_prune_frequency = 20,
     // Serial
     ROE* serial_roe = nullptr, CCD* serial_ccd = nullptr,
     std::valarray<TrapInstantCapture>* serial_traps_ic = nullptr,
@@ -64,6 +64,6 @@ std::valarray<std::valarray<double>> remove_cti(
     int serial_express = 0, int serial_window_offset = 0, 
     int serial_window_start = 0, int serial_window_stop = -1, 
     int serial_time_start = 0, int serial_time_stop = -1,
-    double serial_prune_n_electrons = 1e-18, int serial_prune_frequency = 100);
+    double serial_prune_n_electrons = 1e-18, int serial_prune_frequency = 20);
 
 #endif  // ARCTIC_CTI_HPP
