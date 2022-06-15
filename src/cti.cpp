@@ -607,10 +607,11 @@ std::valarray<std::valarray<double>> add_cti(
     }
 
     // Serial clocking along rows, transfer charge towards column 0
-    if (serial_traps_ic || serial_traps_sc || serial_traps_sc) {
-        image = transpose(image);
+    if (serial_traps_ic || serial_traps_sc || serial_traps_ic_co || 
+        serial_traps_sc_co) {
 
         print_v(1, "Serial: ");
+        image = transpose(image);
         image = clock_charge_in_one_direction(
             image, serial_roe, serial_ccd, serial_traps_ic, serial_traps_sc,
             serial_traps_ic_co, serial_traps_sc_co, 
