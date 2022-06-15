@@ -13,6 +13,7 @@ from arcticpy.src.traps import (
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
+from arcticpy.src.pixel_bounce import add_pixel_bounce
 
 
 def _extract_trap_parameters(traps):
@@ -232,7 +233,7 @@ def add_cti(
     # Add CTI
     # ========
     # Pass the extracted inputs to C++ via the cython wrapper
-    return w.cy_add_cti(
+    image_trailed = w.cy_add_cti(
         image,
         # ========
         # Parallel
@@ -310,6 +311,12 @@ def add_cti(
         verbosity,
         iteration,
     )
+    
+    if (serial_roe.pixel_bounce_kA > 0) or (serial_roe.pixel_bounce_kv > 0):
+        image_bounced = add_pixel_bounce(image_trailed, serial_roe)
+        image_trailed = image_bounced
+    
+    return image_trailed
 
 
 def remove_cti(

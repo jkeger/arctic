@@ -123,7 +123,7 @@ def add_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-18, 
+    parallel_prune_n_electrons=1e-10, 
     parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
@@ -135,7 +135,7 @@ def add_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-18, 
+    serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
     # Output
     verbosity=1,
@@ -232,7 +232,7 @@ def add_cti(
     # Add CTI
     # ========
     # Pass the extracted inputs to C++ via the cython wrapper
-    return w.cy_add_cti(
+    image_trailed = w.cy_add_cti(
         image,
         # ========
         # Parallel
@@ -310,6 +310,12 @@ def add_cti(
         verbosity,
         iteration,
     )
+    
+    if (serial_roe.pixel_bounce_kA > 0) or (serial_roe.pixel_bounce_kv > 0):
+        image_bounced = add_pixel_bounce(image_trailed, serial_roe)
+        image_trailed = image_bounced
+    
+    return image_trailed
 
 
 def remove_cti(
@@ -325,7 +331,7 @@ def remove_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-18,
+    parallel_prune_n_electrons=1e-10,
     parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
@@ -337,7 +343,7 @@ def remove_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-18, 
+    serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
     # Output
     verbosity=1,
