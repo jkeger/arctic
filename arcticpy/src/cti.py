@@ -13,7 +13,8 @@ from arcticpy.src.traps import (
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
-from arcticpy.src.pixel_bounce import add_pixel_bounce
+#from arcticpy.src.pixel_bounce import add_pixel_bounce
+from arcticpy.src.pixel_bounce import PixelBounce
 
 
 def _extract_trap_parameters(traps):
