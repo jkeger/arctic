@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import copy
 
 class PixelBounce:
@@ -33,29 +32,119 @@ class PixelBounce:
     kv : float
         Initial condition of rate of change of reference volatage in the pixel 
         after a change in signal voltage.
+    gamma : float
+        Damping coefficicent of oscillations in the reference voltage
     omega : float
         Natural frequency of oscillations in the reference voltage, in units
         (per pixel) i.e. freq in Hz * clock speed
-    gamma : float
-        Damping coefficicent of oscillations in the reference voltage
     """
     
     def __init__(
         self,
         kA=0., 
         kv=0., 
-        omega=1.,
-        gamma=1. 
+        gamma=1.,
+        omega=1.
     ):
 
+        if(gamma<0):
+            raise Exception("Damping factor gamma cannot be negative")
         self.kA = kA
         self.kv = kv
-        self.omega = omega
         self.gamma = gamma
+        self.omega = omega
+        self.omega0 = np.sqrt(omega**2 + gamma**2)
+
+
+    def add_pixel_bounce(
+        self,
+        image,
+        do_Plot = False
+    ):
+        #,
+        #window_row_range,
+        #window_column_range
+        """
+        Add pixel bounce to an image, modelled as Damped Harmonic Oscillations (DHO)
+        in a CCD's reference voltage, driven by sudden changes in the signal. This
+        creates spurious features in the serial (same row) direction away from any 
+        gradient in the image. 
+        
+        Parameters
+        ----------
+        image : [[float]]
+            The input array of pixel values, assumed to be in units of electrons.
+            
+            The first dimension is the "row" (y) index, the second is the "column" 
+            (x) index. Pixel bounce is only ever added in the x direction (ie during
+            serial readout for images oriented as usual in ArCTIc).
+            
+        window_row_range : range
+            The subset of row pixels to model, to save time when only a specific 
+            region of the image is of interest. Defaults to range(0, n_pixels) for 
+            the full image.
+        
+        window_column_range : range
+            The subset of column pixels to model, to save time when only a specific 
+            region of the image is of interest. Defaults to range(0, n_columns) for 
+            the full image.
+    
+        Returns
+        -------
+        image : [[float]]
+            The output array of pixel values.
+        """
+        
+        # Pre-calcualte useful quantities from eqn (43) of
+        # Cieslinski & Ratkiewicz (2005) https://arxiv.org/abs/physics/0507182
+        epsilon = 1
+        coeffA = 2 * np.exp(-1 * self.gamma * epsilon) * np.cos(self.omega * epsilon)
+        coeffB = np.exp(-2 * self.gamma * epsilon)
+        
+        # Initialise bias offset voltage, which should settle during prescan
+        # of each row
+        n_y, n_x = image.shape
+        bias = np.zeros(image.shape)
+        biasm1 = np.zeros(n_y)
+        print(image[0,0:11])
+        
+        # Read out one column of pixels through each (column of) pixels, starting at second
+        #for row_index in window_row_range:
+        for i in range(1,n_x):
+            
+            # Store previous values of bias, so difference equation can 
+            # compute rates of change 
+            biasm2 = copy.copy(biasm1)
+            biasm1 = bias[:, i - 1]
+    
+            # What electronic impulse is being experienced?
+            delta = image[:, i] - image[:, i - 1] 
+            
+            # Impose this (linearly) on the difference equation,
+            # as one term that creates a bias offset (propto pixel_bounce_kA)
+            # and one that creates a rate of change of bias (propto pixel_bounce_kV)
+            biasm1 += (self.kA - self.kv) * delta
+            biasm2 += (self.kA - 2 * self.kv) * delta
+            
+            # DHO difference equation, Cieslinski & Ratkiewicz (2005) eqn (43)
+            bias[:, i] = coeffA * biasm1 - coeffB * biasm2
+            print(i,image[0, i],delta[0],bias[0,i],biasm1[0],biasm2[0])
+
+        # Effect of correlated double sampling
+        print(image[0,0:11])
+        print('sdfsdf')
+        print(bias[0,0:11])
+        print('sdfsdf')
+        print(bias[0,0:11])
+        image[:,:] -= bias[:,:]
+        print('post')
+        print(image[0,0:11])
+
+        return image
+
 
     
-    
-    def add_pixel_bounce(
+    def add_pixel_bounce_slow(
         self,
         image,
         do_Plot = False
@@ -106,7 +195,7 @@ class PixelBounce:
         n_rows_in_image, n_columns_in_image = image.shape
         for row_index in range(n_rows_in_image):
             
-            print("Bouncing")
+            print("Bouncing, one row at a time")
             
             # Initialise bias offset voltage, which should settle during prescan
             # of each row
@@ -133,9 +222,10 @@ class PixelBounce:
                 
                 # DHO difference equation, Cieslinski &Ratkiewicz (2005) eqn (43)
                 bias[0,column_index] = coeffA * biasm1 - coeffB * biasm2
+                print(column_index,image[row_index,column_index],delta,bias[row_index,column_index],biasm1,biasm2)
                 
-            print(bias.shape,image[:,:].shape)
-            image[:, :] -= bias
+            print(bias.shape,image[row_index:row_index+1,:].shape)
+            image[row_index:row_index+1, :] -= bias
             
             """
             if do_plot:
@@ -154,3 +244,5 @@ class PixelBounce:
             """
     
         return image
+    
+    

@@ -14,7 +14,7 @@ from arcticpy.src.traps import (
     TrapSlowCaptureContinuum,
 )
 #from arcticpy.src.pixel_bounce import add_pixel_bounce
-from arcticpy.src.pixel_bounce import PixelBounce
+from arcticpy.src.pixel_bounce import PixelBounce #, add_pixel_bounce
 
 
 def _extract_trap_parameters(traps):
@@ -313,9 +313,26 @@ def add_cti(
         iteration,
     )
     
-    if (serial_roe.pixel_bounce_kA > 0) or (serial_roe.pixel_bounce_kv > 0):
-        image_bounced = add_pixel_bounce(image_trailed, serial_roe)
-        image_trailed = image_bounced
+    print(image_trailed, image_trailed.shape)
+    print('hello',serial_roe.pixel_bounce_kA)
+    
+    
+    if (serial_roe.pixel_bounce_kA != 0) or (serial_roe.pixel_bounce_kv != 0):
+        print('hw')
+        pb=PixelBounce(
+            kA=serial_roe.pixel_bounce_kA, 
+            kv=serial_roe.pixel_bounce_kv, 
+            omega=serial_roe.pixel_bounce_omega,
+            gamma=serial_roe.pixel_bounce_gamma
+        ) 
+        
+        print(pb.kA,pb.gamma)
+        image_trailed = pb.add_pixel_bounce_slow(image_trailed)
+        #print(image_trailed, image_trailed.shape)
+        #print(image_bounced)
+        #image_bounced = add_pixel_bounce(image_trailed, serial_roe)
+        #image_trailed = image_bounced.copy()
+        #print(image_trailed, image_trailed.shape)
     
     return image_trailed
 
