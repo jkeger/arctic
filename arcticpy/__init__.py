@@ -1,5 +1,5 @@
 from arcticpy.src.cti import add_cti, remove_cti, CTI_model_for_HST_ACS
-from arcticpy.src.pixel_bounce import PixelBounce
+from arcticpy.src.pixel_bounce import PixelBounce, add_pixel_bounce, remove_pixel_bounce
 from arcticpy.src.ccd import CCDPhase, CCD
 from arcticpy.src.roe import ROE, ROEChargeInjection, ROETrapPumping
 from arcticpy.src.traps import (

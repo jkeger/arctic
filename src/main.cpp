@@ -139,7 +139,7 @@ int run_benchmark() {
 */
 void print_help() {
     printf(
-        "ArCTIC \n"
+        "ArCTIc \n"
         "====== \n"
         "AlgoRithm for Charge Transfer Inefficiency (CTI) Correction \n"
         "----------------------------------------------------------- \n"

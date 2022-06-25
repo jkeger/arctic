@@ -14,7 +14,7 @@ from arcticpy.src.traps import (
     TrapSlowCaptureContinuum,
 )
 #from arcticpy.src.pixel_bounce import add_pixel_bounce
-from arcticpy.src.pixel_bounce import PixelBounce #, add_pixel_bounce
+from arcticpy.src.pixel_bounce import PixelBounce, add_pixel_bounce
 
 
 def _extract_trap_parameters(traps):
@@ -139,6 +139,8 @@ def add_cti(
     serial_time_stop=-1,
     serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
+    # Pixel bounce
+    pixel_bounce=None,
     # Output
     verbosity=1,
     iteration=0,
@@ -199,6 +201,7 @@ def add_cti(
             parallel_n_traps_ic_co,
             parallel_n_traps_sc_co,
         ) = _set_dummy_parameters()
+    parallel_prune_n_es = np.array([parallel_prune_n_electrons], dtype=np.double)
 
     # Serial
     if serial_traps is not None:
@@ -226,9 +229,8 @@ def add_cti(
             serial_n_traps_ic_co,
             serial_n_traps_sc_co,
         ) = _set_dummy_parameters()
-
-    parallel_prune_n_es = np.array([parallel_prune_n_electrons], dtype=np.double)
     serial_prune_n_es = np.array([serial_prune_n_electrons], dtype=np.double)
+        
 
     # ========
     # Add CTI
@@ -308,31 +310,26 @@ def add_cti(
         serial_time_stop,
         serial_prune_n_es, 
         serial_prune_frequency,
+        # ========
         # Output
+        # ========
         verbosity,
         iteration,
     )
     
-    print(image_trailed, image_trailed.shape)
-    print('hello',serial_roe.pixel_bounce_kA)
-    
-    
-    if (serial_roe.pixel_bounce_kA != 0) or (serial_roe.pixel_bounce_kv != 0):
-        print('hw')
-        pb=PixelBounce(
-            kA=serial_roe.pixel_bounce_kA, 
-            kv=serial_roe.pixel_bounce_kv, 
-            omega=serial_roe.pixel_bounce_omega,
-            gamma=serial_roe.pixel_bounce_gamma
-        ) 
-        
-        print(pb.kA,pb.gamma)
-        image_trailed = pb.add_pixel_bounce_slow(image_trailed)
-        #print(image_trailed, image_trailed.shape)
-        #print(image_bounced)
-        #image_bounced = add_pixel_bounce(image_trailed, serial_roe)
-        #image_trailed = image_bounced.copy()
-        #print(image_trailed, image_trailed.shape)
+
+    # ================
+    # Add pixel bounce
+    # ================
+    if pixel_bounce is not None:
+        image_trailed = pixel_bounce.add_pixel_bounce(
+            image,
+            parallel_window_start=parallel_window_start,
+            parallel_window_stop=parallel_window_stop,
+            serial_window_start=serial_window_start,
+            serial_window_stop=serial_window_stop,
+            verbosity=verbosity
+        )
     
     return image_trailed
 
@@ -364,6 +361,8 @@ def remove_cti(
     serial_time_stop=-1,
     serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
+    # Pixel bounce
+    pixel_bounce=None,
     # Output
     verbosity=1,
 ):
@@ -426,6 +425,8 @@ def remove_cti(
             serial_time_stop=serial_time_stop,
             serial_prune_n_electrons=serial_prune_n_electrons, 
             serial_prune_frequency=serial_prune_frequency,
+            # Pixel bounce
+            pixel_bounce=pixel_bounce,
             # Output
             verbosity=verbosity,
             iteration=iteration,

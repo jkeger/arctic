@@ -27,9 +27,9 @@ void set_verbosity(int v) { verbosity = v; }
 */
 void print_version() {
 #ifdef VERSION
-    print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+    print_v(1, "\nArCTIc v%s \n------ \n", VERSION);
 #else
-    print_v(1, "\nArCTIC \n------ \n");
+    print_v(1, "\nArCTIc \n------ \n");
 #endif
 }
 
