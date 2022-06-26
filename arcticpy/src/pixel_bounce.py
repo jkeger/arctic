@@ -32,10 +32,11 @@ class PixelBounce:
         Initial condition of rate of change of reference volatage in the pixel 
         after a change in signal voltage.
     gamma : float
-        Damping coefficicent of oscillations in the reference voltage
+        Damping coefficicent of oscillations in the reference voltage, expressed
+        as a ~half life in units of the time between clocks.
     omega : float
-        Natural frequency of oscillations in the reference voltage, in units
-        (per pixel) i.e. freq in Hz * clock speed
+        Frequency of oscillations in the reference voltage, in units (per pixel) 
+        i.e. freq in Hz * clock speed.
     """
     
     def __init__(
@@ -45,15 +46,16 @@ class PixelBounce:
         gamma=1.,
         omega=1.
     ):
-
-        if(gamma<0):
-            raise Exception("Damping factor gamma cannot be negative")
+        if(gamma<0): raise Exception("Damping factor gamma cannot be negative")
+        if(omega<0): raise Exception("Oscillation frequency omega should not be negative")
         self.kA = kA
         self.kv = kv
         self.gamma = gamma
         self.omega = omega
-        self.omega0 = np.sqrt(omega**2 + gamma**2) # natural frequency of oscillator
 
+    @property
+    def omega0(self):
+        return np.sqrt(omega**2 + gamma**2) # natural frequency of oscillator
 
     def add_pixel_bounce(
         self,
@@ -148,10 +150,10 @@ class PixelBounce:
         self,
         image,
         n_iterations,
-        parallel_window_start=None,
-        parallel_window_stop=None,
-        serial_window_start=None,
-        serial_window_stop=None,
+        parallel_window_start=0,
+        parallel_window_stop=-1,
+        serial_window_start=0,
+        serial_window_stop=-1,
         verbosity=1,
     ):
         """
