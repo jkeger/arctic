@@ -105,7 +105,7 @@ int run_benchmark() {
     FILE* f = fopen(filename, "r");
     if (!f) {
         const char* command =
-            "wget thttp://www.astro.dur.ac.uk/~rjm/ArCTIc/hst_acs_10_col.txt";
+            "wget http://www.astro.dur.ac.uk/~rjm/ArCTIc/hst_acs_10_col.txt";
         printf("%s\n", command);
         int status = system(command);
         if (status != 0) exit(status);
