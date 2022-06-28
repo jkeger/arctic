@@ -43,7 +43,7 @@
 # ========
 # Compiler
 CXX ?= g++
-CXXFLAGS := -std=c++11 -fPIC -O3 #-Wall -Wno-reorder -Wno-sign-compare
+CXXFLAGS := -std=c++11 -fPIC -O3 -fopenmp  #-Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
@@ -81,7 +81,7 @@ $(info $(SOURCES) $(OBJECTS))
 
 # Headers and library links
 INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
-LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
+LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm -lgomp
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
 # ========
