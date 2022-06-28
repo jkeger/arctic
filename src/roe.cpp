@@ -272,7 +272,6 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Truncate all values to between 0 and max_multiplier
     tmp_express_matrix[tmp_express_matrix < 0.0] = 0.0;
     tmp_express_matrix[tmp_express_matrix > max_multiplier] = max_multiplier;
-
     
     // Add an extra (first) transfer for every pixel, the effect of which
     // will only ever be counted once, because it is physically different
@@ -322,7 +321,6 @@ void ROE::set_express_matrix_from_rows_and_express(
     }
     express_matrix = tmp_express_matrix;
     
-    
     // Remove the offset (which is not represented in the image pixels)
     if (offset > 0) {
         //print_array_2D(tmp_express_matrix, n_transfers);
@@ -337,6 +335,8 @@ void ROE::set_express_matrix_from_rows_and_express(
         //print_array_2D(express_matrix_trim, n_rows);
         express_matrix = express_matrix_trim;
     }
+
+    return;  // TODO currently circumventing the bug in the overscan section for testing/benchmarking; has to be removed once bug it fixed!!!!
 
     // Truncate number of transfers in regions of the image that represent overscan
     //print_array_2D(express_matrix, n_rows);  
