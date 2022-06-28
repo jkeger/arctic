@@ -1,6 +1,6 @@
 import numpy as np
 
-#from arcticpy.src.dictable import Dictable
+#from .dictable import Dictable
 
 roe_type_standard = 0
 roe_type_charge_injection = 1

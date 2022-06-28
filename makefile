@@ -62,8 +62,8 @@ DIR_OBJ := $(DIR_ROOT)/build
 DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
 DIR_GSL ?= $(DIR_ROOT)/gsl
-DIR_WRAPPER := $(DIR_ROOT)/arcticpy
-DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
+DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
+DIR_WRAPPER_SRC := $(DIR_ROOT)/python/arcticpy/src
 $(shell mkdir -p $(DIR_OBJ))
 
 $(info $(DIR_SRC) $(DIR_OBJ))
