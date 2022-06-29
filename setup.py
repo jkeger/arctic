@@ -52,7 +52,7 @@ extensions = [
         libraries=["arctic", "gsl"],
         runtime_library_dirs=[],
         include_dirs=[dir_wrapper_include, dir_include, np.get_include()],
-        extra_compile_args=["-std=c++11", "-O3"],
+        extra_compile_args=["-std=c++17", "-O3"],
         define_macros=[('NPY_NO_DEPRECATED_API', 0)],
     ),
 ]
