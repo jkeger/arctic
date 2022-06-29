@@ -35,25 +35,18 @@ for root, dirs, files in os.walk(dir_wrapper, topdown=False):
 if "CC" not in os.environ:
     os.environ["CC"] = "g++"
 
-ext_libraries = [["arctic", {
-    'include_dirs': [dir_include],
-    'libraries': ["gsl"],
-    'library_dirs': [],
-    'extra_compile_args': ["-std=c++17", "-O3"],
-    'sources': [os.path.join(dir_src, src) for src in os.listdir(dir_src)],
-}]]
-
 ext_headers = [os.path.join(dir_include, header) for header in os.listdir(dir_include)]
+ext_sources = [os.path.join(dir_src, src) for src in os.listdir(dir_src)]
 
 extensions = [
     Extension(
         name="arcticpy.wrapper",
-        sources=[dir_wrapper_src + "wrapper.pyx", dir_wrapper_src + "interface.cpp"],
+        sources=[dir_wrapper_src + "wrapper.pyx", dir_wrapper_src + "interface.cpp", *ext_sources],
         language="c++",
-        libraries=["arctic", "gsl"],
+        libraries=["gsl"],
         runtime_library_dirs=[],
         include_dirs=[dir_wrapper_include, dir_include, np.get_include()],
-        extra_compile_args=["-std=c++11", "-O3"],
+        extra_compile_args=["-std=c++17", "-O3"],
         define_macros=[('NPY_NO_DEPRECATED_API', 0)],
     ),
 ]
@@ -63,6 +56,5 @@ setup(
         extensions,
         compiler_directives={"language_level": "3"}
     ),
-    libraries=ext_libraries,
     headers=ext_headers,  # currently ignored (?)
 )
