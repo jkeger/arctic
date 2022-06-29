@@ -5,6 +5,7 @@
 #include <sys/time.h>
 
 #include <valarray>
+#include <iostream>
 
 #include "ccd.hpp"
 #include "roe.hpp"

@@ -6,6 +6,7 @@
 
 #include <valarray>
 
+#include <iostream>
 #include "util.hpp"
 
 // ========
@@ -76,6 +77,11 @@ ROEStepPhase::ROEStepPhase(
     dwell_times : std::valarray<double> (opt.)
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default {1.0}.
+        
+    prescan_offset : int (opt.)
+        The number of pixels not present in the input array, through which
+        the charge had to pass in order to reach the readout amplifier.
+        Default [0]
 
     overscan_start : int (opt.)
         The number of pixels after which the input array that correspond to a 
@@ -83,11 +89,6 @@ ROEStepPhase::ROEStepPhase(
         trailed when it passes through these pixels (but it does through the   
         rest of the CCD). This means that the input array can be larger than 
         the CCD. Default [-1] means "no overscan".
-        
-    prescan_offset : int (opt.)
-        The number of pixels not present in the input array, through which
-        the charge had to pass in order to reach the readout amplifier.
-        Default [0]
 
     empty_traps_between_columns : bool (opt.)
         true:  Each column has independent traps (appropriate for parallel
@@ -234,10 +235,10 @@ void ROE::set_express_matrix_from_rows_and_express(
     else
         express = std::min(express, n_transfers);
 
-    /* print_v(
+    print_v(
         0,"offset: %d %d %d, n_transfers: %d, overscan: %d %d \n", 
         offset, window_offset, prescan_offset, n_transfers, overscan, overscan_start
-    ); */
+    ); 
     
  
     // Set default express to all transfers, and check no larger
@@ -324,6 +325,7 @@ void ROE::set_express_matrix_from_rows_and_express(
     
     
     // Remove the offset (which is not represented in the image pixels)
+    std::cout << offset ;
     if (offset > 0) {
         //print_array_2D(tmp_express_matrix, n_transfers);
         std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
@@ -339,7 +341,7 @@ void ROE::set_express_matrix_from_rows_and_express(
     }
 
     // Truncate number of transfers in regions of the image that represent overscan
-    //print_array_2D(express_matrix, n_rows);  
+    print_array_2D(express_matrix, n_rows);  
     if (overscan > 0) {
         int n_express_rows = express_matrix.size() / n_rows;
         for (int i_row = 0; (i_row < overscan); i_row++) {
@@ -348,6 +350,7 @@ void ROE::set_express_matrix_from_rows_and_express(
             int i_express = 0;
             while (removed < to_remove) {
                 int index = (n_express_rows - i_express) * n_rows - i_row - 1;
+                std::cout << i_express << i_row << " " << to_remove << removed << " index " << index << "\n";
                 removed += express_matrix[index];
                 express_matrix[index] = fmax(removed - to_remove, 0);
                 i_express++;

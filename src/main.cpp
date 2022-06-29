@@ -56,21 +56,27 @@ int run_demo() {
     std::valarray<double> dwell_times = {1.0};
     bool empty_traps_between_columns = true;
     bool empty_traps_for_first_transfers = true;
-    ROE roe(dwell_times, empty_traps_between_columns, empty_traps_for_first_transfers);
+    ROE roe(dwell_times, 0, -1, empty_traps_between_columns, empty_traps_for_first_transfers);
     CCD ccd(CCDPhase(1e3, 0.0, 1.0));
     int express = 0;
     int offset = 0;
-    int start = 0;
-    int stop = -1;
+    int window_start = 0;
+    int window_stop = -1;
+    int time_start = 0;
+    int time_stop = -1;
+    double prune_n_electrons = 0;
+    int prune_frequency = 0;
 
     // Add parallel and serial CTI (ic = instant capture, sc = slow capture, co = continuum release)
     print_v(1, "\n# Add CTI \n");
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-        express, offset, start, stop, start, stop, 0, 1, 
+        express, offset, window_start, window_stop, time_start, time_stop, 
+        prune_n_electrons, prune_frequency, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, start, stop, 0, 1, 0);
+        express, offset, window_start, window_stop, time_start, time_stop, 
+        prune_n_electrons, prune_frequency, 0);
     print_v(1, "\n# Image with CTI added: \n");
     print_array_2D(image_post_cti);
 
@@ -80,9 +86,11 @@ int run_demo() {
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, start, stop, 0, 1, 
+        express, offset, window_start, window_stop, time_start, time_stop,  
+        prune_n_electrons, prune_frequency, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-        express, offset, start, stop, start, stop, 0, 1);
+        express, offset, window_start, window_stop, time_start, time_stop, 
+        prune_n_electrons, prune_frequency);
     print_v(1, "\n# Image with CTI removed: \n");
     print_array_2D(image_remove_cti);
 
@@ -105,7 +113,7 @@ int run_benchmark() {
     FILE* f = fopen(filename, "r");
     if (!f) {
         const char* command =
-            "wget thttp://www.astro.dur.ac.uk/~rjm/ArCTIc/hst_acs_10_col.txt";
+            "wget http://www.astro.dur.ac.uk/~rjm/ArCTIc/hst_acs_10_col.txt";
         printf("%s\n", command);
         int status = system(command);
         if (status != 0) exit(status);
@@ -119,17 +127,20 @@ int run_benchmark() {
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<TrapInstantCapture> traps = {trap};
     std::valarray<double> dwell_times = {1.0};
-    ROE roe(dwell_times, true, false, true, false);
+    ROE roe(dwell_times, 1, -1, true, false, true, false);
     CCD ccd(CCDPhase(1e4, 0.0, 1.0));
     int express = 5;
     int offset = 0;
     int start = 0;
     int stop = -1;
+    double prune_n_electrons = 0;
+    int prune_frequency = 0;
     
     // Add parallel CTI
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
-        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
-        start, stop, start, stop, 0, 1);
+        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, 
+        express, offset, start, stop, start, stop, 
+        prune_n_electrons, prune_frequency);
 
     return 0;
 }
