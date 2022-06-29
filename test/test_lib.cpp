@@ -17,7 +17,7 @@
 int main(int argc, char** argv) {
 
     // Make the image
-    std::valarray<std::valarray<double>> image_pre_cti = {
+    std::valarray<std::valarray<double> > image_pre_cti = {
         // clang-format off
         {0.0,   0.0,   0.0,   0.0},
         {200.0, 0.0,   0.0,   0.0},
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     int prune_frequency = 0;
 
     // Add parallel and serial CTI
-    std::valarray<std::valarray<double>> image_post_cti = add_cti(
+    std::valarray<std::valarray<double> > image_post_cti = add_cti(
         image_pre_cti, 
         &roe, &ccd, &traps, nullptr, nullptr, nullptr, 
         express, offset, start, stop, 

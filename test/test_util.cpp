@@ -14,7 +14,7 @@ TEST_CASE("Test clamp", "[util]") {
 
 TEST_CASE("Test flatten", "[util]") {
     std::vector<double> answer;
-    std::valarray<std::valarray<double>> array{
+    std::valarray<std::valarray<double> > array{
         // clang-format off
         {0.0, 1.0, 2.0, 3.0},
         {4.0, 5.0, 6.0, 7.0},
@@ -42,15 +42,15 @@ TEST_CASE("Test arange", "[util]") {
 
 TEST_CASE("Test transpose", "[util]") {
     std::vector<double> test_row, answer_row;
-    std::valarray<std::valarray<double>> test;
-    std::valarray<std::valarray<double>> array{
+    std::valarray<std::valarray<double> > test;
+    std::valarray<std::valarray<double> > array{
         // clang-format off
         {0.0, 1.0, 2.0, 3.0},
         {4.0, 5.0, 6.0, 7.0},
         {8.0, 9.0, 10.0, 11.0},
         // clang-format on
     };
-    std::valarray<std::valarray<double>> array_T{
+    std::valarray<std::valarray<double> > array_T{
         // clang-format off
         {0.0, 4.0, 8.0},
         {1.0, 5.0, 9.0},

@@ -31,7 +31,7 @@ int run_demo() {
     save_image_to_txt(
         (char*)"image_test_pre_cti.txt",
         // clang-format off
-        std::valarray<std::valarray<double>>{
+        std::valarray<std::valarray<double> >{
             {0.0,   0.0,   0.0,   0.0},
             {200.0, 0.0,   0.0,   0.0},
             {0.0,   200.0, 0.0,   0.0},
@@ -42,7 +42,7 @@ int run_demo() {
     );
 
     // Load the image
-    std::valarray<std::valarray<double>> image_pre_cti =
+    std::valarray<std::valarray<double> > image_pre_cti =
         load_image_from_txt((char*)"image_test_pre_cti.txt");
     print_v(1, "\n# Loaded test image from image_test_pre_cti.txt: \n");
     print_array_2D(image_pre_cti);
@@ -65,7 +65,7 @@ int run_demo() {
 
     // Add parallel and serial CTI (ic = instant capture, sc = slow capture, co = continuum release)
     print_v(1, "\n# Add CTI \n");
-    std::valarray<std::valarray<double>> image_post_cti = add_cti(
+    std::valarray<std::valarray<double> > image_post_cti = add_cti(
         image_pre_cti, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
         express, offset, start, stop, start, stop, 0, 1, 
@@ -77,7 +77,7 @@ int run_demo() {
     // Remove CTI
     print_v(1, "\n# Remove CTI \n");
     int n_iterations = 5;
-    std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
+    std::valarray<std::valarray<double> > image_remove_cti = remove_cti(
         image_post_cti, n_iterations, 
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
         express, offset, start, stop, start, stop, 0, 1, 
@@ -113,7 +113,7 @@ int run_benchmark() {
         fclose(f);
 
     // Load the image
-    std::valarray<std::valarray<double>> image_pre_cti = load_image_from_txt(filename);
+    std::valarray<std::valarray<double> > image_pre_cti = load_image_from_txt(filename);
 
     // CTI model parameters
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
@@ -127,7 +127,7 @@ int run_benchmark() {
     int stop = -1;
     
     // Add parallel CTI
-    std::valarray<std::valarray<double>> image_post_cti = add_cti(
+    std::valarray<std::valarray<double> > image_post_cti = add_cti(
         image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
         start, stop, start, stop, 0, 1);
 

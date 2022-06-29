@@ -1,0 +1,4 @@
+include include/*.hpp
+include python/arcticpy/include/*.hpp
+include python/arcticpy/src/wrapper.pyx
+exclude python/arcticpy/src/wrapper.cpp

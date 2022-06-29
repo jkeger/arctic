@@ -6,8 +6,8 @@
 #include "roe.hpp"
 #include "traps.hpp"
 
-std::valarray<std::valarray<double>> clock_charge_in_one_direction(
-    std::valarray<std::valarray<double>>& image_in, ROE* roe, CCD* ccd,
+std::valarray<std::valarray<double> > clock_charge_in_one_direction(
+    std::valarray<std::valarray<double> >& image_in, ROE* roe, CCD* ccd,
     std::valarray<TrapInstantCapture>* traps_ic,
     std::valarray<TrapSlowCapture>* traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
@@ -19,8 +19,8 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     double prune_n_electrons = 1e-10, int prune_frequency = 20,
     int print_inputs = -1);
 
-std::valarray<std::valarray<double>> add_cti(
-    std::valarray<std::valarray<double>>& image_in,
+std::valarray<std::valarray<double> > add_cti(
+    std::valarray<std::valarray<double> >& image_in,
     // Parallel
     ROE* parallel_roe = nullptr, CCD* parallel_ccd = nullptr,
     std::valarray<TrapInstantCapture>* parallel_traps_ic = nullptr,
@@ -43,8 +43,8 @@ std::valarray<std::valarray<double>> add_cti(
     double serial_prune_n_electrons = 1e-10, int serial_prune_frequency = 20,
     int verbosity = 0, int iteration = 0);
 
-std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in, int n_iterations,
+std::valarray<std::valarray<double> > remove_cti(
+    std::valarray<std::valarray<double> >& image_in, int n_iterations,
     // Parallel
     ROE* parallel_roe = nullptr, CCD* parallel_ccd = nullptr,
     std::valarray<TrapInstantCapture>* parallel_traps_ic = nullptr,

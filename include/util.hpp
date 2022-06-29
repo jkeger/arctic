@@ -53,25 +53,25 @@ void print_array(std::valarray<double>& array);
 
 void print_array_2D(std::valarray<double>& image, int n_col);
 
-void print_array_2D(std::valarray<std::valarray<double>>& array);
+void print_array_2D(std::valarray<std::valarray<double> >& array);
 
 // ========
 // Arrays
 // ========
-std::vector<double> flatten(std::valarray<std::valarray<double>>& array);
+std::vector<double> flatten(std::valarray<std::valarray<double> >& array);
 
 std::valarray<double> arange(double start, double stop, double step = 1);
 
-std::valarray<std::valarray<double>> transpose(
-    std::valarray<std::valarray<double>>& array);
+std::valarray<std::valarray<double> > transpose(
+    std::valarray<std::valarray<double> >& array);
 
 // ========
 // I/O
 // ========
-std::valarray<std::valarray<double>> load_image_from_txt(const char* filename);
+std::valarray<std::valarray<double> > load_image_from_txt(const char* filename);
 
 void save_image_to_txt(
-    const char* filename, std::valarray<std::valarray<double>> image);
+    const char* filename, std::valarray<std::valarray<double> > image);
 
 // ========
 // Misc

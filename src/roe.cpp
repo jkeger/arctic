@@ -404,7 +404,7 @@ void ROE::set_store_trap_states_matrix() {
 
     Sets
     ----
-    clock_sequence : std::valarray<std::valarray<ROEStepPhase>>
+    clock_sequence : std::valarray<std::valarray<ROEStepPhase> >
         The array of ROEStepPhase objects to describe the state of the readout
         electronics in each phase of the pixel at each step in the clocking
         sequence.

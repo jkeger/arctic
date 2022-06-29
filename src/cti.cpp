@@ -20,7 +20,7 @@
 
     Parameters
     ----------
-    image_in : std::valarray<std::valarray<double>>
+    image_in : std::valarray<std::valarray<double> >
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
@@ -58,11 +58,11 @@
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The output array of pixel values.
 */
-std::valarray<std::valarray<double>> clock_charge_in_one_direction(
-    std::valarray<std::valarray<double>>& image_in, ROE* roe, CCD* ccd,
+std::valarray<std::valarray<double> > clock_charge_in_one_direction(
+    std::valarray<std::valarray<double> >& image_in, ROE* roe, CCD* ccd,
     std::valarray<TrapInstantCapture>* traps_ic,
     std::valarray<TrapSlowCapture>* traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
@@ -75,7 +75,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     int print_inputs) {
 
     // Initialise the output image as a copy of the input image
-    std::valarray<std::valarray<double>> image = image_in;
+    std::valarray<std::valarray<double> > image = image_in;
 
     // Image shape
     unsigned int n_rows = image.size();
@@ -472,7 +472,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     Parameters
     ----------
-    image_in : std::valarray<std::valarray<double>>
+    image_in : std::valarray<std::valarray<double> >
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
@@ -554,11 +554,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The output array of pixel values with CTI added.
 */
-std::valarray<std::valarray<double>> add_cti(
-    std::valarray<std::valarray<double>>& image_in,
+std::valarray<std::valarray<double> > add_cti(
+    std::valarray<std::valarray<double> >& image_in,
     // Parallel
     ROE* parallel_roe, CCD* parallel_ccd,
     std::valarray<TrapInstantCapture>* parallel_traps_ic,
@@ -589,7 +589,7 @@ std::valarray<std::valarray<double>> add_cti(
     int print_inputs = (iteration > 1) ? 0 : verbosity >= 1;
 
     // Initialise the output image as a copy of the input image
-    std::valarray<std::valarray<double>> image = image_in;
+    std::valarray<std::valarray<double> > image = image_in;
 
     // Parallel clocking along columns, transfer charge towards row 0
     if (parallel_traps_ic || parallel_traps_sc || parallel_traps_ic_co ||
@@ -648,11 +648,11 @@ std::valarray<std::valarray<double>> add_cti(
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The output array of pixel values with CTI removed.
 */
-std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in, int n_iterations,
+std::valarray<std::valarray<double> > remove_cti(
+    std::valarray<std::valarray<double> >& image_in, int n_iterations,
     // Parallel
     ROE* parallel_roe, CCD* parallel_ccd,
     std::valarray<TrapInstantCapture>* parallel_traps_ic,
@@ -677,8 +677,8 @@ std::valarray<std::valarray<double>> remove_cti(
     print_version();
 
     // Initialise the output image as a copy of the input image
-    std::valarray<std::valarray<double>> image_remove_cti = image_in;
-    std::valarray<std::valarray<double>> image_add_cti;
+    std::valarray<std::valarray<double> > image_remove_cti = image_in;
+    std::valarray<std::valarray<double> > image_add_cti;
 
     int n_rows = image_in.size();
 
