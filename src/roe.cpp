@@ -336,8 +336,6 @@ void ROE::set_express_matrix_from_rows_and_express(
         express_matrix = express_matrix_trim;
     }
 
-    return;  // TODO currently circumventing the bug in the overscan section for testing/benchmarking; has to be removed once bug it fixed!!!!
-
     // Truncate number of transfers in regions of the image that represent overscan
     //print_array_2D(express_matrix, n_rows);  
     if (overscan > 0) {
