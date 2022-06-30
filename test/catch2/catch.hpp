@@ -10819,6 +10819,11 @@ namespace Catch {
 
     // 32kb for the alternate stack seems to be sufficient. However, this value
     // is experimentally determined, so that's not guaranteed.
+
+    // (dirty) fix for issue that constant ahs been renamed in newer glibc (TODO alternatively correct name)
+    // https://sourceware.org/git/?p=glibc.git;a=blob;f=NEWS;h=85e84fe53699fe9e392edffa993612ce08b2954a;hb=HEAD
+    #undef MINSIGSTKSZ
+    #define MINSIGSTKSZ 32768
     static constexpr std::size_t sigStackSize = 32768 >= MINSIGSTKSZ ? 32768 : MINSIGSTKSZ;
 
     static SignalDefs signalDefs[] = {

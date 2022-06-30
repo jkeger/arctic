@@ -276,7 +276,6 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Truncate all values to between 0 and max_multiplier
     tmp_express_matrix[tmp_express_matrix < 0.0] = 0.0;
     tmp_express_matrix[tmp_express_matrix > max_multiplier] = max_multiplier;
-
     
     // Add an extra (first) transfer for every pixel, the effect of which
     // will only ever be counted once, because it is physically different
@@ -325,7 +324,6 @@ void ROE::set_express_matrix_from_rows_and_express(
         n_express_passes = express;
     }
     express_matrix = tmp_express_matrix;
-    
     
     // Remove the offset (which is not represented in the image pixels)
     std::cout << offset ;
