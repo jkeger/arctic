@@ -43,7 +43,7 @@
 # ========
 # Compiler
 CXX ?= g++
-CXXFLAGS := -std=c++11 -fPIC -O3 -fopenmp  #-Wall -Wno-reorder -Wno-sign-compare
+CXXFLAGS := -std=c++11 -fPIC -O3 -Xpreprocessor -fopenmp  #-Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
@@ -62,6 +62,7 @@ DIR_OBJ := $(DIR_ROOT)/build
 DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
 DIR_GSL ?= $(DIR_ROOT)/gsl
+DIR_OMP := /opt/local/lib/libomp
 DIR_WRAPPER := $(DIR_ROOT)/arcticpy
 DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
 $(shell mkdir -p $(DIR_OBJ))
@@ -81,8 +82,9 @@ $(info $(SOURCES) $(OBJECTS))
 
 # Headers and library links
 INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
-LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm -lgomp
+LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
+LIBOMP := -L $(DIR_OMP) -Wl,-rpath,$(DIR_OMP) -lgsl -lgslcblas -lm -lgomp
 
 # ========
 # Rules
@@ -102,7 +104,7 @@ core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
 
 # Main program
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) $(LIBOMP)
 
 $(OBJECTS): $(DIR_GSL)
 
@@ -115,7 +117,7 @@ $(DIR_OBJ)%.o: $(DIR_SRC)/%.cpp makefile
 test: $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) $(LIBOMP)
 
 -include $(TEST_DEPENDS)
 
@@ -126,11 +128,11 @@ $(DIR_OBJ)%.o: $(DIR_TEST)/%.cpp
 lib: $(LIB_TARGET)
 
 $(LIB_TARGET): $(OBJECTS)
-	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBS)
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBOMP)
 
 # Test using the library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(LIB_TEST_SOURCES) -o $@ $(LIBS)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(LIB_TEST_SOURCES) -o $@ $(LIBS) $(LIBOMP)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
