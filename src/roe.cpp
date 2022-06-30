@@ -354,6 +354,7 @@ void ROE::set_express_matrix_from_rows_and_express(
             int i_express = 0;
             while (removed < to_remove) {
                 int index = (n_express_rows - i_express) * n_rows - i_row - 1;
+                if ( index < 0 ) throw std::invalid_argument( "Accessing pixel that does not exist" );
                 //std::cout << i_express << i_row << " " << to_remove << removed << " index " << index << "\n";
                 removed += express_matrix[index];
                 express_matrix[index] = fmax(removed - to_remove, 0);
