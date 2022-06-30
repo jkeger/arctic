@@ -15,6 +15,7 @@ gsl/
 *.log
 *.tar
 *.tar.gz
+*.bck
 
 *test*.*
 gmon.out
