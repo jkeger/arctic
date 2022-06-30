@@ -50,6 +50,10 @@ If you don't like doing this, you can cut and paste the few lines marked with co
     **MacOS:** On the first build, mac users may also need to create an (empty) directory 
 /sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
  Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
+
+brew install llvm libomp
+Also brew install gsl ???
+
 -->
 
 Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
