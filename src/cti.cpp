@@ -103,8 +103,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the readout electronics and express arrays
     roe->set_clock_sequence();
-    int offset = row_offset + roe->prescan_offset;
-    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
+    roe->set_express_matrix_from_rows_and_express(n_rows, express, row_offset);
     roe->set_store_trap_states_matrix();
     if (ccd->n_phases != roe->n_phases)
         error(

@@ -154,7 +154,10 @@ ROE::ROE(
       use_integer_express_matrix(use_integer_express_matrix) {
 
     type = roe_type_standard;
-
+    if ( prescan_offset < 0 ) throw std::invalid_argument( "prescan_offset must be zero or positive" );
+    if ( overscan_start != -1) {
+        if ( overscan_start <= 0 ) throw std::invalid_argument( "overscan_start must be positive" );
+    }
     n_steps = dwell_times.size();
     n_phases = n_steps;
 }
@@ -227,18 +230,18 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Set defaults
     int offset = window_offset + prescan_offset;
     int n_transfers = n_rows + offset; // transfers taken by farthest included pixel 
-    int overscan = 0; // number of pixels in the supplied image that are overscan
+    int overscan_in_image = 0; // number of pixels in the supplied image that are overscan
     if (overscan_start >= 0)
-        overscan = std::max(n_rows + window_offset + 1 - overscan_start, 0);
+        overscan_in_image = std::max(n_rows + window_offset + 1 - overscan_start, 0);
     if (express == 0)
         express = n_transfers; // default express to all transfers, and check no larger
     else
         express = std::min(express, n_transfers);
 
-    print_v(
+    /*print_v(
         0,"offset: %d %d %d, n_transfers: %d, overscan: %d %d \n", 
-        offset, window_offset, prescan_offset, n_transfers, overscan, overscan_start
-    ); 
+        offset, window_offset, prescan_offset, n_transfers, overscan_in_image, overscan_start
+    );*/ 
     
  
     // Set default express to all transfers, and check no larger
@@ -341,16 +344,17 @@ void ROE::set_express_matrix_from_rows_and_express(
     }
 
     // Truncate number of transfers in regions of the image that represent overscan
-    print_array_2D(express_matrix, n_rows);  
-    if (overscan > 0) {
+    //print_array_2D(express_matrix, n_rows);  
+    //std::cout << "overscan " << overscan_start << " f " << overscan_in_image << "\n";
+    if (overscan_in_image > 0) {
         int n_express_rows = express_matrix.size() / n_rows;
-        for (int i_row = 0; (i_row < overscan); i_row++) {
-            double to_remove = overscan - i_row;
+        for (int i_row = 0; (i_row < overscan_in_image); i_row++) {
+            double to_remove = overscan_in_image - i_row;
             double removed = 0;
             int i_express = 0;
             while (removed < to_remove) {
                 int index = (n_express_rows - i_express) * n_rows - i_row - 1;
-                std::cout << i_express << i_row << " " << to_remove << removed << " index " << index << "\n";
+                //std::cout << i_express << i_row << " " << to_remove << removed << " index " << index << "\n";
                 removed += express_matrix[index];
                 express_matrix[index] = fmax(removed - to_remove, 0);
                 i_express++;

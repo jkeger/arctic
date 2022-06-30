@@ -127,7 +127,7 @@ int run_benchmark() {
     TrapInstantCapture trap(10.0, -1.0 / log(0.5));
     std::valarray<TrapInstantCapture> traps = {trap};
     std::valarray<double> dwell_times = {1.0};
-    ROE roe(dwell_times, 1, -1, true, false, true, false);
+    ROE roe(dwell_times, 0, -1, true, false, true, false);
     CCD ccd(CCDPhase(1e4, 0.0, 1.0));
     int express = 5;
     int offset = 0;
