@@ -43,7 +43,7 @@
 # ========
 # Compiler
 CXX ?= g++
-CXXFLAGS := -std=c++11 -fPIC -O3 -Xpreprocessor -fopenmp  #-Wall -Wno-reorder -Wno-sign-compare
+CXXFLAGS := -std=c++11 -fPIC -O3 # -Xpreprocessor -fopenmp  #-Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
@@ -55,14 +55,21 @@ TEST_TARGET := test_arctic
 LIB_TARGET := libarctic.so
 LIB_TEST_TARGET := lib_test
 
-# Directories
+# Directories 
+# brew install gsl libomp
+DIR_HOMEBREW := /usr/local/lib
+# sudo port install gsl libomp
+DIR_MACPORTS := /opt/local/lib
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DIR_SRC := $(DIR_ROOT)/src
 DIR_OBJ := $(DIR_ROOT)/build
 DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
-DIR_GSL ?= $(DIR_ROOT)/gsl
-DIR_OMP := /opt/local/lib/libomp
+DIR_GSL ?= $(DIR_HOMEBREW)
+DIR_OMP ?= $(DIR_HOMEBREW)
+#DIR_OMP ?= $(DIR_MACPORTS)/libomp
+#DIR_GSL ?= $(DIR_MACPORTS)
+#DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/arcticpy
 DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
 $(shell mkdir -p $(DIR_OBJ))
@@ -82,9 +89,22 @@ $(info $(SOURCES) $(OBJECTS))
 
 # Headers and library links
 INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
-LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
+LIBS := -L $(DIR_GSL) -Wl,-rpath,$(DIR_GSL) -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
-LIBOMP := -L $(DIR_OMP) -Wl,-rpath,$(DIR_OMP) -lgsl -lgslcblas -lm -lgomp
+
+# Add multithreading to reduce runtime (requires OpenMP to have been installed)
+# IF SYNTAX DOES NOT WORK
+#if [ -e /opt/local/lib/libomp/libomp.dylib ] && RESULT1 := "hello world" || RESULT1 := "goodbye cruel world" 
+#ifeq ($(shell test -e /opt/local/lib/libomp/libomp.dylib && echo -n yes),yes)
+#       RESULT2 := $(DIR_MACPORTS)/libomp.dylib  exists.
+#else
+#       RESULT2 := $(DIR_MACPORTS)/libomp.dylib really does not exist.
+#endif
+CXXFLAGS += -Xpreprocessor -fopenmp 
+LIBS += -L $(DIR_OMP) -Wl,-rpath,$(DIR_OMP) -lomp
+#LIBS += -L $(DIR_OMP) -Wl,-rpath,$(DIR_OMP) -lgomp
+
+
 
 # ========
 # Rules
@@ -104,7 +124,9 @@ core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
 
 # Main program
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) $(LIBOMP)
+	#@echo "Hello"
+	#@echo $(RESULT1)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 $(OBJECTS): $(DIR_GSL)
 
@@ -117,7 +139,7 @@ $(DIR_OBJ)%.o: $(DIR_SRC)/%.cpp makefile
 test: $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS) $(LIBOMP)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 -include $(TEST_DEPENDS)
 
@@ -128,11 +150,11 @@ $(DIR_OBJ)%.o: $(DIR_TEST)/%.cpp
 lib: $(LIB_TARGET)
 
 $(LIB_TARGET): $(OBJECTS)
-	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBS) $(LIBOMP)
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBS)
 
 # Test using the library
 $(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(LIB_TEST_SOURCES) -o $@ $(LIBS) $(LIBOMP)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(LIB_TEST_SOURCES) -o $@ $(LIBS)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)

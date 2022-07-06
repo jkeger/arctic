@@ -110,6 +110,7 @@ int run_benchmark() {
 
     // Download the test image
     const char* filename = "hst_acs_10_col.txt";
+    //const char* filename = "benchmark_2k2k_image.txt";
     FILE* f = fopen(filename, "r");
     if (!f) {
         const char* command =
