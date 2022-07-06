@@ -43,7 +43,7 @@
 # ========
 # Compiler
 CXX ?= g++
-CXXFLAGS := -std=c++11 -fPIC -O3 # -Xpreprocessor -fopenmp  #-Wall -Wno-reorder -Wno-sign-compare
+CXXFLAGS := -std=c++11 -fPIC -O3 # -Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
@@ -65,10 +65,13 @@ DIR_SRC := $(DIR_ROOT)/src
 DIR_OBJ := $(DIR_ROOT)/build
 DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
+#DIR_GSL ?= /cosma/local/gsl/2.5/lib
+#DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4/lib
 DIR_GSL ?= $(DIR_HOMEBREW)
 DIR_OMP ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_MACPORTS)/libomp
 #DIR_GSL ?= $(DIR_MACPORTS)
+# Fallback self-installing GSL
 #DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/arcticpy
 DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
@@ -101,8 +104,10 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 #       RESULT2 := $(DIR_MACPORTS)/libomp.dylib really does not exist.
 #endif
 CXXFLAGS += -Xpreprocessor -fopenmp 
-LIBS += -L $(DIR_OMP) -Wl,-rpath,$(DIR_OMP) -lomp
-#LIBS += -L $(DIR_OMP) -Wl,-rpath,$(DIR_OMP) -lgomp
+# Use this on a mac
+LIBS += -L $(DIR_OMP) -lomp
+# Use the following on cosma (can also use with macports)
+#LIBS += -L $(DIR_OMP) -lgomp
 
 
 
