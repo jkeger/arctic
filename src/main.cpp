@@ -109,12 +109,12 @@ int run_demo() {
 int run_benchmark() {
 
     // Download the test image
-    const char* filename = "hst_acs_10_col.txt";
-    //const char* filename = "benchmark_2k2k_image.txt";
+    //const char* filename = "hst_acs_10_col.txt";
+    const char* filename = "benchmark_2k2k_image.txt";
     FILE* f = fopen(filename, "r");
     if (!f) {
         const char* command =
-            "wget http://www.astro.dur.ac.uk/~rjm/ArCTIc/hst_acs_10_col.txt";
+            "wget http://www.astro.dur.ac.uk/~rjm/ArCTIc/benchmark_2k2k_image.txt";
         printf("%s\n", command);
         int status = system(command);
         if (status != 0) exit(status);
