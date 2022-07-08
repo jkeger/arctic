@@ -56,9 +56,9 @@ LIB_TARGET := libarctic.so
 LIB_TEST_TARGET := lib_test
 
 # Directories 
-# brew install gsl libomp
+# brew install llvm libomp gsl
 DIR_HOMEBREW := /usr/local/lib
-# sudo port install gsl libomp
+# sudo port install libomp gsl
 DIR_MACPORTS := /opt/local/lib
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DIR_SRC := $(DIR_ROOT)/src
