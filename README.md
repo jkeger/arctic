@@ -22,8 +22,8 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
-    + Quick install
-    + Troubleshooting
+    + Requirements
+    + Instructions
 + Usage
     + Python example
     + C++
@@ -44,7 +44,7 @@ Installation
 ============
 
 
-Preparations
+Requirements
 ------------
 
 You have to make sure that the following libraries are installed on your system: llvm, omp, gsl. 
@@ -57,11 +57,14 @@ apt install llvm14 gsl libomp5
 brew install llvm libomp gsl
 ```
 
-Installation
+Instructions
 ------------
 
 There are two ways to install arCTIc and its python wrapper:
-+ [pypi/pip] [recommended] The easiest way is to use 	the ```pip``` module of your python installation
+
+### pypi/pip [recommended] ###
+
+The easiest way is to use 	the ```pip``` module of your python installation
 ```bash
 python3 -m pip install arcticpy
 ```
@@ -69,7 +72,9 @@ This automatically downloads the source files and builds/installs the executable
 have to add the ```--user``` argument to install it into your local (home) directory instead. Furthermore, on some macOS system, you may have to
 explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
 
-+ [automake] You can also download/clone the source code manually and compile it using the provided ```makefile```. For doing so, you have to perform the following steps:
+### automake ###
+
+You can also download/clone the source code manually and compile it using the provided ```makefile```. For doing so, you have to perform the following steps:
 1. Clone or download & unpack source code i.e.
 ```bash
 git clone https://github.com/jkeger/arctic.git
