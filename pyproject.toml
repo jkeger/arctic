@@ -1,0 +1,29 @@
+[build-system]
+requires = [
+    "setuptools >=62",
+    "numpy ~=1.21",
+    "cython ~=0.29",
+    "pytest-runner",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arcticpy"
+version= "7.0.18"
+description = "This is the python module for the arCTIc code"
+authors = [
+    { name = "Jakob Kegerreis", email = "jk@example.com" }
+]
+dependencies = ["numpy ~=1.21"]
+requires-python = ">=3.6"
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+packages = ["arcticpy"]
+zip-safe = false
+
+[project.optional-dependencies]
+pytest = [
+    "coverage",
+    "pytest",
+]

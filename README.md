@@ -44,37 +44,39 @@ Installation
 ============
 
 
-<!--
-    **MacOS:** requires `mkdir build; sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
-If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
-    **MacOS:** On the first build, mac users may also need to create an (empty) directory 
-/sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
- Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
+Preparations
+------------
 
-brew install llvm libomp
-Also brew install gsl ???
+You have to make sure that the following libraries are installed on your system: llvm, omp, gsl. 
++ On Linux, you can install them using your distro's package manager e.g. for Ubuntu:
+```bash
+apt install llvm14 gsl libomp5
+```
++ On macOS, you can install then using e.g. homebrew:
+```bash
+brew install llvm libomp gsl
+```
 
--->
+Installation
+------------
 
-Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
+There are two ways to install arCTIc and its python wrapper:
++ [pypi/pip] [recommended] The easiest way is to use 	the ```pip``` module of your python installation
+```bash
+python3 -m pip install arcticpy
+```
+This automatically downloads the source files and builds/installs the executable, library and module. If you do not have superuser privileges, you
+have to add the ```--user``` argument to install it into your local (home) directory instead. Furthermore, on some macOS system, you may have to
+explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
 
-Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
-  
-Troubleshooting (individual steps within the makefile)
-------------------------------------------------------
-
-1. Install GNU Scientific Library
-    + Run `sudo make gsl` to download and install the GNU Scientific Library. 
-    + This will create a local subdirectory gsl/ containing bin/, include/, lib/, share/.
-
-        If your system already has GSL installed, you can skip this step and prefix future commands with e.g. `DIR_GSL=/path/to/gsl make all`
-
-        sudo is only required on MacOS, to run ./configure from the middle of `get_gsl.sh`. If you don't like doing this, you can cut and paste the few lines marked with comments in that script.
-
++ [automake] You can also download/clone the source code manually and compile it using the provided ```makefile```. For doing so, you have to perform the following steps:
+1. Clone or download & unpack source code i.e.
+```bash
+git clone https://github.com/jkeger/arctic.git
+```
 2. Install arCTIc C++ core <!-- and unit tests -->
-    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. --> 
-    + You should now get output from `./arctic --demo`. 
-
+    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. -->
+    + You should now get output from `./arctic --demo`.
 3. arCTIc python wrapper
     + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
     + Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
@@ -82,7 +84,6 @@ Troubleshooting (individual steps within the makefile)
 
 
     **MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
-
 
 \
 Usage
