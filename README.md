@@ -72,7 +72,7 @@ This automatically downloads the source files and builds/installs the executable
 have to add the ```--user``` argument to install it into your local (home) directory instead. Furthermore, on some macOS system, you may have to
 explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
 
-### automake ###
+### source ###
 
 You can also download/clone the source code manually and compile it using the provided ```makefile```. For doing so, you have to perform the following steps:
 1. Clone or download & unpack source code i.e.
