@@ -5,6 +5,7 @@
 #include <sys/time.h>
 
 #include <valarray>
+#include <iostream>
 
 #include "ccd.hpp"
 #include "roe.hpp"
@@ -102,8 +103,7 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
 
     // Set up the readout electronics and express arrays
     roe->set_clock_sequence();
-    int offset = row_offset + roe->prescan_offset;
-    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
+    roe->set_express_matrix_from_rows_and_express(n_rows, express, row_offset);
     roe->set_store_trap_states_matrix();
     if (ccd->n_phases != roe->n_phases)
         error(
@@ -311,6 +311,9 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
     //print_array_2D((int)roe->store_trap_states_matrix, n_active_rows);
     // Loop over:
     //   Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
+    #pragma omp parallel for private(column_index, row_index, row_read, row_write, n_free_electrons, \
+				     n_electrons_released_and_captured, express_multiplier, roe_step_phase) \
+                             firstprivate(trap_manager_manager)
     for (unsigned int i_column = 0; i_column < n_active_columns; i_column++) {
         column_index = column_start + i_column;
 

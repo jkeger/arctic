@@ -6,6 +6,7 @@
 
 #include <valarray>
 
+#include <iostream>
 #include "util.hpp"
 
 // ========
@@ -76,6 +77,11 @@ ROEStepPhase::ROEStepPhase(
     dwell_times : std::valarray<double> (opt.)
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default {1.0}.
+        
+    prescan_offset : int (opt.)
+        The number of pixels not present in the input array, through which
+        the charge had to pass in order to reach the readout amplifier.
+        Default [0]
 
     overscan_start : int (opt.)
         The number of pixels after which the input array that correspond to a 
@@ -83,11 +89,6 @@ ROEStepPhase::ROEStepPhase(
         trailed when it passes through these pixels (but it does through the   
         rest of the CCD). This means that the input array can be larger than 
         the CCD. Default [-1] means "no overscan".
-        
-    prescan_offset : int (opt.)
-        The number of pixels not present in the input array, through which
-        the charge had to pass in order to reach the readout amplifier.
-        Default [0]
 
     empty_traps_between_columns : bool (opt.)
         true:  Each column has independent traps (appropriate for parallel
@@ -153,7 +154,10 @@ ROE::ROE(
       use_integer_express_matrix(use_integer_express_matrix) {
 
     type = roe_type_standard;
-
+    if ( prescan_offset < 0 ) throw std::invalid_argument( "prescan_offset must be zero or positive" );
+    if ( overscan_start != -1) {
+        if ( overscan_start <= 0 ) throw std::invalid_argument( "overscan_start must be positive" );
+    }
     n_steps = dwell_times.size();
     n_phases = n_steps;
 }
@@ -226,18 +230,18 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Set defaults
     int offset = window_offset + prescan_offset;
     int n_transfers = n_rows + offset; // transfers taken by farthest included pixel 
-    int overscan = 0; // number of pixels in the supplied image that are overscan
+    int overscan_in_image = 0; // number of pixels in the supplied image that are overscan
     if (overscan_start >= 0)
-        overscan = std::max(n_rows + window_offset + 1 - overscan_start, 0);
+        overscan_in_image = std::max(n_rows + window_offset + 1 - overscan_start, 0);
     if (express == 0)
         express = n_transfers; // default express to all transfers, and check no larger
     else
         express = std::min(express, n_transfers);
 
-    /* print_v(
+    /*print_v(
         0,"offset: %d %d %d, n_transfers: %d, overscan: %d %d \n", 
-        offset, window_offset, prescan_offset, n_transfers, overscan, overscan_start
-    ); */
+        offset, window_offset, prescan_offset, n_transfers, overscan_in_image, overscan_start
+    );*/ 
     
  
     // Set default express to all transfers, and check no larger
@@ -272,7 +276,6 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Truncate all values to between 0 and max_multiplier
     tmp_express_matrix[tmp_express_matrix < 0.0] = 0.0;
     tmp_express_matrix[tmp_express_matrix > max_multiplier] = max_multiplier;
-
     
     // Add an extra (first) transfer for every pixel, the effect of which
     // will only ever be counted once, because it is physically different
@@ -322,8 +325,8 @@ void ROE::set_express_matrix_from_rows_and_express(
     }
     express_matrix = tmp_express_matrix;
     
-    
     // Remove the offset (which is not represented in the image pixels)
+    std::cout << offset ;
     if (offset > 0) {
         //print_array_2D(tmp_express_matrix, n_transfers);
         std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
@@ -340,14 +343,17 @@ void ROE::set_express_matrix_from_rows_and_express(
 
     // Truncate number of transfers in regions of the image that represent overscan
     //print_array_2D(express_matrix, n_rows);  
-    if (overscan > 0) {
+    //std::cout << "overscan " << overscan_start << " f " << overscan_in_image << "\n";
+    if (overscan_in_image > 0) {
         int n_express_rows = express_matrix.size() / n_rows;
-        for (int i_row = 0; (i_row < overscan); i_row++) {
-            double to_remove = overscan - i_row;
+        for (int i_row = 0; (i_row < overscan_in_image); i_row++) {
+            double to_remove = overscan_in_image - i_row;
             double removed = 0;
             int i_express = 0;
             while (removed < to_remove) {
                 int index = (n_express_rows - i_express) * n_rows - i_row - 1;
+                if ( index < 0 ) throw std::invalid_argument( "Accessing pixel that does not exist" );
+                //std::cout << i_express << i_row << " " << to_remove << removed << " index " << index << "\n";
                 removed += express_matrix[index];
                 express_matrix[index] = fmax(removed - to_remove, 0);
                 i_express++;

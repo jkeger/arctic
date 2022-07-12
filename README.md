@@ -50,6 +50,10 @@ If you don't like doing this, you can cut and paste the few lines marked with co
     **MacOS:** On the first build, mac users may also need to create an (empty) directory 
 /sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
  Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
+
+brew install llvm libomp
+Also brew install gsl ???
+
 -->
 
 Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
@@ -92,7 +96,7 @@ For example, to correct CTI in a Hubble Space Telescope ACS image
 (using the [autoarray](https://pypi.org/project/autoarray/) package
 to load and save the fits image with correct units and quadrant rotations, etc):
 ```python
-import arcticpy as cti
+import arcticpy as arctic
 import autoarray as aa
 
 image_path = "image_path/image_name"
@@ -114,23 +118,23 @@ roe, ccd, traps = cti.CTI_model_for_HST_ACS(date)
 
 # Or manual CTI model  (see class docstrings in src/<traps,roe,ccd>.cpp)
 traps = [
-    cti.TrapInstantCapture(density=0.6, release_timescale=0.74),
-    cti.TrapInstantCapture(density=1.6, release_timescale=7.70),
-    cti.TrapInstantCapture(density=1.4, release_timescale=37.0),
+    arctic.TrapInstantCapture(density=0.6, release_timescale=0.74),
+    arctic.TrapInstantCapture(density=1.6, release_timescale=7.70),
+    arctic.TrapInstantCapture(density=1.4, release_timescale=37.0),
 ]
-roe = cti.ROE()
-ccd = cti.CCD(full_well_depth=84700, well_fill_power=0.478)
+roe = arctic.ROE()
+ccd = arctic.CCD(full_well_depth=84700, well_fill_power=0.478)
 
 # Remove CTI  (see remove_cti() in src/cti.cpp)
 image_out_A, image_out_B, image_out_C, image_out_D = [
-    cti.remove_cti(
-        image=image,
-        n_iterations=5,
-        parallel_roe=roe,
-        parallel_ccd=ccd,
-        parallel_traps=traps,
-        parallel_express=5,
-        verbosity=1,
+    arctic.remove_cti(
+           image=image,
+           n_iterations=5,
+           parallel_roe=roe,
+           parallel_ccd=ccd,
+           parallel_traps=traps,
+           parallel_express=5,
+           verbosity=1,
     )
     for image in [image_A, image_B, image_C, image_D]
 ]
@@ -149,6 +153,18 @@ aa.acs.output_quadrants_to_fits(
     overwrite=True,
 )
 ```
+
+ArCTIc also incorporates a model of "pixel bounce", an effect of voltage 
+lag during correlated double sampling, due to finite capacitance between
+the sample and reference (ground) voltages. Pixel bounce can create trails 
+similar to serial CTI. It is implemented by defining something like 
+`pixel_bounce = cti.PixelBounce( kA=-0.1, kv=0, omega=10, gamma=0.9 )`
+then passing `pixel_bounce=pixel_bounce` as an extra/alternative variable 
+to `add_cti()` or `remove_cti()` (there are also duplicate 
+`add_pixel_bounce()` functions that add only pixel bounce, and not CTI. 
+Pixel bounce exists only in the python wrapper, not the C++ core.
+
+
 More examples adding or removing CTI trails from a test image
 are in the `run_demo()` function of `test/test_arcticpy.py`.
 
@@ -263,8 +279,11 @@ A quick summary of the code files and their contents:
             The python versions of the `CCD`, `ROE`, and `Trap` classes that are
             needed as arguments for the primary CTI functions. These mirror the
             inputs for the corresponding same-name C++ classes documented below.
+        + `pixel_bounce.py`  
+            Definition of the PixelBounce class, plus user-facing functions 
+            `add_pixel_bounce()` nd `remove_pixel_bounce()`.
         + `wrapper.pyx`  
-            The Cython wrapper, passes the python inputs to the C++ interface.
+            The Cython wrapper that passes python inputs to the C++ interface.
         + `interface.cpp`, `interface.hpp`  
             The source and header files for functions to cleanly interface
             between Cython and the main precompiled library. e.g. converts the
