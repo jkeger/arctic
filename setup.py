@@ -16,7 +16,7 @@ dir_wrapper_src = "python/arcticpy/src/"
 dir_wrapper_include = "python/arcticpy/include/"
 dir_include = "include/"
 dir_src = "src/"
-if "DIR_GSL" not in os.environ:
+if "DIR_GSL" in os.environ:
     dir_gsl = os.environ["DIR_GSL"]
 else:
     dir_gsl = "/usr/local/"
