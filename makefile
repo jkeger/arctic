@@ -163,7 +163,7 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
-	python3 $(DIR_WRAPPER)/setup.py build_ext --inplace
+	python3 $(DIR_ROOT)/setup.py build_ext --inplace
 	@mv -v $(DIR_ROOT)/*.cpython*.so $(DIR_WRAPPER)
         # @rm -rfv $(DIR_WRAPPER)build
 
