@@ -57,9 +57,9 @@ LIB_TEST_TARGET := lib_test
 
 # Directories 
 # brew install llvm libomp gsl
-DIR_HOMEBREW := /usr/local/lib
+DIR_HOMEBREW := /usr/local
 # sudo port install libomp gsl
-DIR_MACPORTS := /opt/local/lib
+DIR_MACPORTS := /opt/local
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DIR_SRC := $(DIR_ROOT)/src
 DIR_OBJ := $(DIR_ROOT)/build
@@ -92,7 +92,7 @@ $(info $(SOURCES) $(OBJECTS))
 
 # Headers and library links
 INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
-LIBS := -L $(DIR_GSL) -Wl,-rpath,$(DIR_GSL) -lgsl -lgslcblas -lm
+LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
@@ -105,9 +105,9 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 #endif
 CXXFLAGS += -Xpreprocessor -fopenmp 
 # Use this on a mac
-LIBS += -L $(DIR_OMP) -lomp
+LIBS += -L $(DIR_OMP)/lib -lomp
 # Use the following on cosma (can also use with macports)
-#LIBS += -L $(DIR_OMP) -lgomp
+#LIBS += -L $(DIR_OMP)/lib -lgomp
 
 
 
