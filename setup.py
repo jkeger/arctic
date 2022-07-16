@@ -11,17 +11,14 @@ from setuptools import setup, Extension
 from Cython.Build import cythonize
 
 # Directories
-dir_wrapper = "python/arcticpy/"
-dir_wrapper_src = "python/arcticpy/src/"
-dir_wrapper_include = "python/arcticpy/include/"
+dir_wrapper = "python/arcticpy"
+dir_wrapper_src = os.path.join(dir_wrapper, "src")
+dir_wrapper_include = os.path.join(dir_wrapper, "include")
 dir_include = "include/"
 dir_src = "src/"
-if "DIR_GSL" in os.environ:
-    dir_gsl = os.environ["DIR_GSL"]
-else:
-    dir_gsl = "/usr/local/"
-dir_include_gsl = dir_gsl + "include/"
-dir_lib_gsl = dir_gsl + "lib/"
+dir_gsl = os.environ.get("DIR_GSL", '/usr/include/')
+dir_include_gsl = os.path.join(dir_gsl, "include")
+dir_lib_gsl = os.path.join(dir_gsl, "lib")
 
 # Clean (really needed anymore?)
 for root, dirs, files in os.walk(dir_wrapper, topdown=False):
@@ -44,7 +41,7 @@ ext_sources = [os.path.join(dir_src, src) for src in os.listdir(dir_src)]
 extensions = [
     Extension(
         name="arcticpy.wrapper",
-        sources=[dir_wrapper_src + "wrapper.pyx", dir_wrapper_src + "interface.cpp", *ext_sources],
+        sources=[os.path.join(dir_wrapper_src, "wrapper.pyx"), os.path.join(dir_wrapper_src, "interface.cpp"), *ext_sources],
         language="c++",
         libraries=["gsl"],
         runtime_library_dirs=[dir_lib_gsl],
