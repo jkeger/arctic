@@ -67,12 +67,12 @@ DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
 #DIR_GSL ?= /cosma/local/gsl/2.5/lib
 #DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4/lib
-DIR_GSL ?= $(DIR_HOMEBREW)
-DIR_OMP ?= $(DIR_HOMEBREW)
+#DIR_GSL ?= $(DIR_HOMEBREW)
+#DIR_OMP ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_MACPORTS)/libomp
 #DIR_GSL ?= $(DIR_MACPORTS)
 # Fallback self-installing GSL
-#DIR_GSL ?= $(DIR_ROOT)/gsl
+DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/arcticpy
 DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
 $(shell mkdir -p $(DIR_OBJ))
@@ -95,20 +95,20 @@ INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
 LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
-# Add multithreading to reduce runtime (requires OpenMP to have been installed)
-# IF SYNTAX DOES NOT WORK
-#if [ -e /opt/local/lib/libomp/libomp.dylib ] && RESULT1 := "hello world" || RESULT1 := "goodbye cruel world" 
-#ifeq ($(shell test -e /opt/local/lib/libomp/libomp.dylib && echo -n yes),yes)
-#       RESULT2 := $(DIR_MACPORTS)/libomp.dylib  exists.
-#else
-#       RESULT2 := $(DIR_MACPORTS)/libomp.dylib really does not exist.
-#endif
-CXXFLAGS += -Xpreprocessor -fopenmp 
-# Use this on a mac
-LIBS += -L $(DIR_OMP)/lib -lomp
-# Use the following on cosma (can also use with macports)
-#LIBS += -L $(DIR_OMP)/lib -lgomp
-
+## Add multithreading to reduce runtime (requires OpenMP to have been installed)
+## IF SYNTAX DOES NOT WORK
+##if [ -e /opt/local/lib/libomp/libomp.dylib ] && RESULT1 := "hello world" || RESULT1 := "goodbye cruel world" 
+##ifeq ($(shell test -e /opt/local/lib/libomp/libomp.dylib && echo -n yes),yes)
+##       RESULT2 := $(DIR_MACPORTS)/libomp.dylib  exists.
+##else
+##       RESULT2 := $(DIR_MACPORTS)/libomp.dylib really does not exist.
+##endif
+#CXXFLAGS += -Xpreprocessor -fopenmp 
+## Use this on a mac
+#LIBS += -L $(DIR_OMP)/lib -lomp
+## Use the following on cosma (can also use with macports)
+##LIBS += -L $(DIR_OMP)/lib -lgomp
+#
 
 
 # ========
@@ -129,8 +129,6 @@ core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
 
 # Main program
 $(TARGET): $(OBJECTS)
-	#@echo "Hello"
-	#@echo $(RESULT1)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
 
 $(OBJECTS): $(DIR_GSL)
@@ -163,7 +161,7 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
-	python3 $(DIR_ROOT)/setup.py build_ext --inplace
+	python3 $(DIR_ROOT)/make_setup.py build_ext --inplace
 	@mv -v $(DIR_ROOT)/*.cpython*.so $(DIR_WRAPPER)
         # @rm -rfv $(DIR_WRAPPER)build
 
