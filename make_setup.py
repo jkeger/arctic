@@ -2,7 +2,7 @@
     Setup for ArCTIc cython wrapper. See README.md.
 
     Build with:
-        python3 setup.py build_ext --inplace
+        python3 make_setup.py build_ext --inplace
 """
 
 import os
@@ -12,16 +12,22 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 
 # Directories
-dir_arctic = os.path.dirname(os.path.realpath(__file__)) +"/"
+dir_arctic = os.path.dirname(os.path.realpath(__file__)) + "/"
+dir_arctic = "./"
 dir_src = dir_arctic + "src/"
 dir_include = dir_arctic + "include/"
-dir_lib = dir_arctic +"/"
+dir_lib = dir_arctic  # Can we move this somewhere?!
 
-dir_wrapper = dir_arctic + "/python/arcticpy/"
+dir_wrapper = dir_arctic + "python/arcticpy/"
 dir_wrapper_src = dir_wrapper + "src/"
 dir_wrapper_include = dir_wrapper + "include/"
 
-dir_gsl = dir_arctic + "gsl/"
+# Find GSL
+dir_gsl_fallback = dir_arctic + "gsl/"
+if os.path.exists("/usr/local/include/gsl"): dir_gsl_fallback = "/usr/local/" # brew install llvm libomp gsl
+if os.path.exists("/opt/local/include/gsl"): dir_gsl_fallback = "/opt/local/" # sudo port install libomp gsl
+if os.path.exists("/cosma/local/gsl/2.5/lib"): dir_gsl_fallback = "/cosma/local/gsl/2.5/lib/" # use on cosma
+dir_gsl = os.environ.get("DIR_GSL", dir_gsl_fallback)
 dir_include_gsl = dir_gsl + "include/"
 dir_lib_gsl = dir_gsl + "lib/"
 
@@ -37,9 +43,6 @@ for root, dirs, files in os.walk(dir_wrapper, topdown=False):
             os.remove(file)
 
 # Build
-print("Hello")
-print(dir_include)
-print("Hello")
 if "CC" not in os.environ:
     os.environ["CC"] = "g++"
 setup(
@@ -53,7 +56,7 @@ setup(
                 library_dirs=[dir_lib, dir_lib_gsl],
                 runtime_library_dirs=[dir_lib, dir_lib_gsl],
                 include_dirs=[dir_include, np.get_include(), dir_wrapper_include, dir_include_gsl],
-                extra_compile_args=["-std=c++11", "-O3"],
+                extra_compile_args=["-std=c++17", "-O3"],
                 define_macros=[('NPY_NO_DEPRECATED_API', 0)],
             )
         ],

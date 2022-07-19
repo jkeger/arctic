@@ -70,11 +70,12 @@ DIR_TEST := $(DIR_ROOT)/test
 #DIR_GSL ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_MACPORTS)/libomp
-#DIR_GSL ?= $(DIR_MACPORTS)
+DIR_OMP ?= $(DIR_MACPORTS)
+DIR_GSL ?= $(DIR_MACPORTS)
 # Fallback self-installing GSL
-DIR_GSL ?= $(DIR_ROOT)/gsl
-DIR_WRAPPER := $(DIR_ROOT)/arcticpy
-DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
+#DIR_GSL ?= $(DIR_ROOT)/gsl
+DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
+DIR_WRAPPER_SRC := $(DIR_ROOT)/python/arcticpy/src
 $(shell mkdir -p $(DIR_OBJ))
 
 $(info $(DIR_SRC) $(DIR_OBJ))
@@ -95,20 +96,13 @@ INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
 LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
-## Add multithreading to reduce runtime (requires OpenMP to have been installed)
-## IF SYNTAX DOES NOT WORK
-##if [ -e /opt/local/lib/libomp/libomp.dylib ] && RESULT1 := "hello world" || RESULT1 := "goodbye cruel world" 
-##ifeq ($(shell test -e /opt/local/lib/libomp/libomp.dylib && echo -n yes),yes)
-##       RESULT2 := $(DIR_MACPORTS)/libomp.dylib  exists.
-##else
-##       RESULT2 := $(DIR_MACPORTS)/libomp.dylib really does not exist.
-##endif
-#CXXFLAGS += -Xpreprocessor -fopenmp 
-## Use this on a mac
-#LIBS += -L $(DIR_OMP)/lib -lomp
-## Use the following on cosma (can also use with macports)
-##LIBS += -L $(DIR_OMP)/lib -lgomp
-#
+# Add multithreading to reduce runtime (requires OpenMP to have been installed)
+CXXFLAGS += -Xpreprocessor -fopenmp 
+# Use this on a mac
+LIBS += -L $(DIR_OMP)/lib -lomp
+# Use the following on cosma (can also use with macports)
+#LIBS += -L $(DIR_OMP)/lib -lgomp
+
 
 
 # ========
@@ -162,15 +156,15 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 # Cython wrapper
 wrapper: $(LIB_TARGET)
 	python3 $(DIR_ROOT)/make_setup.py build_ext --inplace
-	@mv -v $(DIR_ROOT)/*.cpython*.so $(DIR_WRAPPER)
+	@mv -v $(DIR_WRAPPER)/../*.cpython*.so $(DIR_WRAPPER)/
         # @rm -rfv $(DIR_WRAPPER)build
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)/test_lib.[od]
 	@rm -fv $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
-	@rm -fv $(DIR_WRAPPER)/*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
+	@rm -fv $(DIR_WRAPPER)/*.cpython*.so $(DIR_WRAPPER_SRC)/wrapper.cpp
 	@rm -rfv $(DIR_ROOT)/build/temp.*/ $(DIR_WRAPPER)/__pycache__/ \
-		$(DIR_WRAPPER_SRC)/__pycache__/ $(DIR_TEST)/__pycache__/
+		$(DIR_TEST)/__pycache__/
 
 # GSL
 GSL_VERSION := 2.6
