@@ -84,7 +84,7 @@ git clone https://github.com/jkeger/arctic.git
     + You should now get output from `./arctic --demo`.
 3. arCTIc python wrapper
     + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
-    + Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+    + Add `/***current*directory***/arctic/python` to your system variable `$PYTHONPATH` and `/***current*directory***/arctic` to to another system variable `$DYLD_LIBRARY_PATH`
     + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
 
