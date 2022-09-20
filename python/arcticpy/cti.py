@@ -115,6 +115,7 @@ def _set_dummy_parameters():
 
 def add_cti(
     image,
+    header=None,
     # Parallel
     parallel_ccd=None,
     parallel_roe=None,
@@ -331,12 +332,23 @@ def add_cti(
             verbosity=verbosity
         )
     
+    
+    # ===================
+    # Update image header
+    # ===================
+    if header is not None:
+        #TBD       
+        #print(w.cy_version_arctic())
+        header.set("cticor", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
+        header.set("ctipar", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
+
     return image_trailed
 
 
 def remove_cti(
     image,
     n_iterations,
+    header=None,
     # Parallel
     parallel_ccd=None,
     parallel_roe=None,
@@ -401,6 +413,7 @@ def remove_cti(
         # Model the effect of adding CTI trails
         image_add_cti = add_cti(
             image=image_remove_cti,
+            header=header,
             # Parallel
             parallel_ccd=parallel_ccd,
             parallel_roe=parallel_roe,
@@ -437,7 +450,7 @@ def remove_cti(
 
         # Prevent negative image values
         image_remove_cti[image_remove_cti < 0.0] = 0.0
-
+    
     return image_remove_cti
 
 

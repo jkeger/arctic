@@ -74,7 +74,7 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
     int time_start, int time_stop, 
     double prune_n_electrons, int prune_frequency,
     int print_inputs) {
-
+    
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double> > image = image_in;
 

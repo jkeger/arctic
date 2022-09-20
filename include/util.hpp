@@ -8,6 +8,12 @@
 #include <valarray>
 #include <vector>
 
+// ==============
+// Version number
+// ==============
+//extern std::string versionn;
+std::string version_arctic();
+
 // ========
 // Printing
 // ========

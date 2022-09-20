@@ -9,6 +9,21 @@
 #include <valarray>
 #include <vector>
 
+/*
+    Print the compiled version, set in the makefile.
+*/
+//extern std::string versionn() {
+//    return "hello1";
+//}
+
+std::string version_arctic() {
+#ifdef VERSION
+    return VERSION;
+#else
+    return "N/A";
+#endif
+}
+
 // ========
 // Printing
 // ========
@@ -26,6 +41,16 @@ void set_verbosity(int v) { verbosity = v; }
     Print the compiled version, set in the makefile.
 */
 void print_version() {
+//    std::string str = "\nArCTIc \n------ \n blah";
+//    char *cstr = new char[str.length() + 1];
+//    strcpy(cstr, str.c_str());
+//    char *version_string = str.c_str();
+//    printf(const char* c_str.(str));
+//    char* version_string = "\nArCTIc \n------ \n blah"; 
+//    // + version_arctic();
+//    print_v(1, "\nArCTIc \n------ \nblah");
+//    print_v(1, cstr);
+//    //print_v(1, "\nArCTIc \n------ \n"+version_arctic());
 #ifdef VERSION
     print_v(1, "\nArCTIc v%s \n------ \n", VERSION);
 #else
