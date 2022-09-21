@@ -8,6 +8,7 @@ from .traps import (
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
+from .read_noise import ReadNoise
 try:
     from .src.wrapper import (
         cy_print_array as print_array,

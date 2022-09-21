@@ -375,6 +375,8 @@ def remove_cti(
     serial_prune_frequency=20,
     # Pixel bounce
     pixel_bounce=None,
+    # Read noise de-amplification
+    read_noise=None,
     # Output
     verbosity=1,
 ):
@@ -404,6 +406,11 @@ def remove_cti(
 
     if verbosity >= 1:
         w.cy_print_version()
+    
+    # Attempt to estimate and remove read noise, so it it not amplified
+    if read_noise is not None:
+        image_read_noise = read_noise.esimate_image_remove_cti(image_remove_cti)
+        image_remove_cti -= image_read_noise
 
     # Estimate the image with removed CTI more accurately each iteration
     for iteration in range(1, n_iterations + 1):
@@ -446,11 +453,19 @@ def remove_cti(
         )
 
         # Improve the estimate of the image with CTI trails removed
-        image_remove_cti += image - image_add_cti
-
+        delta = image - image_add_cti
+        if read_noise is not None:
+            delta_squared = delta ** 2
+            delta *= delta_squared / ( delta_squared + read_noise.sigma ** 2 )
+        image_remove_cti += delta
+        
         # Prevent negative image values
         image_remove_cti[image_remove_cti < 0.0] = 0.0
-    
+
+    # Add back the read noise, if it had been removed
+    if read_noise is not None:
+        image_remove_cti += image_read_noise
+   
     return image_remove_cti
 
 
