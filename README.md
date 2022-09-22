@@ -4,13 +4,53 @@ ArCTIc
 AlgoRithm for Charge Transfer Inefficiency (CTI) correction
 -----------------------------------------------------------
 
+<!--
+Dev notes
+=========
+
+TO RUN UNIT TESTS:
+==================
+pytest test/test_arcticpy.py
+./test_arctic
+
+TO PUBLISH TO PYPI:
+===================
+#Delete old version in dist/
+#Increment version number in pyproject.toml
+#Create a new source distribution
+python3 setup.py sdist
+#Ipload via e.g. twine (pip3 install twine)
+twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+
+TO DO:
+======
++ Non-uniform volume (e.g. surface) traps are currently only implemented for
+    instant-capture traps, but should be relatively simple to duplicate for the
+    other base types.
++ The trap and trap_manager classes currently have a fair amount of duplicate or
+    near-duplicate code, some of which could be abstracted to generic functions
+    and/or tweaking the class inheritance structure now that we know what's
+    needed. e.g. TrapManagerSlowCaptureContinuum's
+    n_electrons_released_and_captured() is basically the same as
+    TrapManagerSlowCapture's, aside from the time conversions etc within the
+    same loops. Or TrapSlowCaptureContinuum's fill_fraction to/from time_elapsed
+    functions including the tabulated versions are basically the same as
+    TrapInstantCaptureContinuum's.
++ It would be good to quantify the speed effects of, well, everything, but
+    especially things like the scaling with express or the number of traps, and
+    the different ROE options like empty_traps_for_first_transfers that require
+    extra steps to be modelled.
+-->
+
+
 Add or remove image trails due to charge transfer inefficiency in CCD detectors
 by modelling the trapping, releasing, and moving of charge along pixels.
 
 https://github.com/jkeger/arctic
 
 Jacob Kegerreis: jacob.kegerreis@durham.ac.uk  
-Richard Massey  
+Richard Massey: r.j.massey@durham.ac.uk 
 James Nightingale  
 
 This file contains general documentation and some examples. See also the
@@ -413,7 +453,8 @@ Note that the total charge in an image is guaranteed to be conserved only with
 length is comparable to the image size).
 
 ### Speedup 2: Watermark pruning
-With large, noiseless images in particular, it is possible to accumulate a large
+With large, noiseless images in particular (and especially with slow capture 
+traps), it is possible to accumulate a large
 number of watermarks containing negligible numbers of electrons. These increase
 runtime without affecting output. Packets of fewer than 
 `[parallel/serial]_prune_n_electrons` can be moved into neighbouring 
@@ -617,29 +658,3 @@ Version history
 
 Older algorithms for CTI correction either approximated trailing as convolution with a flux-dependent kernel (e.g. [Rhodes et al. 2000](https://arxiv.org/abs/astro-ph/9905090)) or were additive/multiplicative factors applied to object flux/position/shape/etc at a catalogue level (e.g. [Riess et al. 2000](https://ui.adsabs.harvard.edu/link_gateway/2000wfpc.rept....4R/PUB_PDF), [2003](https://ui.adsabs.harvard.edu/link_gateway/2003acs..rept....9R/PUB_PDF), [Rhodes et al. 2007](https://arxiv.org/abs/astro-ph/0702140)).
 
-
-<!--
-Dev notes
-=========
-+ Non-uniform volume (e.g. surface) traps are currently only implemented for
-    instant-capture traps, but should be relatively simple to duplicate for the
-    other base types.
-+ The slow-capture algorithm is currently slow, primarily because unlike
-    instant-capture where the watermarks are frequently overwritten, here the
-    arrays grow very large. It should be possible to improve this by
-    consolidating the watermarks periodically, since many levels end up
-    extremely tiny. But it's pretty open how best to implement that.
-+ The trap and trap_manager classes currently have a fair amount of duplicate or
-    near-duplicate code, some of which could be abstracted to generic functions
-    and/or tweaking the class inheritance structure now that we know what's
-    needed. e.g. TrapManagerSlowCaptureContinuum's
-    n_electrons_released_and_captured() is basically the same as
-    TrapManagerSlowCapture's, aside from the time conversions etc within the
-    same loops. Or TrapSlowCaptureContinuum's fill_fraction to/from time_elapsed
-    functions including the tabulated versions are basically the same as
-    TrapInstantCaptureContinuum's.
-+ It would be good to quantify the speed effects of, well, everything, but
-    especially things like the scaling with express or the number of traps, and
-    the different ROE options like empty_traps_for_first_transfers that require
-    extra steps to be modelled.
--->
