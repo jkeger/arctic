@@ -1,6 +1,6 @@
 import numpy as np
 
-#from arcticpy.src.dictable import Dictable
+#from .dictable import Dictable
 
 class AbstractTrap:
     def __init__(self, density=1.0, release_timescale=1.0):

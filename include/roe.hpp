@@ -54,7 +54,7 @@ class ROE {
 
     std::valarray<double> express_matrix;
     std::valarray<bool> store_trap_states_matrix;
-    std::valarray<std::valarray<ROEStepPhase>> clock_sequence;
+    std::valarray<std::valarray<ROEStepPhase> > clock_sequence;
 
     ROEType type;
     int n_steps;

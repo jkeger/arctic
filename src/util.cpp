@@ -9,6 +9,21 @@
 #include <valarray>
 #include <vector>
 
+/*
+    Print the compiled version, set in the makefile.
+*/
+//extern std::string versionn() {
+//    return "hello1";
+//}
+
+std::string version_arctic() {
+#ifdef VERSION
+    return VERSION;
+#else
+    return "N/A";
+#endif
+}
+
 // ========
 // Printing
 // ========
@@ -26,10 +41,20 @@ void set_verbosity(int v) { verbosity = v; }
     Print the compiled version, set in the makefile.
 */
 void print_version() {
+//    std::string str = "\nArCTIc \n------ \n blah";
+//    char *cstr = new char[str.length() + 1];
+//    strcpy(cstr, str.c_str());
+//    char *version_string = str.c_str();
+//    printf(const char* c_str.(str));
+//    char* version_string = "\nArCTIc \n------ \n blah"; 
+//    // + version_arctic();
+//    print_v(1, "\nArCTIc \n------ \nblah");
+//    print_v(1, cstr);
+//    //print_v(1, "\nArCTIc \n------ \n"+version_arctic());
 #ifdef VERSION
-    print_v(1, "\nArCTIC v%s \n------ \n", VERSION);
+    print_v(1, "\nArCTIc v%s \n------ \n", VERSION);
 #else
-    print_v(1, "\nArCTIC \n------ \n");
+    print_v(1, "\nArCTIc \n------ \n");
 #endif
 }
 
@@ -79,7 +104,7 @@ void print_array_2D(std::valarray<double>& array, int n_col) {
 /*
     Neatly print an actual 2D array.
 */
-void print_array_2D(std::valarray<std::valarray<double>>& array) {
+void print_array_2D(std::valarray<std::valarray<double> >& array) {
     int n_row = array.size();
     int n_col;
 
@@ -112,7 +137,7 @@ void print_array_2D(std::valarray<std::valarray<double>>& array) {
 /*
     Flatten a 2D valarray into a 1D vector. Useful for Catch2 test comparisons.
 */
-std::vector<double> flatten(std::valarray<std::valarray<double>>& array) {
+std::vector<double> flatten(std::valarray<std::valarray<double> >& array) {
     std::vector<double> vector;
     int n_row = array.size();
     int n_col;
@@ -144,13 +169,13 @@ std::valarray<double> arange(double start, double stop, double step) {
 /*
     Transpose a 2D valarray.
 */
-std::valarray<std::valarray<double>> transpose(
-    std::valarray<std::valarray<double>>& array) {
+std::valarray<std::valarray<double> > transpose(
+    std::valarray<std::valarray<double> >& array) {
 
     // Create the opposite-shape array
     int n_rows = array.size();
     int n_columns = array[0].size();
-    std::valarray<std::valarray<double>> array_T(
+    std::valarray<std::valarray<double> > array_T(
         std::valarray<double>(0.0, n_rows), n_columns);
 
     // Copy the values
@@ -183,10 +208,10 @@ std::valarray<std::valarray<double>> transpose(
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The loaded 2D image array.
 */
-std::valarray<std::valarray<double>> load_image_from_txt(const char* filename) {
+std::valarray<std::valarray<double> > load_image_from_txt(const char* filename) {
     FILE* f = fopen(filename, "r");
     if (!f) error("Failed to open image file '%s'", filename);
 
@@ -197,7 +222,7 @@ std::valarray<std::valarray<double>> load_image_from_txt(const char* filename) {
     if (c != 2) error("Failed to read n_rows, n_columns '%s'", filename);
 
     // Load image data
-    std::valarray<std::valarray<double>> image(
+    std::valarray<std::valarray<double> > image(
         std::valarray<double>(n_columns), n_rows);
     for (int i_row = 0; i_row < n_rows; i_row++) {
         for (int i_col = 0; i_col < n_columns; i_col++) {
@@ -227,11 +252,11 @@ std::valarray<std::valarray<double>> load_image_from_txt(const char* filename) {
     filename : str
         The path to the file to load.
 
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The 2D image array to save.
 */
 void save_image_to_txt(
-    const char* filename, std::valarray<std::valarray<double>> image) {
+    const char* filename, std::valarray<std::valarray<double> > image) {
     FILE* f = fopen(filename, "w");
     if (!f) error("Failed to open file '%s'", filename);
 
