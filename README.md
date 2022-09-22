@@ -106,8 +106,17 @@ There are two ways to install arCTIc and its python wrapper:
 
 The easiest way is to use 	the ```pip``` module of your python installation
 ```bash
-python3 -m pip install arcticpy
+<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
+pip install -i https://test.pypi.org/simple/ arcticpy
+
 ```
+(or possibly (this is what Jascha suggests))
+```bash
+<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
+python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple/ arcticpy
+
+```
+
 This automatically downloads the source files and builds/installs the executable, library and module. If you do not have superuser privileges, you
 have to add the ```--user``` argument to install it into your local (home) directory instead. Furthermore, on some macOS system, you may have to
 explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
