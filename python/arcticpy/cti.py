@@ -1,9 +1,6 @@
 import numpy as np
 
-try:
-    from . import wrapper as w
-except ModuleNotFoundError:
-    pass
+from . import wrapper as w
 
 from .ccd import CCDPhase, CCD
 from .roe import ROE
