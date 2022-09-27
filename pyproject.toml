@@ -1,6 +1,7 @@
 [build-system]
 requires = [
     "setuptools >=62",
+    "autoconf ~=2022.07.11.1",
     "numpy ~=1.21",
     "cython ~=0.29",
     "pytest-runner",
