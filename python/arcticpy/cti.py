@@ -1,17 +1,17 @@
 import numpy as np
 
-from . import wrapper as w
+from arcticpy.src import wrapper as w
 
-from .ccd import CCDPhase, CCD
-from .roe import ROE
-from .traps import (
+from arcticpy.ccd import CCDPhase, CCD
+from arcticpy.roe import ROE
+from arcticpy.traps import (
     TrapInstantCapture,
     TrapSlowCapture,
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
 #from arcticpy.src.pixel_bounce import add_pixel_bounce
-from .pixel_bounce import PixelBounce, add_pixel_bounce
+from arcticpy.pixel_bounce import PixelBounce, add_pixel_bounce
 
 
 def _extract_trap_parameters(traps):

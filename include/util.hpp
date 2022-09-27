@@ -2,6 +2,7 @@
 #ifndef ARCTIC_UTIL_HPP
 #define ARCTIC_UTIL_HPP
 
+#include <string>
 #include <stdio.h>
 #include <string.h>
 
