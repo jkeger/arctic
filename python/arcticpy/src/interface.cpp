@@ -20,7 +20,7 @@ void print_array(double* array, int length) {
 */
 void print_array_2D(double* array, int n_rows, int n_columns) {
     // Convert to a 2D valarray
-    std::valarray<std::valarray<double>> varray(
+    std::valarray<std::valarray<double> > varray(
         std::valarray<double>(0.0, n_columns), n_rows);
 
     for (int i_row = 0; i_row < n_rows; i_row++) {
@@ -108,7 +108,7 @@ void add_cti(
     // Convert the inputs into the relevant C++ objects
 
     // Image to 2D valarray
-    std::valarray<std::valarray<double>> image_in(
+    std::valarray<std::valarray<double> > image_in(
         std::valarray<double>(0.0, n_columns), n_rows);
     for (int i_row = 0; i_row < n_rows; i_row++) {
         for (int i_col = 0; i_col < n_columns; i_col++) {
@@ -171,9 +171,6 @@ void add_cti(
         TrapInstantCaptureContinuum(0.0, 0.0, 0.0), parallel_n_traps_ic_co);
     std::valarray<TrapSlowCaptureContinuum> parallel_traps_sc_co(
         TrapSlowCaptureContinuum(0.0, 0.0, 0.0, 0.0), parallel_n_traps_sc_co);
-
-    print_v(0,"hello1/n");
-    //cout << "hello2";
 
     int n_traps_parallel = 0;
     for (int i_trap = n_traps_parallel; i_trap < n_traps_parallel + parallel_n_traps_ic;
@@ -271,21 +268,21 @@ void add_cti(
     n_traps_serial += serial_n_traps_ic;
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_sc;
          i_trap++) {
-        serial_traps_sc[i_trap] = TrapSlowCapture(
+        serial_traps_sc[i_trap - n_traps_serial] = TrapSlowCapture(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap]);
     }
     n_traps_serial += serial_n_traps_sc;
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_ic_co;
          i_trap++) {
-        serial_traps_continuum[i_trap] = TrapInstantCaptureContinuum(
+        serial_traps_continuum[i_trap - n_traps_serial] = TrapInstantCaptureContinuum(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap]);
     }
     n_traps_serial += serial_n_traps_ic_co;
     for (int i_trap = n_traps_serial; i_trap < n_traps_serial + serial_n_traps_sc_co;
          i_trap++) {
-        serial_traps_sc_co[i_trap] = TrapSlowCaptureContinuum(
+        serial_traps_sc_co[i_trap - n_traps_serial] = TrapSlowCaptureContinuum(
             serial_trap_densities[i_trap], serial_trap_release_timescales[i_trap],
             serial_trap_third_params[i_trap], serial_trap_fourth_params[i_trap]);
     }
@@ -305,7 +302,7 @@ void add_cti(
     // ========
     // Add CTI
     // ========
-    std::valarray<std::valarray<double>> image_out;
+    std::valarray<std::valarray<double> > image_out;
     // No parallel, serial only
     if (n_traps_parallel == 0) {
         image_out = add_cti(

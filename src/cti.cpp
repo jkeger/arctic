@@ -5,6 +5,7 @@
 #include <sys/time.h>
 
 #include <valarray>
+#include <iostream>
 
 #include "ccd.hpp"
 #include "roe.hpp"
@@ -20,7 +21,7 @@
 
     Parameters
     ----------
-    image_in : std::valarray<std::valarray<double>>
+    image_in : std::valarray<std::valarray<double> >
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
@@ -58,11 +59,11 @@
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The output array of pixel values.
 */
-std::valarray<std::valarray<double>> clock_charge_in_one_direction(
-    std::valarray<std::valarray<double>>& image_in, ROE* roe, CCD* ccd,
+std::valarray<std::valarray<double> > clock_charge_in_one_direction(
+    std::valarray<std::valarray<double> >& image_in, ROE* roe, CCD* ccd,
     std::valarray<TrapInstantCapture>* traps_ic,
     std::valarray<TrapSlowCapture>* traps_sc,
     std::valarray<TrapInstantCaptureContinuum>* traps_ic_co,
@@ -73,9 +74,9 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     int time_start, int time_stop, 
     double prune_n_electrons, int prune_frequency,
     int print_inputs) {
-
+    
     // Initialise the output image as a copy of the input image
-    std::valarray<std::valarray<double>> image = image_in;
+    std::valarray<std::valarray<double> > image = image_in;
 
     // Image shape
     unsigned int n_rows = image.size();
@@ -102,8 +103,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     // Set up the readout electronics and express arrays
     roe->set_clock_sequence();
-    int offset = row_offset + roe->prescan_offset;
-    roe->set_express_matrix_from_rows_and_express(n_rows, express, offset);
+    roe->set_express_matrix_from_rows_and_express(n_rows, express, row_offset);
     roe->set_store_trap_states_matrix();
     if (ccd->n_phases != roe->n_phases)
         error(
@@ -311,6 +311,9 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
     //print_array_2D((int)roe->store_trap_states_matrix, n_active_rows);
     // Loop over:
     //   Columns > Express passes > Rows > Clock-sequence steps > Pixel phases
+    #pragma omp parallel for private(column_index, row_index, row_read, row_write, n_free_electrons, \
+				     n_electrons_released_and_captured, express_multiplier, roe_step_phase) \
+                             firstprivate(trap_manager_manager)
     for (unsigned int i_column = 0; i_column < n_active_columns; i_column++) {
         column_index = column_start + i_column;
 
@@ -472,7 +475,7 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     Parameters
     ----------
-    image_in : std::valarray<std::valarray<double>>
+    image_in : std::valarray<std::valarray<double> >
         The input array of pixel values, assumed to be in units of electrons.
 
         The first dimension is the "row" index, the second is the "column"
@@ -554,11 +557,11 @@ std::valarray<std::valarray<double>> clock_charge_in_one_direction(
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The output array of pixel values with CTI added.
 */
-std::valarray<std::valarray<double>> add_cti(
-    std::valarray<std::valarray<double>>& image_in,
+std::valarray<std::valarray<double> > add_cti(
+    std::valarray<std::valarray<double> >& image_in,
     // Parallel
     ROE* parallel_roe, CCD* parallel_ccd,
     std::valarray<TrapInstantCapture>* parallel_traps_ic,
@@ -589,7 +592,7 @@ std::valarray<std::valarray<double>> add_cti(
     int print_inputs = (iteration > 1) ? 0 : verbosity >= 1;
 
     // Initialise the output image as a copy of the input image
-    std::valarray<std::valarray<double>> image = image_in;
+    std::valarray<std::valarray<double> > image = image_in;
 
     // Parallel clocking along columns, transfer charge towards row 0
     if (parallel_traps_ic || parallel_traps_sc || parallel_traps_ic_co ||
@@ -648,11 +651,11 @@ std::valarray<std::valarray<double>> add_cti(
 
     Returns
     -------
-    image : std::valarray<std::valarray<double>>
+    image : std::valarray<std::valarray<double> >
         The output array of pixel values with CTI removed.
 */
-std::valarray<std::valarray<double>> remove_cti(
-    std::valarray<std::valarray<double>>& image_in, int n_iterations,
+std::valarray<std::valarray<double> > remove_cti(
+    std::valarray<std::valarray<double> >& image_in, int n_iterations,
     // Parallel
     ROE* parallel_roe, CCD* parallel_ccd,
     std::valarray<TrapInstantCapture>* parallel_traps_ic,
@@ -677,8 +680,8 @@ std::valarray<std::valarray<double>> remove_cti(
     print_version();
 
     // Initialise the output image as a copy of the input image
-    std::valarray<std::valarray<double>> image_remove_cti = image_in;
-    std::valarray<std::valarray<double>> image_add_cti;
+    std::valarray<std::valarray<double> > image_remove_cti = image_in;
+    std::valarray<std::valarray<double> > image_add_cti;
 
     int n_rows = image_in.size();
 

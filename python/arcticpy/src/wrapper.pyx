@@ -1,8 +1,10 @@
 
 cimport numpy as np
 import numpy as np
+from libcpp.string cimport string
 
 cdef extern from "util.hpp":
+    cdef string version_arctic()
     void print_version()
 
 cdef extern from "interface.hpp":
@@ -97,6 +99,8 @@ cdef extern from "interface.hpp":
 def cy_print_version():
     print_version()
 
+def cy_version_arctic():
+    return version_arctic().decode("utf-8")
 
 def check_contiguous(array):
     """ Make sure an array is contiguous and C-style. """

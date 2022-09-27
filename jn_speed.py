@@ -13,12 +13,12 @@ parallel_express=5
 #
 parallel_prune_n_electrons=-1e-12
 parallel_prune_frequency=1000
-parallel_express=5
+parallel_express=1
 
 #
 # Set up test image
 #
-image_model = np.zeros((2000,1))+200
+image_model = np.zeros((2000,10))+200
 image_model[0:5,:]+=700
 #image_model[500:505,:]+=700
 #image_model[1000:1005,:]+=700

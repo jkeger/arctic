@@ -8,6 +8,7 @@
 #include <math.h>
 
 #include <valarray>
+#include <limits>
 
 #include "util.hpp"
 

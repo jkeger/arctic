@@ -4,13 +4,53 @@ ArCTIc
 AlgoRithm for Charge Transfer Inefficiency (CTI) correction
 -----------------------------------------------------------
 
+<!--
+Dev notes
+=========
+
+TO RUN UNIT TESTS:
+==================
+pytest test/test_arcticpy.py
+./test_arctic
+
+TO PUBLISH TO PYPI:
+===================
+#Delete old version in dist/
+#Increment version number in pyproject.toml
+#Create a new source distribution
+python3 setup.py sdist
+#Ipload via e.g. twine (pip3 install twine)
+twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+
+TO DO:
+======
++ Non-uniform volume (e.g. surface) traps are currently only implemented for
+    instant-capture traps, but should be relatively simple to duplicate for the
+    other base types.
++ The trap and trap_manager classes currently have a fair amount of duplicate or
+    near-duplicate code, some of which could be abstracted to generic functions
+    and/or tweaking the class inheritance structure now that we know what's
+    needed. e.g. TrapManagerSlowCaptureContinuum's
+    n_electrons_released_and_captured() is basically the same as
+    TrapManagerSlowCapture's, aside from the time conversions etc within the
+    same loops. Or TrapSlowCaptureContinuum's fill_fraction to/from time_elapsed
+    functions including the tabulated versions are basically the same as
+    TrapInstantCaptureContinuum's.
++ It would be good to quantify the speed effects of, well, everything, but
+    especially things like the scaling with express or the number of traps, and
+    the different ROE options like empty_traps_for_first_transfers that require
+    extra steps to be modelled.
+-->
+
+
 Add or remove image trails due to charge transfer inefficiency in CCD detectors
 by modelling the trapping, releasing, and moving of charge along pixels.
 
 https://github.com/jkeger/arctic
 
 Jacob Kegerreis: jacob.kegerreis@durham.ac.uk  
-Richard Massey  
+Richard Massey: r.j.massey@durham.ac.uk 
 James Nightingale  
 
 This file contains general documentation and some examples. See also the
@@ -22,8 +62,8 @@ tests for more examples and tests.
 Contents
 --------
 + Installation
-    + Quick install
-    + Troubleshooting
+    + Requirements
+    + Instructions
 + Usage
     + Python example
     + C++
@@ -44,41 +84,60 @@ Installation
 ============
 
 
-<!--
-    **MacOS:** requires `mkdir build; sudo make gsl` to grant permission to also run ./configure in the middle of the `get_gsl.sh` script.
-If you don't like doing this, you can cut and paste the few lines marked with comments in the middle of that script.
-    **MacOS:** On the first build, mac users may also need to create an (empty) directory 
-/sw/lib via `sudo mount -uw /` then `sudo mkdir -p /sw/lib`.
- Run `make wrapper` to create `arcticpy/wrapper.cypython*.so`.
--->
+Requirements
+------------
 
-Run `git clone https://github.com/jkeger/arctic.git ; cd arctic ; sudo make all` (sudo only needed on MacOS).
+You have to make sure that the following libraries are installed on your system: llvm, omp, gsl. 
++ On Linux, you can install them using your distro's package manager e.g. for Ubuntu:
+```bash
+apt install llvm14 gsl libomp5
+```
++ On macOS, you can install then using e.g. homebrew:
+```bash
+brew install llvm libomp gsl
+```
 
-Then add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
-  
-Troubleshooting (individual steps within the makefile)
-------------------------------------------------------
+Instructions
+------------
 
-1. Install GNU Scientific Library
-    + Run `sudo make gsl` to download and install the GNU Scientific Library. 
-    + This will create a local subdirectory gsl/ containing bin/, include/, lib/, share/.
+There are two ways to install arCTIc and its python wrapper:
 
-        If your system already has GSL installed, you can skip this step and prefix future commands with e.g. `DIR_GSL=/path/to/gsl make all`
+### pypi/pip [recommended] ###
 
-        sudo is only required on MacOS, to run ./configure from the middle of `get_gsl.sh`. If you don't like doing this, you can cut and paste the few lines marked with comments in that script.
+The easiest way is to use 	the ```pip``` module of your python installation
+```bash
+<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
+pip install -i https://test.pypi.org/simple/ arcticpy
 
+```
+(or possibly (this is what Jascha suggests))
+```bash
+<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
+python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple/ arcticpy
+
+```
+
+This automatically downloads the source files and builds/installs the executable, library and module. If you do not have superuser privileges, you
+have to add the ```--user``` argument to install it into your local (home) directory instead. Furthermore, on some macOS system, you may have to
+explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
+
+### source ###
+
+You can also download/clone the source code manually and compile it using the provided ```makefile```. For doing so, you have to perform the following steps:
+1. Clone or download & unpack source code i.e.
+```bash
+git clone https://github.com/jkeger/arctic.git
+```
 2. Install arCTIc C++ core <!-- and unit tests -->
-    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. --> 
-    + You should now get output from `./arctic --demo`. 
-
+    + Run `make core` to compile the C++ code into an `arctic` executable and `libarctic.so` dynamic library. <!-- + Add `/***current*directory***/arctic` to your `$PATH`. -->
+    + You should now get output from `./arctic --demo`.
 3. arCTIc python wrapper
     + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
-    + Add `/***current*directory***/arctic` to both your `$PYTHONPATH` and to another system variable `$DYLD_LIBRARY_PATH`
+    + Add `/***current*directory***/arctic/python` to your system variable `$PYTHONPATH` and `/***current*directory***/arctic` to to another system variable `$DYLD_LIBRARY_PATH`
     + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
 
     **MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
-
 
 \
 Usage
@@ -92,7 +151,7 @@ For example, to correct CTI in a Hubble Space Telescope ACS image
 (using the [autoarray](https://pypi.org/project/autoarray/) package
 to load and save the fits image with correct units and quadrant rotations, etc):
 ```python
-import arcticpy as cti
+import arcticpy as arctic
 import autoarray as aa
 
 image_path = "image_path/image_name"
@@ -114,23 +173,23 @@ roe, ccd, traps = cti.CTI_model_for_HST_ACS(date)
 
 # Or manual CTI model  (see class docstrings in src/<traps,roe,ccd>.cpp)
 traps = [
-    cti.TrapInstantCapture(density=0.6, release_timescale=0.74),
-    cti.TrapInstantCapture(density=1.6, release_timescale=7.70),
-    cti.TrapInstantCapture(density=1.4, release_timescale=37.0),
+    arctic.TrapInstantCapture(density=0.6, release_timescale=0.74),
+    arctic.TrapInstantCapture(density=1.6, release_timescale=7.70),
+    arctic.TrapInstantCapture(density=1.4, release_timescale=37.0),
 ]
-roe = cti.ROE()
-ccd = cti.CCD(full_well_depth=84700, well_fill_power=0.478)
+roe = arctic.ROE()
+ccd = arctic.CCD(full_well_depth=84700, well_fill_power=0.478)
 
 # Remove CTI  (see remove_cti() in src/cti.cpp)
 image_out_A, image_out_B, image_out_C, image_out_D = [
-    cti.remove_cti(
-        image=image,
-        n_iterations=5,
-        parallel_roe=roe,
-        parallel_ccd=ccd,
-        parallel_traps=traps,
-        parallel_express=5,
-        verbosity=1,
+    arctic.remove_cti(
+           image=image,
+           n_iterations=5,
+           parallel_roe=roe,
+           parallel_ccd=ccd,
+           parallel_traps=traps,
+           parallel_express=5,
+           verbosity=1,
     )
     for image in [image_A, image_B, image_C, image_D]
 ]
@@ -149,6 +208,18 @@ aa.acs.output_quadrants_to_fits(
     overwrite=True,
 )
 ```
+
+ArCTIc also incorporates a model of "pixel bounce", an effect of voltage 
+lag during correlated double sampling, due to finite capacitance between
+the sample and reference (ground) voltages. Pixel bounce can create trails 
+similar to serial CTI. It is implemented by defining something like 
+`pixel_bounce = cti.PixelBounce( kA=-0.1, kv=0, omega=10, gamma=0.9 )`
+then passing `pixel_bounce=pixel_bounce` as an extra/alternative variable 
+to `add_cti()` or `remove_cti()` (there are also duplicate 
+`add_pixel_bounce()` functions that add only pixel bounce, and not CTI. 
+Pixel bounce exists only in the python wrapper, not the C++ core.
+
+
 More examples adding or removing CTI trails from a test image
 are in the `run_demo()` function of `test/test_arcticpy.py`.
 
@@ -263,8 +334,11 @@ A quick summary of the code files and their contents:
             The python versions of the `CCD`, `ROE`, and `Trap` classes that are
             needed as arguments for the primary CTI functions. These mirror the
             inputs for the corresponding same-name C++ classes documented below.
+        + `pixel_bounce.py`  
+            Definition of the PixelBounce class, plus user-facing functions 
+            `add_pixel_bounce()` nd `remove_pixel_bounce()`.
         + `wrapper.pyx`  
-            The Cython wrapper, passes the python inputs to the C++ interface.
+            The Cython wrapper that passes python inputs to the C++ interface.
         + `interface.cpp`, `interface.hpp`  
             The source and header files for functions to cleanly interface
             between Cython and the main precompiled library. e.g. converts the
@@ -388,7 +462,8 @@ Note that the total charge in an image is guaranteed to be conserved only with
 length is comparable to the image size).
 
 ### Speedup 2: Watermark pruning
-With large, noiseless images in particular, it is possible to accumulate a large
+With large, noiseless images in particular (and especially with slow capture 
+traps), it is possible to accumulate a large
 number of watermarks containing negligible numbers of electrons. These increase
 runtime without affecting output. Packets of fewer than 
 `[parallel/serial]_prune_n_electrons` can be moved into neighbouring 
@@ -592,29 +667,3 @@ Version history
 
 Older algorithms for CTI correction either approximated trailing as convolution with a flux-dependent kernel (e.g. [Rhodes et al. 2000](https://arxiv.org/abs/astro-ph/9905090)) or were additive/multiplicative factors applied to object flux/position/shape/etc at a catalogue level (e.g. [Riess et al. 2000](https://ui.adsabs.harvard.edu/link_gateway/2000wfpc.rept....4R/PUB_PDF), [2003](https://ui.adsabs.harvard.edu/link_gateway/2003acs..rept....9R/PUB_PDF), [Rhodes et al. 2007](https://arxiv.org/abs/astro-ph/0702140)).
 
-
-<!--
-Dev notes
-=========
-+ Non-uniform volume (e.g. surface) traps are currently only implemented for
-    instant-capture traps, but should be relatively simple to duplicate for the
-    other base types.
-+ The slow-capture algorithm is currently slow, primarily because unlike
-    instant-capture where the watermarks are frequently overwritten, here the
-    arrays grow very large. It should be possible to improve this by
-    consolidating the watermarks periodically, since many levels end up
-    extremely tiny. But it's pretty open how best to implement that.
-+ The trap and trap_manager classes currently have a fair amount of duplicate or
-    near-duplicate code, some of which could be abstracted to generic functions
-    and/or tweaking the class inheritance structure now that we know what's
-    needed. e.g. TrapManagerSlowCaptureContinuum's
-    n_electrons_released_and_captured() is basically the same as
-    TrapManagerSlowCapture's, aside from the time conversions etc within the
-    same loops. Or TrapSlowCaptureContinuum's fill_fraction to/from time_elapsed
-    functions including the tabulated versions are basically the same as
-    TrapInstantCaptureContinuum's.
-+ It would be good to quantify the speed effects of, well, everything, but
-    especially things like the scaling with express or the number of traps, and
-    the different ROE options like empty_traps_for_first_transfers that require
-    extra steps to be modelled.
--->

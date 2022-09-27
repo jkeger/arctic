@@ -43,7 +43,7 @@
 # ========
 # Compiler
 CXX ?= g++
-CXXFLAGS := -std=c++11 -fPIC -O3 #-Wall -Wno-reorder -Wno-sign-compare
+CXXFLAGS := -std=c++11 -fPIC -O3 # -Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
@@ -55,15 +55,27 @@ TEST_TARGET := test_arctic
 LIB_TARGET := libarctic.so
 LIB_TEST_TARGET := lib_test
 
-# Directories
+# Directories 
+# brew install llvm libomp gsl
+DIR_HOMEBREW := /usr/local
+# sudo port install libomp gsl
+DIR_MACPORTS := /opt/local
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DIR_SRC := $(DIR_ROOT)/src
 DIR_OBJ := $(DIR_ROOT)/build
 DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
-DIR_GSL ?= $(DIR_ROOT)/gsl
-DIR_WRAPPER := $(DIR_ROOT)/arcticpy
-DIR_WRAPPER_SRC := $(DIR_ROOT)/arcticpy/src
+#DIR_GSL ?= /cosma/local/gsl/2.5/lib
+#DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4/lib
+#DIR_GSL ?= $(DIR_HOMEBREW)
+#DIR_OMP ?= $(DIR_HOMEBREW)
+#DIR_OMP ?= $(DIR_MACPORTS)/libomp
+DIR_OMP ?= $(DIR_MACPORTS)
+DIR_GSL ?= $(DIR_MACPORTS)
+# Fallback self-installing GSL
+#DIR_GSL ?= $(DIR_ROOT)/gsl
+DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
+DIR_WRAPPER_SRC := $(DIR_ROOT)/python/arcticpy/src
 $(shell mkdir -p $(DIR_OBJ))
 
 $(info $(DIR_SRC) $(DIR_OBJ))
@@ -83,6 +95,15 @@ $(info $(SOURCES) $(OBJECTS))
 INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
 LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
+
+# Add multithreading to reduce runtime (requires OpenMP to have been installed)
+CXXFLAGS += -Xpreprocessor -fopenmp 
+# Use this on a mac
+LIBS += -L $(DIR_OMP)/lib -lomp
+# Use the following on cosma (can also use with macports)
+#LIBS += -L $(DIR_OMP)/lib -lgomp
+
+
 
 # ========
 # Rules
@@ -134,16 +155,16 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
-	python3 $(DIR_WRAPPER)/setup.py build_ext --inplace
-	@mv -v $(DIR_ROOT)/*.cpython*.so $(DIR_WRAPPER)
+	python3 $(DIR_ROOT)/make_setup.py build_ext --inplace
+	@mv -v $(DIR_WRAPPER)/../*.cpython*.so $(DIR_WRAPPER)/
         # @rm -rfv $(DIR_WRAPPER)build
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)/test_lib.[od]
 	@rm -fv $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
-	@rm -fv $(DIR_WRAPPER)/*.cpython*.so $(DIR_WRAPPER_SRC)wrapper.cpp
+	@rm -fv $(DIR_WRAPPER)/*.cpython*.so $(DIR_WRAPPER_SRC)/wrapper.cpp
 	@rm -rfv $(DIR_ROOT)/build/temp.*/ $(DIR_WRAPPER)/__pycache__/ \
-		$(DIR_WRAPPER_SRC)/__pycache__/ $(DIR_TEST)/__pycache__/
+		$(DIR_TEST)/__pycache__/
 
 # GSL
 GSL_VERSION := 2.6

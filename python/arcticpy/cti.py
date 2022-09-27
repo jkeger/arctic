@@ -1,18 +1,20 @@
 import numpy as np
 
 try:
-    import arcticpy.wrapper as w
+    from . import wrapper as w
 except ModuleNotFoundError:
     pass
 
-from arcticpy.src.ccd import CCDPhase, CCD
-from arcticpy.src.roe import ROE
-from arcticpy.src.traps import (
+from .ccd import CCDPhase, CCD
+from .roe import ROE
+from .traps import (
     TrapInstantCapture,
     TrapSlowCapture,
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
+#from arcticpy.src.pixel_bounce import add_pixel_bounce
+from .pixel_bounce import PixelBounce, add_pixel_bounce
 
 
 def _extract_trap_parameters(traps):
@@ -113,6 +115,7 @@ def _set_dummy_parameters():
 
 def add_cti(
     image,
+    header=None,
     # Parallel
     parallel_ccd=None,
     parallel_roe=None,
@@ -123,7 +126,7 @@ def add_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-18, 
+    parallel_prune_n_electrons=1e-10, 
     parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
@@ -135,8 +138,10 @@ def add_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-18, 
+    serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
+    # Pixel bounce
+    pixel_bounce=None,
     # Output
     verbosity=1,
     iteration=0,
@@ -197,6 +202,7 @@ def add_cti(
             parallel_n_traps_ic_co,
             parallel_n_traps_sc_co,
         ) = _set_dummy_parameters()
+    parallel_prune_n_es = np.array([parallel_prune_n_electrons], dtype=np.double)
 
     # Serial
     if serial_traps is not None:
@@ -224,15 +230,14 @@ def add_cti(
             serial_n_traps_ic_co,
             serial_n_traps_sc_co,
         ) = _set_dummy_parameters()
-
-    parallel_prune_n_es = np.array([parallel_prune_n_electrons], dtype=np.double)
     serial_prune_n_es = np.array([serial_prune_n_electrons], dtype=np.double)
+        
 
     # ========
     # Add CTI
     # ========
     # Pass the extracted inputs to C++ via the cython wrapper
-    return w.cy_add_cti(
+    image_trailed = w.cy_add_cti(
         image,
         # ========
         # Parallel
@@ -306,15 +311,44 @@ def add_cti(
         serial_time_stop,
         serial_prune_n_es, 
         serial_prune_frequency,
+        # ========
         # Output
+        # ========
         verbosity,
         iteration,
     )
+    
+
+    # ================
+    # Add pixel bounce
+    # ================
+    if pixel_bounce is not None:
+        image_trailed = pixel_bounce.add_pixel_bounce(
+            image,
+            parallel_window_start=parallel_window_start,
+            parallel_window_stop=parallel_window_stop,
+            serial_window_start=serial_window_start,
+            serial_window_stop=serial_window_stop,
+            verbosity=verbosity
+        )
+    
+    
+    # ===================
+    # Update image header
+    # ===================
+    if header is not None:
+        #TBD       
+        #print(w.cy_version_arctic())
+        header.set("cticor", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
+        header.set("ctipar", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
+
+    return image_trailed
 
 
 def remove_cti(
     image,
     n_iterations,
+    header=None,
     # Parallel
     parallel_ccd=None,
     parallel_roe=None,
@@ -325,7 +359,7 @@ def remove_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-18,
+    parallel_prune_n_electrons=1e-10,
     parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
@@ -337,8 +371,12 @@ def remove_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-18, 
+    serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
+    # Pixel bounce
+    pixel_bounce=None,
+    # Read noise de-amplification
+    read_noise=None,
     # Output
     verbosity=1,
 ):
@@ -368,6 +406,11 @@ def remove_cti(
 
     if verbosity >= 1:
         w.cy_print_version()
+    
+    # Attempt to estimate and remove read noise, so it it not amplified
+    if read_noise is not None:
+        image_read_noise = read_noise.esimate_image_remove_cti(image_remove_cti)
+        image_remove_cti -= image_read_noise
 
     # Estimate the image with removed CTI more accurately each iteration
     for iteration in range(1, n_iterations + 1):
@@ -377,6 +420,7 @@ def remove_cti(
         # Model the effect of adding CTI trails
         image_add_cti = add_cti(
             image=image_remove_cti,
+            header=header,
             # Parallel
             parallel_ccd=parallel_ccd,
             parallel_roe=parallel_roe,
@@ -401,17 +445,27 @@ def remove_cti(
             serial_time_stop=serial_time_stop,
             serial_prune_n_electrons=serial_prune_n_electrons, 
             serial_prune_frequency=serial_prune_frequency,
+            # Pixel bounce
+            pixel_bounce=pixel_bounce,
             # Output
             verbosity=verbosity,
             iteration=iteration,
         )
 
         # Improve the estimate of the image with CTI trails removed
-        image_remove_cti += image - image_add_cti
-
+        delta = image - image_add_cti
+        if read_noise is not None:
+            delta_squared = delta ** 2
+            delta *= delta_squared / ( delta_squared + read_noise.sigma ** 2 )
+        image_remove_cti += delta
+        
         # Prevent negative image values
         image_remove_cti[image_remove_cti < 0.0] = 0.0
 
+    # Add back the read noise, if it had been removed
+    if read_noise is not None:
+        image_remove_cti += image_read_noise
+   
     return image_remove_cti
 
 
