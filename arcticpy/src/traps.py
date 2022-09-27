@@ -1,8 +1,8 @@
 import numpy as np
 
-#from arcticpy.src.dictable import Dictable
+from autoconf.dictable import Dictable
 
-class AbstractTrap:
+class AbstractTrap(Dictable):
     def __init__(self, density=1.0, release_timescale=1.0):
         self.density = density
         self.release_timescale = release_timescale
@@ -47,7 +47,7 @@ class TrapInstantCapture(AbstractTrap):
         )
 
     def poisson_density_from(self, total_pixels, seed=-1):
-        
+
         if seed == -1:
             seed = np.random.randint(
                 0, int(1e9)
