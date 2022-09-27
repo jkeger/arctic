@@ -35,7 +35,7 @@ class ROEChargeInjection(ROE):
         self,
         dwell_times=[1.0],
         prescan_offset=0,
-        overscan_start=None,
+        overscan_start=-1,
         empty_traps_between_columns=True,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
