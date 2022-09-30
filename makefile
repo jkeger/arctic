@@ -97,11 +97,11 @@ LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
-CXXFLAGS += -Xpreprocessor -fopenmp 
+CXXFLAGS += -Xpreprocessor -fopenmp
 # Use this on a mac
-LIBS += -L $(DIR_OMP)/lib -lomp
+# LIBS += -L $(DIR_OMP)/lib -lomp
 # Use the following on cosma (can also use with macports)
-#LIBS += -L $(DIR_OMP)/lib -lgomp
+LIBS += -L $(DIR_OMP)/lib -lgomp
 
 
 
