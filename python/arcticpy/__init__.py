@@ -9,7 +9,7 @@ from arcticpy.traps import (
     TrapSlowCaptureContinuum,
 )
 from arcticpy.read_noise import ReadNoise
-from arcticpy.wrapper import (
+from wrapper import (
     cy_print_array as print_array,
     cy_print_array_2D as print_array_2D,
 )

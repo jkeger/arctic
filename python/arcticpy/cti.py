@@ -1,6 +1,6 @@
 import numpy as np
 
-from arcticpy import wrapper as w
+import wrapper as w
 
 from arcticpy.ccd import CCDPhase, CCD
 from arcticpy.roe import ROE
