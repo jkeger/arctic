@@ -50,7 +50,7 @@ setup(
         [
             Extension(
                 "wrapper",
-                sources=[dir_wrapper_src + "wrapper.pyx", dir_wrapper_src + "interface.cpp"],
+                sources=[dir_wrapper + "wrapper.pyx", dir_wrapper_src + "interface.cpp"],
                 language="c++",
                 libraries=["arctic"],
                 library_dirs=[dir_lib, dir_lib_gsl],
