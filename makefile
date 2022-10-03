@@ -99,9 +99,9 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
 CXXFLAGS += -Xpreprocessor -fopenmp
 # Use this on a mac
-LIBS += -L $(DIR_OMP)/lib -lomp
+# LIBS += -L $(DIR_OMP)/lib -lomp
 # Use the following on cosma (can also use with macports)
-#LIBS += -L $(DIR_OMP)/lib -lgomp
+LIBS += -L $(DIR_OMP)/lib -lgomp
 
 
 
@@ -156,7 +156,7 @@ $(LIB_TEST_TARGET): $(LIB_TARGET)
 # Cython wrapper
 wrapper: $(LIB_TARGET)
 	python3 $(DIR_ROOT)/make_setup.py build_ext --inplace
-	@mv -v $(DIR_WRAPPER)/../*.cpython*.so $(DIR_WRAPPER)/
+	# @mv -v $(DIR_WRAPPER)/../*.cpython*.so $(DIR_WRAPPER)/
         # @rm -rfv $(DIR_WRAPPER)build
 
 clean:
