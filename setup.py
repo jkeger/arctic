@@ -41,7 +41,7 @@ ext_sources = [os.path.join(dir_src, src) for src in os.listdir(dir_src)]
 extensions = [
     Extension(
         name="arcticpy.wrapper",
-        sources=[os.path.join(dir_wrapper_src, "wrapper.pyx"), os.path.join(dir_wrapper_src, "interface.cpp"), *ext_sources],
+        sources=[os.path.join(dir_wrapper, "wrapper.pyx"), os.path.join(dir_wrapper_src, "interface.cpp"), *ext_sources],
         language="c++",
         libraries=["gsl"],
         runtime_library_dirs=[dir_gsl_lib],

@@ -1,4 +1,4 @@
 include include/*.hpp
 include python/arcticpy/include/*.hpp
-include python/arcticpy/src/wrapper.pyx
+include python/arcticpy/wrapper.pyx
 exclude python/arcticpy/src/wrapper.cpp
