@@ -9,8 +9,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arcticpytest"
-version= "1.2"
+name = "arcticpy"
+version= "1.0"
 description = "This is the python module for the arCTIc code"
 authors = [
     { name = "Richard Massey", email = "r.j.massey@durham.ac.uk" }
