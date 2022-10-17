@@ -17,7 +17,7 @@ class ReadNoise:
             noise_model_scaling=1.0, # originally 0.75 
             amplitude_scale=0.2,     # originally 0.33
             n_iter=200
-            parallel=True
+            serial=True
             
     ):
         self.sigmaRN = sigma_readnoise
@@ -25,7 +25,7 @@ class ReadNoise:
         self.ampScale = amplitude_scale
         self.outScale = noise_model_scaling
         self.n_iter = n_iter
-        self.smoothCol = parallel
+        self.smoothCol = serial
 
     @property
     def sigma(self):
@@ -39,8 +39,8 @@ class ReadNoise:
         if value < 0:
             value = 0.
         self._sigma = value
-###############
-###############
+    ###############
+    ###############
     def determine_noise_model(self, imageIn, imageOut):
         readNoiseAmp = self.sigmaRN
         
@@ -150,8 +150,8 @@ class ReadNoise:
             return  (dval0u * w0 / 6) + (dval9u * w9 / 6) +(dmod1u * w1 / 6) + (dmod2u * w2 / 6) +(cmod1u * wc1 / 6) + (cmod2u * wc2 / 6)
         else:
             return  (dval0u * w0 * 0.25) + (dval9u * w9 * 0.25) +(dmod1u * w1 * 0.25) + (dmod2u * w2 * 0.25)
-###############
-###############
+    ###############
+    ###############
     def estimate_read_noise_model_from_image(self, image):
         ampReadNoise = self.sigmaRN
 
@@ -197,45 +197,49 @@ class ReadNoise:
         return imageOut,noiseImage
         #raise NotImplementedError
         #return image
-###############
-###############
+    ###############
+    ###############
     def estimate_residual_covariance(
         self, 
         background_level,
         # Parallel
-        if self.parallel:
-            parallel_ccd=None, #can we do this with **kwargs ? I'm not sure in python
-            parallel_roe=None,
-            parallel_traps=None,
-            parallel_express=0,
-            parallel_window_offset=0,
-            parallel_window_start=0,
-            parallel_window_stop=-1,
-            parallel_time_start=0,
-            parallel_time_stop=-1,
-            parallel_prune_n_electrons=1e-10, 
-            parallel_prune_frequency=20,
+        parallel_ccd=None, #can we do this with **kwargs ? I'm not sure in python
+        parallel_roe=None,
+        parallel_traps=None,
+        parallel_express=0,
+        parallel_window_offset=0,
+        parallel_window_start=0,
+        parallel_window_stop=-1,
+        parallel_time_start=0,
+        parallel_time_stop=-1,
+        parallel_prune_n_electrons=1e-10, 
+        parallel_prune_frequency=20,
         # Serial
-        serial_ccd=None,
-        serial_roe=None,
-        serial_traps=None,
-        serial_express=0,
-        serial_window_offset=0,
-        serial_window_start=0,
-        serial_window_stop=-1,
-        serial_time_start=0,
-        serial_time_stop=-1,
-        serial_prune_n_electrons=1e-10, 
-        serial_prune_frequency=20,
-        # Pixel bounce
-        pixel_bounce=None,
-        # Output
-        verbosity=1,
+        if self.smoothCol: #should be more agnostic about direction or rows/cols (for variable names...)  
+            serial_ccd=None,
+            serial_roe=None,
+            serial_traps=None,
+            serial_express=0,
+            serial_window_offset=0,
+            serial_window_start=0,
+            serial_window_stop=-1,
+            serial_time_start=0,
+            serial_time_stop=-1,
+            serial_prune_n_electrons=1e-10, 
+            serial_prune_frequency=20,
+            # Pixel bounce
+            pixel_bounce=None,
+            # Output
+            verbosity=1,
     ):
+   
         raise NotImplementedError
 
+    ###############
+    ############### 
     def optimise_parameters(
         self,
+        image,    
         background_level,
         #figure_of_merit=figure_of_merit(), # should probably pass a function here
         **kwargs 
@@ -268,12 +272,24 @@ class ReadNoise:
         ## Output
         #verbosity=1,
     ):
+        #things to compare over iterations
+        outputFrame,noiseFrame = self.estimate_read_noise_model_from_image(image)
+        covar = self.covariance_matrix_from_image(image)
         raise NotImplementedError
-        
-    def figure_of_merit(covariance_matrix):
+
+    ###############
+    ###############
+    def figure_of_merit(self,covariance_matrix):
+        xlen = covariance_matrix.shape[1]//2
+        ylen = covariance matrix.shape[0]//2
+        fullsum = np.sum(covariance_matrix)         #sum over all cells
+        rowsum = np.sum(covariance_matrix[ylen,:])  #sum over central row (for serial CTI)
+        colsum = np.sum(covariance_matrix[:,xlen])  #sum over central column (for parallel CTI)
         raise NotImplementedError
-        return 0.0
-        
+        return fullsum,rowsum,colsum
+
+    ###############
+    ###############
     def covariance_matrix_from_image(self, image, n_pixels=5):
         raise NotImplementedError
         covariance_matrix = np.zeros(n_pixels,n_pixels)
