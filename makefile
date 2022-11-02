@@ -67,11 +67,11 @@ DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
 #DIR_GSL ?= /cosma/local/gsl/2.5/lib
 #DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4/lib
-#DIR_GSL ?= $(DIR_HOMEBREW)
-#DIR_OMP ?= $(DIR_HOMEBREW)
+DIR_GSL ?= $(DIR_HOMEBREW)
+DIR_OMP ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_MACPORTS)/libomp
-DIR_OMP ?= $(DIR_MACPORTS)
-DIR_GSL ?= $(DIR_MACPORTS)
+#DIR_OMP ?= $(DIR_MACPORTS)
+#DIR_GSL ?= $(DIR_MACPORTS)
 # Fallback self-installing GSL
 #DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
@@ -99,9 +99,9 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
 CXXFLAGS += -Xpreprocessor -fopenmp
 # Use this on a mac
-# LIBS += -L $(DIR_OMP)/lib -lomp
+ LIBS += -L $(DIR_OMP)/lib -lomp
 # Use the following on cosma (can also use with macports)
-LIBS += -L $(DIR_OMP)/lib -lgomp
+#LIBS += -L $(DIR_OMP)/lib -lgomp
 
 
 
