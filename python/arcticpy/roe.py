@@ -36,6 +36,7 @@ class ROE:
         self.n_pumps = -1  # Dummy value
 
         self.type = roe_type_standard
+    
 
 
 class ROEChargeInjection(ROE):
@@ -69,6 +70,26 @@ class ROEChargeInjection(ROE):
         )
 
         self.type = roe_type_charge_injection
+    
+    def from_normal_roe(roe, n_pixels_in_image):
+        """
+        Convert a normal ROE sequence, with all its options, to one modelling
+        charge injection readout.
+        Must specify the number of physical pixels between the charge injection
+        register and the readout node.
+        """
+        return ROEChargeInjection(
+            dwell_times=roe.dwell_times,
+            prescan_offset=roe.prescan_offset + n_pixels_in_image,
+            overscan_start=roe.overscan_start,
+            empty_traps_between_columns=roe.empty_traps_between_columns,
+            force_release_away_from_readout=roe.force_release_away_from_readout,
+            use_integer_express_matrix=roe.use_integer_express_matrix,
+            pixel_bounce_kA=roe.pixel_bounce_kA,
+            pixel_bounce_kv=roe.pixel_bounce_kv,
+            pixel_bounce_omega=roe.pixel_bounce_omega,
+            pixel_bounce_gamma=roe.pixel_bounce_gamma
+        )
 
 
 class ROETrapPumping(ROE):

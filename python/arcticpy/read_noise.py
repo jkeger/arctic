@@ -16,7 +16,7 @@ class ReadNoise:
             adjacency=0.3, 
             noise_model_scaling=1.0, # originally 0.75 
             amplitude_scale=0.2,     # originally 0.33
-            n_iter=200
+            n_iter=200,
             serial=True
             
     ):
@@ -213,9 +213,11 @@ class ReadNoise:
         parallel_time_start=0,
         parallel_time_stop=-1,
         parallel_prune_n_electrons=1e-10, 
-        parallel_prune_frequency=20,
+        parallel_prune_frequency=20
+    ):
         # Serial
-        if self.smoothCol: #should be more agnostic about direction or rows/cols (for variable names...)  
+        if ( self.smoothCol ): 
+            #should be more agnostic about direction or rows/cols (for variable names...)  
             serial_ccd=None,
             serial_roe=None,
             serial_traps=None,
@@ -230,8 +232,8 @@ class ReadNoise:
             # Pixel bounce
             pixel_bounce=None,
             # Output
-            verbosity=1,
-    ):
+            verbosity=1
+    
    
         raise NotImplementedError
 
@@ -281,17 +283,17 @@ class ReadNoise:
     ###############
     def figure_of_merit(self,covariance_matrix):
         xlen = covariance_matrix.shape[1]//2
-        ylen = covariance matrix.shape[0]//2
+        ylen = covariance_matrix.shape[0]//2
         fullsum = np.sum(covariance_matrix)         #sum over all cells
         rowsum = np.sum(covariance_matrix[ylen,:])  #sum over central row (for serial CTI)
         colsum = np.sum(covariance_matrix[:,xlen])  #sum over central column (for parallel CTI)
-        raise NotImplementedError
+        #raise NotImplementedError
         return fullsum,rowsum,colsum
 
     ###############
     ###############
     def covariance_matrix_from_image(self, image, n_pixels=5):
-        raise NotImplementedError
+        #raise NotImplementedError
         covariance_matrix = np.zeros(n_pixels,n_pixels)
         #calcluate mean stats on image
         x = image.flatten()
