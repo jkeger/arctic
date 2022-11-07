@@ -45,6 +45,9 @@ class ReadNoise:
     ###############
     ###############
     def determine_noise_model(self, imageIn, imageOut):
+        '''
+        Method for estimating readnoise on image (in S+R fashion)
+        '''
         readNoiseAmp = self.sigmaRN
         
         dval0 = imageIn - imageOut
