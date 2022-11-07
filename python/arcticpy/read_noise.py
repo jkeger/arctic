@@ -553,11 +553,11 @@ class ReadNoise:
                 ybar = np.mean(y)
 
                 #calculate covariance
-                covar = np.sum((x-xbar)*(y-ybar))/(np.std(x-xbar)*np.std(y-ybar))/(x.size)
+                covar = np.sum((x-xbar)*(y-ybar))/x.size #/(np.std(x-xbar)*np.std(y-ybar))/(x.size) #removing noise-level normalization
 
                 #populate matrix cells
                 covariance_matrix[i+matRange,j+matRange] = covar
-        covariance_matrix[matRange,matRange] = 0
+        #covariance_matrix[matRange,matRange] = 0 switch this normalization to plotting
                 
         return covariance_matrix
 
