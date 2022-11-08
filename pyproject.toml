@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arcticpy"
-version= "1.0"
+version= "2.0"
 description = "This is the python module for the arCTIc code"
 authors = [
     { name = "Richard Massey", email = "r.j.massey@durham.ac.uk" }

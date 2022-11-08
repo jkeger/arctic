@@ -326,7 +326,7 @@ void ROE::set_express_matrix_from_rows_and_express(
     express_matrix = tmp_express_matrix;
     
     // Remove the offset (which is not represented in the image pixels)
-    std::cout << offset ;
+    // std::cout << offset ;
     if (offset > 0) {
         //print_array_2D(tmp_express_matrix, n_transfers);
         std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);

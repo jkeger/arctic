@@ -104,7 +104,6 @@ CXXFLAGS += -Xpreprocessor -fopenmp
 LIBS += -L $(DIR_OMP)/lib -lgomp
 
 
-
 # ========
 # Rules
 # ========
