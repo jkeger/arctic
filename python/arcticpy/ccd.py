@@ -3,7 +3,14 @@ import numpy as np
 from autoconf.dictable import Dictable
 
 class CCDPhase(Dictable):
-    def __init__(self, full_well_depth=1e4, well_notch_depth=0.0, well_fill_power=1.0):
+
+    def __init__(
+            self,
+            full_well_depth : float =1e4,
+            well_notch_depth : float=0.0,
+            well_fill_power : float=1.0
+    ):
+
         self.full_well_depth = full_well_depth
         self.well_notch_depth = well_notch_depth
         self.well_fill_power = well_fill_power
