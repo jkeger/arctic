@@ -1,3 +1,50 @@
+""" 
+The properties of readout electronics (ROE) used to operate a CCD.
+(Works equally well for clocking electrons in an n-type CCD or holes in a p-type 
+CCD.)
+Three different clocking modes are available:
+1) Standard readout, in which photoelectrons are created during an exposure, and
+   read out (through different numbers of intervening pixels) to the readout
+   electronics.
+2) Charge Injection Line, in which electrons are injected at the far end of the
+   CCD, by a charge injection structure. All travel the same distance to the
+   readout electronics.
+3) Trap pumping, in which electrons are shuffled backwards and forwards many 
+   times, but end up in the same place as they began.
+   
+By default, or if the dwell_times variable has only one element, the pixel-to-
+pixel transfers are assumed to happen instantly, in one step. This recovers the 
+behaviour of earlier versions of ArCTIC (written in java, IDL, or C++). If 
+instead a list of n dwell_times is provided, it is assumed that each pixel 
+contains n phases in which electrons are stored during intermediate steps of the 
+readout sequence. The number of phases should match that in the instance of a 
+CCD class, and the units of dwell_times should match those in the instance of a 
+Traps class.
+Unlike CCD pixels, where row 1 is closer to the readout register than row 2, 
+phase 2 is closer than phase 1:
++-----------
+| Pixel n:  
+|   Phase 0 
+|   Phase 1 
+|   Phase 2 
++-----------
+|    .       
+     .
+|    .       
++-----------
+| Pixel 1:  
+|   Phase 0 
+|   Phase 1 
+|   Phase 2 
++-----------
+| Pixel 0:  
+|   Phase 0 
+|   Phase 1 
+|   Phase 2 
++-----------
+| Readout   
++----------- 
+"""
 import numpy as np
 
 #from .dictable import Dictable
@@ -36,7 +83,7 @@ class ROE:
         self.n_pumps = -1  # Dummy value
 
         self.type = roe_type_standard
-    
+  
 
 
 class ROEChargeInjection(ROE):
