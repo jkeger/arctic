@@ -430,8 +430,8 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
 
                             // Make sure image counts don't go negative, which
                             // could happen with a too-large express multiplier
-                            //if (image[row_write][column_index] < 0.0)
-                            //    image[row_write][column_index] = 0.0;
+                            if (image[row_write][column_index] < 0.0)
+                                image[row_write][column_index] = 0.0;
 
                             print_v(2, "row_write  %d \n", row_write);
                             print_v(
@@ -708,9 +708,9 @@ std::valarray<std::valarray<double> > remove_cti(
         image_remove_cti += image_in - image_add_cti;
 
         // Prevent negative image values
-        //for (int row_index = 0; row_index < n_rows; row_index++) {
-        //    image_remove_cti[row_index][image_remove_cti[row_index] < 0.0] = 0.0;
-        //}
+        for (int row_index = 0; row_index < n_rows; row_index++) {
+            image_remove_cti[row_index][image_remove_cti[row_index] < 0.0] = 0.0;
+        }
     }
 
     return image_remove_cti;

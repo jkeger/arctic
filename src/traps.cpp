@@ -62,7 +62,6 @@ TrapInstantCapture::TrapInstantCapture(
     // maximum fraction of exposable traps, i.e. the integration over the full
     // volume of the fractional distribution, such that the trap's total density
     // per pixel is preserved.
-    
     if (fractional_volume_full_exposed > 0.0)
         this->density /= 1.0 - 0.5 * (fractional_volume_none_exposed +
                                       fractional_volume_full_exposed);

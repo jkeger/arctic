@@ -4,7 +4,7 @@ test_arctic
 libarctic.so
 *.cpython*.so
 lib_test
-python/arcticpy/wrapper.cpp
+arcticpy/src/wrapper.cpp
 __pycache__/
 build/
 gsl/

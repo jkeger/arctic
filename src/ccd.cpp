@@ -5,10 +5,6 @@
 
 #include "util.hpp"
 
-int sgn(double v) {
-  return (v < 0) ? -1 : ((v > 0) ? 1 : 0);
-}
-
 // ========
 // CCDPhase::
 // ========
@@ -60,17 +56,12 @@ CCDPhase::CCDPhase(
         The volume of the charge cloud as a fraction of the pixel (or phase).
 */
 double CCDPhase::cloud_fractional_volume_from_electrons(double n_electrons) {
-    
-    double frac = (n_electrons - well_notch_depth) / full_well_depth;
-    //frac = clamp(frac, 0., 1.);
-    return sgn(frac) * pow( abs(frac), well_fill_power );
-    
-    //if (n_electrons == 0.0)
-    //    return 0.0;
-    //else
-    //    return pow(
-    //        clamp((n_electrons - well_notch_depth) / full_well_depth, 0.0, 1.0),
-    //        well_fill_power);
+    if (n_electrons == 0.0)
+        return 0.0;
+    else
+        return pow(
+            clamp((n_electrons - well_notch_depth) / full_well_depth, 0.0, 1.0),
+            well_fill_power);
 }
 
 // ========

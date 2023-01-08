@@ -460,7 +460,7 @@ def remove_cti(
         image_remove_cti += delta
         
         # Prevent negative image values
-        #image_remove_cti[image_remove_cti < 0.0] = 0.0
+        image_remove_cti[image_remove_cti < 0.0] = 0.0
 
     # Add back the read noise, if it had been removed
     if read_noise is not None:
