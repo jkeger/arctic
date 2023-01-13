@@ -1,10 +1,7 @@
 
 #include "traps.hpp"
 
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_integration.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_roots.h>
+
 #include <math.h>
 
 #include <valarray>
@@ -252,7 +249,7 @@ double TrICCo_ff_from_te_integrand(double tau, void* params) {
 }
 
 double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed(
-    double time_elapsed, gsl_integration_workspace* workspace) {
+    double time_elapsed) {
     // Completely full or empty, or unset watermark
     if (time_elapsed == 0.0)
         return 1.0;
@@ -268,21 +265,10 @@ double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed(
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
-    const int key = GSL_INTEG_GAUSS51;
-    if (!workspace) {
-        workspace = gsl_integration_workspace_alloc(limit);
-    }
+
     struct TrICCo_ff_from_te_params params = {
         time_elapsed, release_timescale, release_timescale_sigma};
-    gsl_function F;
-    F.function = &TrICCo_ff_from_te_integrand;
-    F.params = &params;
 
-    // Integrate F.function from min to max
-    int status = gsl_integration_qag(
-        &F, min, max, epsabs, epsrel, limit, key, workspace, &result, &error);
-
-    if (status) error("Integration failed, status %d", status);
 
     return result;
 }
@@ -318,19 +304,18 @@ double TrapInstantCaptureContinuum::fill_fraction_from_time_elapsed(
 struct TrICCo_te_from_ff_params {
     TrapInstantCaptureContinuum* trap;
     double fill_fraction;
-    gsl_integration_workspace* workspace;
 };
 
 double TrICCo_te_from_ff_root_function(double time_elapsed, void* params) {
     struct TrICCo_te_from_ff_params* p = (struct TrICCo_te_from_ff_params*)params;
 
     // To find time such that: fill_fraction(time) - fill_fraction = 0
-    return p->trap->fill_fraction_from_time_elapsed(time_elapsed, p->workspace) -
+    return p->trap->fill_fraction_from_time_elapsed(time_elapsed) -
            p->fill_fraction;
 }
 
 double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction(
-    double fill_fraction, double time_max, gsl_integration_workspace* workspace) {
+    double fill_fraction, double time_max) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0)
         return 0.0;
@@ -339,26 +324,13 @@ double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction(
     else if (fill_fraction == -1.0)
         return 0.0;
 
-    // Prep for the integration
-    if (!workspace) {
-        const int limit = 100;
-        workspace = gsl_integration_workspace_alloc(limit);
-    }
-
     // Prep the root finder
     double root;
     int status;
     const int max_iter = 100;
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
-    const gsl_root_fsolver_type* T;
-    gsl_root_fsolver* s;
-    T = gsl_root_fsolver_brent;
-    s = gsl_root_fsolver_alloc(T);
-    struct TrICCo_te_from_ff_params params = {this, fill_fraction, workspace};
-    gsl_function F;
-    F.function = &TrICCo_te_from_ff_root_function;
-    F.params = &params;
+    struct TrICCo_te_from_ff_params params = {this, fill_fraction};
 
     // Bounding values
     double x_lo = 0.0;
@@ -366,15 +338,6 @@ double TrapInstantCaptureContinuum::time_elapsed_from_fill_fraction(
 
     // Iterate the root finder
     int iter = 0;
-    gsl_root_fsolver_set(s, &F, x_lo, x_hi);
-    do {
-        iter++;
-        status = gsl_root_fsolver_iterate(s);
-        root = gsl_root_fsolver_root(s);
-        x_lo = gsl_root_fsolver_x_lower(s);
-        x_hi = gsl_root_fsolver_x_upper(s);
-        status = gsl_root_test_interval(x_lo, x_hi, epsabs, epsrel);
-    } while (status == GSL_CONTINUE && iter < max_iter);
 
     return root;
 }
@@ -413,22 +376,22 @@ void TrapInstantCaptureContinuum::prep_fill_fraction_and_time_elapsed_tables(
 
     // Prep for the GSL integration
     const int limit = 100;
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+   // gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Set up the arrays and limits
     fill_fraction_table = std::valarray<double>(0.0, n_intp);
     this->n_intp = n_intp;
     this->time_min = time_min;
     this->time_max = time_max;
-    fill_min = fill_fraction_from_time_elapsed(time_max, workspace);
-    fill_max = fill_fraction_from_time_elapsed(time_min, workspace);
+    fill_min = fill_fraction_from_time_elapsed(time_max);
+    fill_max = fill_fraction_from_time_elapsed(time_min);
     d_log_time = (log(time_max) - log(time_min)) / (n_intp - 1);
     double time_i;
 
     // Tabulate the values corresponding to the equally log-spaced inputs
     for (int i = 0; i < n_intp; i++) {
         time_i = exp(log(time_max) - i * d_log_time);
-        fill_fraction_table[i] = fill_fraction_from_time_elapsed(time_i, workspace);
+        fill_fraction_table[i] = fill_fraction_from_time_elapsed(time_i);
     }
 }
 
@@ -583,7 +546,7 @@ double TrSCCo_ff_from_te_integrand(double tau, void* params) {
 }
 
 double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
-    double time_elapsed, gsl_integration_workspace* workspace) {
+    double time_elapsed) {
     // Completely full or empty, or unset watermark
     if (time_elapsed == 0.0)
         return 1.0;
@@ -599,21 +562,11 @@ double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
-    const int key = GSL_INTEG_GAUSS51;
-    if (!workspace) {
-        workspace = gsl_integration_workspace_alloc(limit);
-    }
+//    if (!workspace) {
+//        workspace = gsl_integration_workspace_alloc(limit);
+//    }
     struct TrSCCo_ff_from_te_params params = {
         time_elapsed, release_timescale, release_timescale_sigma};
-    gsl_function F;
-    F.function = &TrSCCo_ff_from_te_integrand;
-    F.params = &params;
-
-    // Integrate F.function from min to max
-    int status = gsl_integration_qag(
-        &F, min, max, epsabs, epsrel, limit, key, workspace, &result, &error);
-
-    if (status) error("Integration failed, status %d", status);
 
     return result;
 }
@@ -624,19 +577,18 @@ double TrapSlowCaptureContinuum::fill_fraction_from_time_elapsed(
 struct TrSCCo_te_from_ff_params {
     TrapSlowCaptureContinuum* trap;
     double fill_fraction;
-    gsl_integration_workspace* workspace;
 };
 
 double TrSCCo_te_from_ff_root_function(double time_elapsed, void* params) {
     struct TrSCCo_te_from_ff_params* p = (struct TrSCCo_te_from_ff_params*)params;
 
     // To find time such that: fill_fraction(time) - fill_fraction = 0
-    return p->trap->fill_fraction_from_time_elapsed(time_elapsed, p->workspace) -
+    return p->trap->fill_fraction_from_time_elapsed(time_elapsed) -
            p->fill_fraction;
 }
 
 double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction(
-    double fill_fraction, double time_max, gsl_integration_workspace* workspace) {
+    double fill_fraction, double time_max) {
     // Completely full or empty, or unset watermark
     if (fill_fraction == 1.0)
         return 0.0;
@@ -645,11 +597,7 @@ double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction(
     else if (fill_fraction == -1.0)
         return 0.0;
 
-    // Prep for the integration
-    if (!workspace) {
-        const int limit = 100;
-        workspace = gsl_integration_workspace_alloc(limit);
-    }
+    const int limit = 100;
 
     // Prep the root finder
     double root;
@@ -657,14 +605,7 @@ double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction(
     const int max_iter = 100;
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
-    const gsl_root_fsolver_type* T;
-    gsl_root_fsolver* s;
-    T = gsl_root_fsolver_brent;
-    s = gsl_root_fsolver_alloc(T);
-    struct TrSCCo_te_from_ff_params params = {this, fill_fraction, workspace};
-    gsl_function F;
-    F.function = &TrSCCo_te_from_ff_root_function;
-    F.params = &params;
+    struct TrSCCo_te_from_ff_params params = {this, fill_fraction};
 
     // Bounding values
     double x_lo = 0.0;
@@ -672,15 +613,6 @@ double TrapSlowCaptureContinuum::time_elapsed_from_fill_fraction(
 
     // Iterate the root finder
     int iter = 0;
-    gsl_root_fsolver_set(s, &F, x_lo, x_hi);
-    do {
-        iter++;
-        status = gsl_root_fsolver_iterate(s);
-        root = gsl_root_fsolver_root(s);
-        x_lo = gsl_root_fsolver_x_lower(s);
-        x_hi = gsl_root_fsolver_x_upper(s);
-        status = gsl_root_test_interval(x_lo, x_hi, epsabs, epsrel);
-    } while (status == GSL_CONTINUE && iter < max_iter);
 
     return root;
 }
@@ -693,22 +625,22 @@ void TrapSlowCaptureContinuum::prep_fill_fraction_and_time_elapsed_tables(
 
     // Prep for the GSL integration
     const int limit = 100;
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+  //  gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Set up the arrays and limits
     fill_fraction_table = std::valarray<double>(0.0, n_intp);
     this->n_intp = n_intp;
     this->time_min = time_min;
     this->time_max = time_max;
-    fill_min = fill_fraction_from_time_elapsed(time_max, workspace);
-    fill_max = fill_fraction_from_time_elapsed(time_min, workspace);
+    fill_min = fill_fraction_from_time_elapsed(time_max);
+    fill_max = fill_fraction_from_time_elapsed(time_min);
     d_log_time = (log(time_max) - log(time_min)) / (n_intp - 1);
     double time_i;
 
     // Tabulate the values corresponding to the equally log-spaced inputs
     for (int i = 0; i < n_intp; i++) {
         time_i = exp(log(time_max) - i * d_log_time);
-        fill_fraction_table[i] = fill_fraction_from_time_elapsed(time_i, workspace);
+        fill_fraction_table[i] = fill_fraction_from_time_elapsed(time_i);
     }
 }
 
@@ -851,7 +783,7 @@ double TrSCCo_ff_after_sc_integrand(double tau, void* params) {
 }
 
 double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
-    double time_elapsed, double dwell_time, gsl_integration_workspace* workspace) {
+    double time_elapsed, double dwell_time) {
     // Prep the integration
     double result, error;
     const double min = 0.0;
@@ -859,22 +791,12 @@ double TrapSlowCaptureContinuum::fill_fraction_after_slow_capture(
     const double epsabs = 0.0;
     const double epsrel = 1e-6;
     const int limit = 100;
-    const int key = GSL_INTEG_GAUSS51;
-    if (!workspace) {
-        workspace = gsl_integration_workspace_alloc(limit);
-    }
+//    if (!workspace) {
+//        workspace = gsl_integration_workspace_alloc(limit);
+//    }
     struct TrSCCo_ff_after_sc_params params = {
         time_elapsed, release_timescale, release_timescale_sigma, capture_rate,
         dwell_time};
-    gsl_function F;
-    F.function = &TrSCCo_ff_after_sc_integrand;
-    F.params = &params;
-
-    // Integrate F.function from min to max
-    int status = gsl_integration_qag(
-        &F, min, max, epsabs, epsrel, limit, key, workspace, &result, &error);
-
-    if (status) error("Integration failed, status %d", status);
 
     return result;
 }
@@ -913,7 +835,7 @@ void TrapSlowCaptureContinuum::prep_fill_fraction_after_slow_capture_tables(
     double dwell_time, double time_min, double time_max, int n_intp) {
     // Prep for the GSL integration
     const int limit = 100;
-    gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
+  //  gsl_integration_workspace* workspace = gsl_integration_workspace_alloc(limit);
 
     // Set up the arrays and limits
     fill_fraction_capture_table = std::valarray<double>(0.0, n_intp);
@@ -921,11 +843,11 @@ void TrapSlowCaptureContinuum::prep_fill_fraction_after_slow_capture_tables(
     this->time_min = time_min;
     this->time_max = time_max;
     fill_capture_min =
-        fill_fraction_after_slow_capture(time_max, dwell_time, workspace);
+        fill_fraction_after_slow_capture(time_max, dwell_time);
     fill_capture_max =
-        fill_fraction_after_slow_capture(time_min, dwell_time, workspace);
+        fill_fraction_after_slow_capture(time_min, dwell_time);
     fill_capture_long_time =
-        fill_fraction_after_slow_capture(time_max * 100, dwell_time, workspace);
+        fill_fraction_after_slow_capture(time_max * 100, dwell_time);
     d_log_time = (log(time_max) - log(time_min)) / (n_intp - 1);
     double time_i;
 
@@ -933,7 +855,7 @@ void TrapSlowCaptureContinuum::prep_fill_fraction_after_slow_capture_tables(
     for (int i = 0; i < n_intp; i++) {
         time_i = exp(log(time_max) - i * d_log_time);
         fill_fraction_capture_table[i] =
-            fill_fraction_after_slow_capture(time_i, dwell_time, workspace);
+            fill_fraction_after_slow_capture(time_i, dwell_time);
     }
 }
 

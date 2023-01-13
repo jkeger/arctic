@@ -22,15 +22,6 @@ dir_wrapper = dir_arctic + "python/arcticpy/"
 dir_wrapper_src = dir_wrapper + "src/"
 dir_wrapper_include = dir_wrapper + "include/"
 
-# Find GSL
-dir_gsl_fallback = dir_arctic + "gsl/"
-if os.path.exists("/usr/local/include/gsl"): dir_gsl_fallback = "/usr/local/" # brew install llvm libomp gsl
-if os.path.exists("/opt/local/include/gsl"): dir_gsl_fallback = "/opt/local/" # sudo port install libomp gsl
-if os.path.exists("/cosma/local/gsl/2.5/lib"): dir_gsl_fallback = "/cosma/local/gsl/2.5/lib/" # use on cosma
-dir_gsl = os.environ.get("DIR_GSL", dir_gsl_fallback)
-dir_include_gsl = dir_gsl + "include/"
-dir_lib_gsl = dir_gsl + "lib/"
-
 # Clean
 for root, dirs, files in os.walk(dir_wrapper, topdown=False):
     for name in files:
@@ -53,9 +44,9 @@ setup(
                 sources=[dir_wrapper + "wrapper.pyx", dir_wrapper_src + "interface.cpp"],
                 language="c++",
                 libraries=["arctic"],
-                library_dirs=[dir_lib, dir_lib_gsl],
-                runtime_library_dirs=[dir_lib, dir_lib_gsl],
-                include_dirs=[dir_include, np.get_include(), dir_wrapper_include, dir_include_gsl],
+                library_dirs=[dir_lib],
+                runtime_library_dirs=[dir_lib],
+                include_dirs=[dir_include, np.get_include(), dir_wrapper_include],
                 extra_compile_args=["-std=c++17", "-O3"],
                 define_macros=[('NPY_NO_DEPRECATED_API', 0)],
             )

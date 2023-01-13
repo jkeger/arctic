@@ -9,9 +9,9 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arcticpy"
+name = "arcticpy_no_gsl"
 version= "2.1"
-description = "This is the python module for the arCTIc code"
+description = "This is the python module for the arCTIc code (No GSL requirement)"
 authors = [
     { name = "Richard Massey", email = "r.j.massey@durham.ac.uk" }
 ]

@@ -25,18 +25,11 @@
 # 	wrapper
 # 		The cython wrapper for the arcticpy python module.
 #
-# 	gsl
-# 		The GNU Scientific Library (www.gnu.org/software/gsl/). See get_gsl.sh.
-#
 # 	all
 # 		All of the above.
 #
 # 	clean
 # 		Remove compiled files.
-#
-# 	clean-gsl
-# 		Remove GSL (not done by `clean`).
-#
 
 # ========
 # Set up
@@ -56,9 +49,9 @@ LIB_TARGET := libarctic.so
 LIB_TEST_TARGET := lib_test
 
 # Directories 
-# brew install llvm libomp gsl
+# brew install llvm libomp
 DIR_HOMEBREW := /usr/local
-# sudo port install libomp gsl
+# sudo port install libomp
 DIR_MACPORTS := /opt/local
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DIR_SRC := $(DIR_ROOT)/src
@@ -71,7 +64,6 @@ DIR_TEST := $(DIR_ROOT)/test
 #DIR_OMP ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_MACPORTS)/libomp
 DIR_OMP ?= $(DIR_MACPORTS)
-DIR_GSL ?= $(DIR_MACPORTS)
 # Fallback self-installing GSL
 #DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
@@ -92,8 +84,8 @@ TEST_DEPENDS := $(patsubst %.o, %.d, $(TEST_OBJECTS))
 $(info $(SOURCES) $(OBJECTS))
 
 # Headers and library links
-INCLUDE := -I $(DIR_INC) -I $(DIR_GSL)/include
-LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
+INCLUDE := -I $(DIR_INC)
+LIBS := -L -Wl,-rpath
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
@@ -112,10 +104,10 @@ LIBS += -L $(DIR_OMP)/lib -lgomp
 default: $(TARGET) $(LIB_TARGET)
 
 # Ignore any files with these names
-.PHONY: all default test lib lib_test wrapper clean gsl clean-gsl
+.PHONY: all default test lib lib_test wrapper clean
 
 # Everything
-all: gsl core wrapper
+all: core wrapper
 
 # Main program, unit tests, library, library test, and wrapper
 core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET) 
@@ -123,8 +115,6 @@ core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
 # Main program
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
-
-$(OBJECTS): $(DIR_GSL)
 
 -include $(DEPENDS)
 
@@ -164,13 +154,3 @@ clean:
 	@rm -fv $(DIR_WRAPPER)/*.cpython*.so $(DIR_WRAPPER_SRC)/wrapper.cpp
 	@rm -rfv $(DIR_ROOT)/build/temp.*/ $(DIR_WRAPPER)/__pycache__/ \
 		$(DIR_TEST)/__pycache__/
-
-# GSL
-GSL_VERSION := 2.6
-gsl:
-	@if ! [ -d $(DIR_GSL) ]; then \
-		./get_gsl.sh $(DIR_ROOT) $(DIR_GSL) $(GSL_VERSION); \
-	fi
-
-clean-gsl:
-	@rm -rfv gsl*

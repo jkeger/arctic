@@ -1,9 +1,6 @@
 
 #ifndef ARCTIC_TRAPS_HPP
 #define ARCTIC_TRAPS_HPP
-
-#include <gsl/gsl_integration.h>
-
 #include <valarray>
 
 class TrapInstantCapture {
@@ -46,10 +43,9 @@ class TrapInstantCaptureContinuum : public TrapInstantCapture {
     double release_timescale_sigma;
 
     virtual double fill_fraction_from_time_elapsed(
-        double time_elapsed, gsl_integration_workspace* workspace = nullptr);
+        double time_elapsed);
     double time_elapsed_from_fill_fraction(
-        double fill_fraction, double time_max,
-        gsl_integration_workspace* workspace = nullptr);
+        double fill_fraction, double time_max);
 
     std::valarray<double> fill_fraction_table;
     int n_intp;
@@ -77,10 +73,9 @@ class TrapSlowCaptureContinuum : public TrapInstantCapture {
     double capture_rate;
 
     virtual double fill_fraction_from_time_elapsed(
-        double time_elapsed, gsl_integration_workspace* workspace = nullptr);
+        double time_elapsed);
     double time_elapsed_from_fill_fraction(
-        double fill_fraction, double time_max,
-        gsl_integration_workspace* workspace = nullptr);
+        double fill_fraction, double time_max);
 
     std::valarray<double> fill_fraction_table;
     int n_intp;
@@ -96,8 +91,7 @@ class TrapSlowCaptureContinuum : public TrapInstantCapture {
     double time_elapsed_from_fill_fraction_table(double fill_fraction);
 
     double fill_fraction_after_slow_capture(
-        double time_elapsed, double dwell_time,
-        gsl_integration_workspace* workspace = nullptr);
+        double time_elapsed, double dwell_time);
 
     std::valarray<double> fill_fraction_capture_table;
     double fill_capture_min;
