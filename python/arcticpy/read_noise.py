@@ -10,6 +10,43 @@ amplify read noise, and hide the difference in the (anti)correlation between
 adjacent pixels. 
 
 This class provides a set of routines to predict this effect, and counteract it.
+
+If you have an image as a 2D numpy array, image
+and an arctic model with parameters parallel_roe, parallel_ccd, parallel_traps
+run
+
+readnoise = arctic.ReadNoise(4.5)
+
+
+[optionally]
+[readnoise.optimise_parameters]
+
+
+skyImage, readNoiseImage = readnoise.estimate_read_noise_model_from_image(image, sr_fraction=None,
+                  parallel_roe, parallel_ccd, parallel_traps)
+
+image_corrected = arctic.cti_correct(skyImage,
+                  parallel_roe, parallel_ccd, parallel_traps)
+                  
+image_corrected += readNoiseImage         
+
+
+
+readnoise.covariance
+
+
+
+
+covariance = readnoise.etimate_residual_covariance_from_image(image, 
+                  matrix_size=5, fprSize=5, 
+                  parallel_roe, parallel_ccd, parallel_traps)
+
+covariance = readnoise.etimate_residual_covariance(sky_level, sky_sigma, 
+                  matrix_size=5, fprSize=5, 
+                  parallel_roe, parallel_ccd, parallel_traps)
+
+
+
 """
 
 class ReadNoise:
@@ -20,7 +57,9 @@ class ReadNoise:
             noise_model_scaling=1.0, # originally 0.75 
             amplitude_scale=0.2,     # originally 0.33
             n_iter=200,
+            sr_fraction=None,
             serial=True,
+            covariance_matrices=None,
             **kwargs
             
     ):
@@ -30,6 +69,35 @@ class ReadNoise:
         self.outScale = noise_model_scaling
         self.n_iter = n_iter
         self.smoothCol = serial
+        self._skyFrame = None
+#        self._sr_fraction = sr_fraction
+#        self._sr_fraction_optimised = None
+
+#    @property
+#    def sr_fraction(self):
+#        """
+#        RMS value of read noise, in units of electrons
+#        """
+#        if self._sr_fraction is not None: return self._sr_fraction
+#        #if self._sr_fraction_optimised is None: self.optimise_sr_fraction()
+#        return self._sr_fraction_optimised
+#
+#    @sr_fraction.setter
+#    def sr_fraction(self, value):
+#        self._sr_fraction = value
+#
+#    @property
+#    def sr_fraction_optimised(self, **kwargs):
+#        """
+#        Value of S+R splitting fraction that will minimise pixel-to-pixel covariance
+#        after CTI correction
+#        """
+#        if self._sr_fraction_optimised is None: self.optimise_sr_fraction(**kwargs)
+#        return self._sr_fraction_optimised
+#
+#    @sr_fraction_optimised.setter
+#    def sr_fraction_optimised(self, value):
+#        self._sr_fraction_optimised = value
 
     @property
     def sigma(self):
@@ -43,6 +111,7 @@ class ReadNoise:
         if value < 0:
             value = 0.
         self._sigma = value
+
     ###############
     ###############
     def determine_noise_model(self, imageIn, imageOut):
@@ -158,6 +227,7 @@ class ReadNoise:
             return  (dval0u * w0 / 6) + (dval9u * w9 / 6) +(dmod1u * w1 / 6) + (dmod2u * w2 / 6) +(cmod1u * wc1 / 6) + (cmod2u * wc2 / 6)
         else:
             return  (dval0u * w0 * 0.25) + (dval9u * w9 * 0.25) +(dmod1u * w1 * 0.25) + (dmod2u * w2 * 0.25)
+
     ###############
     ###############
     def estimate_read_noise_model_from_image(self, image):
@@ -207,6 +277,7 @@ class ReadNoise:
         return imageOut,noiseImage
         #raise NotImplementedError
         #return image
+
     ###############
     ###############
     def estimate_residual_covariance(
@@ -343,11 +414,38 @@ class ReadNoise:
         y = intercept + slope * x
         return y
     ###############
+    """
+    Adjust parameters of the S+R algorithm that estimates the read noise in an image.
+    The image itself is not required; merely its dimensions and sky level parameters.
+    
+    It works by simulating a subchip_size x subchip_size regions of the image, one
+    at each corner of the CCD, then tries to minimise the pixel-to-pixel covariance
+    after CTI correction in the most distant corner.
+    
+    This merely adjusts the self parameters contained within the ReadNoise instance.
+    
+    Parameters 
+    ----------
+    background_level : Float
+        The mean (sky) background level across the image.
+
+    background_sigma : Float
+        The rms variation per pixel around the background level.
+        If not specified, it will assume sqrt(background_level) for shot noise.
+        
+    n_pixels : Float or (Float, Float)
+        The number of pixels in the CCD. If a single number is supplied, it assumes
+        the CCD is square. If two numbers are supplied, the assumed order is (n_y,n_x).
+    
+    subchip_size : Float
+        size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
+    
+    """
     def optimise_parameters(
             self,
             background_level,
             background_sigma=None,
-            chip_size=2048,   #the size of the entire CCD over which the procedure will be run
+            n_pixels=2048,   #the size of the entire CCD over which the procedure will be run
             subchip_size=500, #size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
             matrix_size=5,    #covariance matrix size (NxN array)
             **kwargs
@@ -356,15 +454,17 @@ class ReadNoise:
         S+R optimisation routine. Given a specified set of CTI trap parameters, this routine calculates the optimum S+R fraction to minimise image correlations during correction
         '''
 
-        #if sky sigma is not set, assume sqrt(N)
+        # Parse inputs
+        if type(n_pixels) == int: n_pixels=(n_pixels,n_pixels)
+        chip_size = n_pixels
         if background_sigma==None:
             background_sigma = np.sqrt(background_level)  
         
         #set prescan regions (this simulates the maximum possible CTI trailing, averaged at the far edge of the real CCD)
         if 'parallel_roe' in kwargs:
-            kwargs['parallel_roe'].prescan_offset = chip_size+(subchip_size//2)
+            kwargs['parallel_roe'].prescan_offset = n_pixels[0]+(subchip_size//2)
         if 'serial_roe' in kwargs:
-            kwargs['serial_roe'].prescan_offset = chip_size+(subchip_size//2)
+            kwargs['serial_roe'].prescan_offset = n_pixels[1]+(subchip_size//2)
 
         #container for optimised values
         self.optVals = {}
@@ -555,7 +655,7 @@ class ReadNoise:
 #        image,
 #        background_level=None,
 #        chip_size=500,
-#        matrix_size=5,
+#        matrix_size=matrix_size,
 #        **kwargs    
 #    ):
 #        '''
@@ -573,6 +673,18 @@ class ReadNoise:
 #        if background_level == None:
 #            background_level = np.median(image)
 #            
+#        #
+#        optimise_parameters(
+#            self,
+#            background_level,
+#            background_sigma=None,
+#            chip_size=image_nrows,  #the size of the entire CCD over which the procedure will be run
+#            subchip_size=500,       #size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
+#            matrix_size=5,          #covariance matrix size (NxN array)
+#            **kwargs
+#
+#
+#
 #        
 #        if 'parallel_traps' in kwargs:
 #            if kwargs['parallel_traps'] is not None:
