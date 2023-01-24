@@ -1,7 +1,7 @@
 import numpy as np
 import arcticpy as ac
 import matplotlib as mpl
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit 
 
 """
 CTI correction moves trailed electrons back to their proper location, but also
