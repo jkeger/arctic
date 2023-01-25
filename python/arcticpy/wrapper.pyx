@@ -90,6 +90,10 @@ cdef extern from "interface.hpp":
         int serial_time_stop,
         double* serial_prune_n_electrons, 
         int serial_prune_frequency,
+        # ========
+        # Combined
+        # ========
+        int allow_negative_pixels,
         # Output
         int verbosity,
         int iteration
@@ -196,6 +200,10 @@ def cy_add_cti(
     int serial_time_stop,
     np.ndarray[np.double_t, ndim=1] serial_prune_n_electrons, 
     int serial_prune_frequency,
+    # ========
+    # Combined
+    # ========
+    int allow_negative_pixels,
     # Output
     int verbosity,
     int iteration,
@@ -289,9 +297,13 @@ def cy_add_cti(
         serial_time_stop,
         &serial_prune_n_electrons[0], 
         serial_prune_frequency,
+        # ========
+        # Combined
+        # ========
+        allow_negative_pixels,
         # Output
         verbosity,
-        iteration,
+        iteration
     )
 
     return image

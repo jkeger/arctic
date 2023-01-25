@@ -100,6 +100,10 @@ void add_cti(
     int serial_window_start, int serial_window_stop, 
     int serial_time_start, int serial_time_stop,
     double* serial_prune_n_electrons, int serial_prune_frequency,
+    // ========
+    // Combined
+    // ========
+    int allow_negative_pixels, 
     // Output
     int verbosity, int iteration) {
 
@@ -317,8 +321,10 @@ void add_cti(
             serial_window_start, serial_window_stop, 
             serial_time_start, serial_time_stop,
             serial_prune_n_electrons[0], serial_prune_frequency,
+            // Combined
+            allow_negative_pixels, 
             // Output
-            iteration);
+            verbosity, iteration);
     }
     // No serial, parallel only
     else if (n_traps_serial == 0) {
@@ -334,8 +340,10 @@ void add_cti(
             // Serial
             nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
             0, 0, serial_window_start, serial_window_stop, 0, 0, prune_zero, 0, 
+            // Combined
+            allow_negative_pixels, 
             // Output
-            iteration);
+            verbosity, iteration);
     }
     // Parallel and serial
     else {
@@ -355,8 +363,10 @@ void add_cti(
             serial_window_start, serial_window_stop,
             serial_time_start, serial_time_stop,
             serial_prune_n_electrons[0], serial_prune_frequency,
+            // Combined
+            allow_negative_pixels, 
             // Output
-            iteration);
+            verbosity, iteration);
     }
 
     // Delete serial/parallel ROE if previously allocated

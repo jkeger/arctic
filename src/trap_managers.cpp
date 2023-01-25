@@ -74,7 +74,10 @@
                 watermark_fills[ std::slice(i * n_traps, (j - i) * n_traps, 1) ]
 
     empty_watermark : double
-        The watermark value corresponding to empty traps.
+        The watermark fill value corresponding to empty traps.
+
+    zeroth_watermark : double
+        The lowest watermark height value yet considered.
 
     n_active_watermarks : int
         The number of currently active watermark levels.
@@ -100,6 +103,7 @@ TrapManagerBase::TrapManagerBase(
     : max_n_transfers(max_n_transfers), ccd_phase(ccd_phase), dwell_time(dwell_time) {
 
     empty_watermark = 0.0;
+    zeroth_watermark = 0.0;
     n_active_watermarks = 0;
     i_first_active_wmk = 0;
     n_watermarks_per_transfer = 1;
@@ -119,7 +123,7 @@ TrapManagerBase::TrapManagerBase(
 void TrapManagerBase::initialise_trap_states() {
     n_watermarks = max_n_transfers * n_watermarks_per_transfer + 1;
 
-    watermark_volumes = std::valarray<double>(empty_watermark, n_watermarks);
+    watermark_volumes = std::valarray<double>(zeroth_watermark, n_watermarks);
     watermark_fills = std::valarray<double>(empty_watermark, n_traps * n_watermarks);
     //empty_probabilities_from_release = std::valarray<double>(0.0, n_traps);
     
@@ -133,7 +137,7 @@ void TrapManagerBase::initialise_trap_states() {
 void TrapManagerBase::reset_trap_states() {
     n_active_watermarks = 0;
     i_first_active_wmk = 0;
-    watermark_volumes = empty_watermark;
+    watermark_volumes = zeroth_watermark;
     watermark_fills = empty_watermark;
 }
 
@@ -270,6 +274,64 @@ double TrapManagerBase::n_trapped_electrons_from_watermarks(
 
     return n_trapped_electrons_total;
 }
+
+
+
+/*
+    Reduce the value of the lowest watermark ever seen. It starts at zero, so this
+    function is only activated if the image contains negative pixels. 
+
+    Parameters
+    ----------
+    cloud_fractional_volume : double
+        The fractional volume the electron cloud reaches in the pixel well.
+
+    Returns
+    -------
+    i_wmk_above_cloud : int
+        The index of the first active watermark that reaches above the cloud.
+*/
+void TrapManagerBase::lower_zeroth_watermark(double n_free_electrons) {
+
+/*        
+        
+        // Make room for the new lowest watermark
+        if (i_first_active_wmk > 0) {
+            // Use existing room below the current first active watermark
+            i_first_active_wmk--;
+        } else {
+            // Copy-paste all higher watermarks up one to make room
+            for (int i_wmk = i_first_active_wmk + n_active_watermarks - 1;
+                 i_wmk >= i_first_active_wmk; i_wmk--) {
+                watermark_volumes[i_wmk + 1] = watermark_volumes[i_wmk];
+                for (int i_trap = 0; i_trap < n_traps; i_trap++) {
+                    watermark_fills[(i_wmk + 1) * n_traps + i_trap] =
+                        watermark_fills[i_wmk * n_traps + i_trap];
+                }
+            }
+        }
+
+        // Update count of active watermarks
+        n_active_watermarks++;
+
+        // New watermark
+        watermark_volumes[i_first_active_wmk] = zeroth_watermark;
+        watermark_fills[std::slice(i_first_active_wmk * n_traps, n_traps, 1)] =
+            (std::valarray<double>)watermark_fills[std::slice(
+                i_first_active_wmk * n_traps, n_traps, 1)] *
+                (1.0 - enough) +
+            enough * trap_densities;
+
+        // Update fractional volume of the partially overwritten watermark above
+        watermark_volumes[i_first_active_wmk + 1] -= cloud_fractional_volume;
+        
+*/        
+        zeroth_watermark = n_free_electrons;
+
+
+}
+
+
 
 /*
     Remove watermarks containing very low numbers of electrons, for speed later.
@@ -1012,6 +1074,10 @@ double TrapManagerInstantCapture::n_electrons_captured(double n_free_electrons) 
 double TrapManagerInstantCapture::n_electrons_released_and_captured(
     double n_free_electrons) {
 
+    if (n_free_electrons < zeroth_watermark) {
+        lower_zeroth_watermark(n_free_electrons);
+    }
+
     double n_released = n_electrons_released();
     print_v(2, "n_electrons_released  %g \n", n_released);
 
@@ -1020,6 +1086,18 @@ double TrapManagerInstantCapture::n_electrons_released_and_captured(
 
     return n_released - n_captured;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ========
 // TrapManagerSlowCapture::

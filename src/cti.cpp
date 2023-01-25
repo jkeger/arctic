@@ -73,7 +73,7 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
     int column_start, int column_stop, 
     int time_start, int time_stop, 
     double prune_n_electrons, int prune_frequency,
-    int print_inputs) {
+    int allow_negative_pixels, int print_inputs) {
     
     // Initialise the output image as a copy of the input image
     std::valarray<std::valarray<double> > image = image_in;
@@ -148,8 +148,8 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
     ROEStepPhase* roe_step_phase;
 
     // Print model inputs
-    if (print_inputs == -1) print_inputs = verbosity >= 1;
-    if (print_inputs) {
+    //if (print_inputs == -1) print_inputs = verbosity >= 1;
+    if (print_inputs > 0) {
         print_v(2, "\n");
         printf("  express = %d \n", express);
         if (row_offset != 0) printf("  row_offset = %d \n", row_offset);
@@ -430,9 +430,11 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
 
                             // Make sure image counts don't go negative, which
                             // could happen with a too-large express multiplier
-                            if (image[row_write][column_index] < 0.0)
-                                image[row_write][column_index] = 0.0;
-
+                            if (!allow_negative_pixels) {
+                                if (image[row_write][column_index] < 0.0)
+                                    image[row_write][column_index] = 0.0;
+                            }
+                            
                             print_v(2, "row_write  %d \n", row_write);
                             print_v(
                                 2, "image[%d][%d]  %g \n", row_write, column_index,
@@ -550,6 +552,13 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
     serial_* : * (opt.)
         The same as the parallel_* objects described above but for serial
         clocking instead. Default nullptr to not do serial clocking.
+        
+    allow_negative_pixels : bool (opt.)
+        Allows pixel values to go below zero (or the lowest in the input image,
+        whichever is lower). This ensures absence of bias. However, if you know
+        the image must be positive definite, forcing allow_negative_pixels=false
+        will catch numerical errors during CTI addition, and can speed up the
+        iteration during CTI removal.
 
     iteration : int (opt.)
         The interation when being called by remove_cti(), default 0 otherwise.
@@ -582,6 +591,9 @@ std::valarray<std::valarray<double> > add_cti(
     int serial_window_start, int serial_window_stop, 
     int serial_time_start, int serial_time_stop,
     double serial_prune_n_electrons, int serial_prune_frequency,
+    // Combined
+    int allow_negative_pixels, 
+    // Output
     int verbosity, int iteration) {
     
  
@@ -606,7 +618,7 @@ std::valarray<std::valarray<double> > add_cti(
             serial_window_start, serial_window_stop, 
             parallel_time_start, parallel_time_stop,
             parallel_prune_n_electrons, parallel_prune_frequency,
-            print_inputs);
+            allow_negative_pixels, print_inputs);
     }
 
     // Serial clocking along rows, transfer charge towards column 0
@@ -623,7 +635,7 @@ std::valarray<std::valarray<double> > add_cti(
             parallel_window_start, parallel_window_stop, 
             serial_time_start, serial_time_stop,
             serial_prune_n_electrons, serial_prune_frequency,
-            print_inputs);
+            allow_negative_pixels, print_inputs);
 
         image = transpose(image);
     }
@@ -655,7 +667,8 @@ std::valarray<std::valarray<double> > add_cti(
         The output array of pixel values with CTI removed.
 */
 std::valarray<std::valarray<double> > remove_cti(
-    std::valarray<std::valarray<double> >& image_in, int n_iterations,
+    std::valarray<std::valarray<double> >& image_in, 
+    int n_iterations,
     // Parallel
     ROE* parallel_roe, CCD* parallel_ccd,
     std::valarray<TrapInstantCapture>* parallel_traps_ic,
@@ -675,7 +688,9 @@ std::valarray<std::valarray<double> > remove_cti(
     int serial_express, int serial_offset, 
     int serial_window_start, int serial_window_stop,
     int serial_time_start, int serial_time_stop,
-    double serial_prune_n_electrons, int serial_prune_frequency) {
+    double serial_prune_n_electrons, int serial_prune_frequency,
+    // Combined
+    int allow_negative_pixels) {
 
     print_version();
 
@@ -702,14 +717,17 @@ std::valarray<std::valarray<double> > remove_cti(
             serial_offset, serial_window_start, serial_window_stop, 
             serial_time_start, serial_time_stop, 
             serial_prune_n_electrons, serial_prune_frequency,
-            iteration);
+            allow_negative_pixels, 0, iteration);
 
         // Improve the estimate of the image with CTI trails removed
         image_remove_cti += image_in - image_add_cti;
 
         // Prevent negative image values
-        for (int row_index = 0; row_index < n_rows; row_index++) {
-            image_remove_cti[row_index][image_remove_cti[row_index] < 0.0] = 0.0;
+        if (!allow_negative_pixels) {
+            print_v(0, "Positive definite check remove\n");
+            for (int row_index = 0; row_index < n_rows; row_index++) {
+                image_remove_cti[row_index][image_remove_cti[row_index] < 0.0] = 0.0;
+            }
         }
     }
 

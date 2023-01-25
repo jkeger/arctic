@@ -65,5 +65,9 @@ void add_cti(
     int serial_window_start, int serial_window_stop, 
     int serial_time_start, int serial_time_stop,
     double* serial_prune_n_electrons, int serial_prune_frequency,
+    // ========
+    // Combined
+    // ========
+    int allow_negative_pixels,
     // Output
     int verbosity, int iteration);

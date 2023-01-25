@@ -140,6 +140,8 @@ def add_cti(
     serial_time_stop=-1,
     serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
+    # Combined
+    allow_negative_pixels=1,
     # Pixel bounce
     pixel_bounce=None,
     # Output
@@ -312,10 +314,14 @@ def add_cti(
         serial_prune_n_es, 
         serial_prune_frequency,
         # ========
+        # Combined
+        # ========
+        allow_negative_pixels,
+        # ========
         # Output
         # ========
         verbosity,
-        iteration,
+        iteration
     )
     
 
@@ -373,6 +379,8 @@ def remove_cti(
     serial_time_stop=-1,
     serial_prune_n_electrons=1e-10, 
     serial_prune_frequency=20,
+    # Combined
+    allow_negative_pixels=1,
     # Pixel bounce
     pixel_bounce=None,
     # Read noise de-amplification
@@ -445,11 +453,13 @@ def remove_cti(
             serial_time_stop=serial_time_stop,
             serial_prune_n_electrons=serial_prune_n_electrons, 
             serial_prune_frequency=serial_prune_frequency,
+            # Combined
+            allow_negative_pixels=allow_negative_pixels,
             # Pixel bounce
             pixel_bounce=pixel_bounce,
             # Output
             verbosity=verbosity,
-            iteration=iteration,
+            iteration=iteration
         )
 
         # Improve the estimate of the image with CTI trails removed
@@ -460,7 +470,8 @@ def remove_cti(
         image_remove_cti += delta
         
         # Prevent negative image values
-        image_remove_cti[image_remove_cti < 0.0] = 0.0
+        if not allow_negative_pixels:
+            image_remove_cti[image_remove_cti < 0.0] = 0.0
 
     # Add back the read noise, if it had been removed
     if read_noise is not None:

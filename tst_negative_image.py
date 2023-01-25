@@ -48,22 +48,22 @@ parallel_roe = arcticpy.ROE(
 #
 # Noisy image
 #
-image_pre_cti = image_model + np.random.normal(0,4.5,image_model.shape)
+image_pre_cti_noisy = image_model + np.random.normal(0,4.5,image_model.shape)
 #image_pre_cti = np.maximum(image_pre_cti,np.zeros(image_pre_cti.shape));
 #print(image_pre_cti[0:10,0])
 
 start = time.time_ns()
 
-#image_post_cti = arcticpy.add_cti(
-#    image=image_pre_cti,
-#    parallel_traps=parallel_traps,
-#    parallel_ccd=parallel_ccd,
-#    parallel_roe=parallel_roe,
-#    parallel_express=parallel_express,
-#    parallel_prune_n_electrons=parallel_prune_n_electrons,
-#    parallel_prune_frequency=parallel_prune_frequency,
-#    verbosity=0
-#)
+image_post_cti_noisy = arcticpy.add_cti(
+    image=image_pre_cti_noisy,
+    parallel_traps=parallel_traps,
+    parallel_ccd=parallel_ccd,
+    parallel_roe=parallel_roe,
+    parallel_express=parallel_express,
+    parallel_prune_n_electrons=parallel_prune_n_electrons,
+    parallel_prune_frequency=parallel_prune_frequency,
+    verbosity=0
+)
 
 print(f"Clocking Time Noisy = {((time.time_ns() - start)/1e9)} s")
 #print(image_post_cti[0:10,0])
@@ -85,13 +85,36 @@ image_post_cti_nonoise = arcticpy.add_cti(
     parallel_express=parallel_express,
     parallel_prune_n_electrons=parallel_prune_n_electrons,
     parallel_prune_frequency=parallel_prune_frequency,
+    allow_negative_pixels=1,
     verbosity=0
 )
 
 print(f"Clocking Time No Noise = {((time.time_ns() - start)/1e9)} s")
 print(image_model[0:49,0])
-#print(image_post_cti[0:14,0])
+print(image_post_cti_noisy[0:49,0])
 print(image_post_cti_nonoise[0:49,0])
+
+
+
+#
+# Correct CTI
+#
+start = time.time_ns()
+image_corrected_nonoise = arcticpy.remove_cti(
+    image=image_post_cti_nonoise, n_iterations=5,
+    parallel_traps=parallel_traps,
+    parallel_ccd=parallel_ccd,
+    parallel_roe=parallel_roe,
+    parallel_express=parallel_express,
+    parallel_prune_n_electrons=parallel_prune_n_electrons,
+    parallel_prune_frequency=parallel_prune_frequency,
+    allow_negative_pixels=0,
+    verbosity=0
+)
+print(f"Correction Time No Noise = {((time.time_ns() - start)/1e9)} s")
+
+
+
 
 
 #
@@ -105,6 +128,7 @@ ax.plot(pixels[0:50], image_model[0:50,0], alpha=0.8, label="%d")
 #ax.plot(pixels[0:50], image_post_cti_nonoise[0:50,0]-image_model[0,0:50], alpha=0.8, label="%d")
 #ax.plot(pixels[0:50], image_post_cti[0:50,0], alpha=0.8, label="%d")
 ax.plot(pixels[0:50], image_post_cti_nonoise[0:50,0], alpha=0.8, label="%d")
+ax.plot(pixels[0:50], image_corrected_nonoise[0:50,0], alpha=0.8, label="%d")
 
 ax.set(xlabel='pixel', ylabel='offset bias [n_e]',
        title='Effect of CTI')
