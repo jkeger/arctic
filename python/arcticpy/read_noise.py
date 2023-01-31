@@ -69,7 +69,10 @@ class ReadNoise:
         self.outScale = noise_model_scaling
         self.n_iter = n_iter
         self.smoothCol = serial
-        self._skyFrame = None
+        self.sigmaSky = None        
+        self.skyFrameSim = None
+        self.readnoiseFrameSim = None
+        self.arcKwargs = {}
 #        self._sr_fraction = sr_fraction
 #        self._sr_fraction_optimised = None
 
@@ -113,6 +116,17 @@ class ReadNoise:
         self._sigma = value
 
     ###############
+    ###############
+    def set_arctic_parameters(
+            self,
+            **kwargs
+    ):
+        '''
+        Function for pre-setting arctic parameters (such as CCD, trap density, and ROE)
+        This is a convenience function to eliminate multiple, bulky keyword argument calls in other functions
+        '''
+        self.arcKwargs = kwargs
+    ###############    
     ###############
     def determine_noise_model(self, imageIn, imageOut):
         '''
@@ -276,8 +290,6 @@ class ReadNoise:
                     break
         return imageOut,noiseImage
         #raise NotImplementedError
-        #return image
-
     ###############
     ###############
     def estimate_residual_covariance(
@@ -359,23 +371,24 @@ class ReadNoise:
             self,
             background_level,
             background_sigma,
-            image_size=500
+            image_size=500,
+            overwrite=False
     ):
         '''
         subroutine to generate sky_background and readnoise frames for S+R simulations
         These will stay fixed in each simulation, to control random noise fluctuations
         '''
-        
-        #if background_sigma==None:
-        #    background_sigma = np.sqrt(background_level) #if sky sigma is not set, assume sqrt(N)
 
         #create sky frame    
         skyFrame = np.random.normal(background_level, background_sigma, (image_size,image_size))
+        self.skyFrameSim = skyFrame
+            
         #create readnoise_frame
         noiseFrame = np.random.normal(0, self.sigmaRN, (image_size,image_size))
+        self.readnoiseFrameSim = noiseFrame
 
-        return skyFrame,noiseFrame                                    
-    
+        return                                    
+    ###############
     ###############    
     def _estimate_residual_covariance_for_opt_premade(
             self,
@@ -390,7 +403,7 @@ class ReadNoise:
         '''
         #add CTI effects to skyFrame
         ctiTrailedFrame = ac.add_cti(skyFrame,**kwargs)
-        #add read noise to STI-trailed image
+        #add read noise to CTI-trailed image
         readNoiseAddedFrame = ctiTrailedFrame + noiseFrame
         #do S+R routine
         sFrame, rFrame = self.estimate_read_noise_model_from_image(readNoiseAddedFrame)
@@ -408,57 +421,69 @@ class ReadNoise:
         fomBenchmark = self.covariance_matrix_from_image(skyFrame+noiseFrame,matrix_size=matrix_size)
         fomDiff = fomSR - fomBenchmark
 
-        return fomSR,fomDiff    
+        return fomSR,fomDiff
+    ###############
     ###############
     def _fitter_function(self,x,intercept,slope):
         y = intercept + slope * x
         return y
     ###############
-    """
-    Adjust parameters of the S+R algorithm that estimates the read noise in an image.
-    The image itself is not required; merely its dimensions and sky level parameters.
-    
-    It works by simulating a subchip_size x subchip_size regions of the image, one
-    at each corner of the CCD, then tries to minimise the pixel-to-pixel covariance
-    after CTI correction in the most distant corner.
-    
-    This merely adjusts the self parameters contained within the ReadNoise instance.
-    
-    Parameters 
-    ----------
-    background_level : Float
-        The mean (sky) background level across the image.
-
-    background_sigma : Float
-        The rms variation per pixel around the background level.
-        If not specified, it will assume sqrt(background_level) for shot noise.
-        
-    n_pixels : Float or (Float, Float)
-        The number of pixels in the CCD. If a single number is supplied, it assumes
-        the CCD is square. If two numbers are supplied, the assumed order is (n_y,n_x).
-    
-    subchip_size : Float
-        size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
-    
-    """
-    def optimise_parameters(
+    ###############
+    def optimise_SR_fraction(
             self,
             background_level,
             background_sigma=None,
-            n_pixels=2048,   #the size of the entire CCD over which the procedure will be run
-            subchip_size=500, #size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
+            n_pixels=2048,    #the size of the entire CCD over which the procedure will be run
+            subchip_size=500, #size of the cutout region, to test CTI behaviour (a subset of pixels far form the readout)  
             matrix_size=5,    #covariance matrix size (NxN array)
+            fom_method='box',
             **kwargs
     ):
         '''
-        S+R optimisation routine. Given a specified set of CTI trap parameters, this routine calculates the optimum S+R fraction to minimise image correlations during correction
+        Adjust parameters of the S+R algorithm that estimates the read noise in an image.
+        The image itself is not required; merely its dimensions and sky level parameters.
+        
+        It works by simulating a subchip_size x subchip_size regions of the image, one
+        at each corner of the CCD, then tries to minimise the pixel-to-pixel covariance
+        after CTI correction in the most distant corner.
+        
+        This merely adjusts the self parameters contained within the ReadNoise instance.
+        
+        Parameters 
+        ----------
+        background_level : Float
+            The mean (sky) background level across the image.
+
+        background_sigma : Float
+            The rms variation per pixel around the background level.
+            If not specified, it will assume sqrt(background_level) for shot noise.
+        
+        n_pixels : Float or (Float, Float)
+            The number of pixels in the CCD. If a single number is supplied, it assumes
+            the CCD is square. If two numbers are supplied, the assumed order is (n_y,n_x).
+    
+        subchip_size : Float
+            size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
+    
+        matrix_size : Int
+            Size of covariance matrix used to estimate covariance. By default the program creates a 5x5 matrix
+
+        fom_method : String
+            Method used to estimate mean covariance. Can be:
+                box : take a square (3x3) region around the central pixel 
+                row : take all cells along the central row
+                column : take all cells along the central column
+
+        **kwargs : parameters that characterise CTI features in Arctic (trap density, CCD, read out electronics (ROE) descriptions) 
         '''
 
         # Parse inputs
-        if type(n_pixels) == int: n_pixels=(n_pixels,n_pixels)
+        if type(n_pixels) == int:
+            n_pixels=(n_pixels,n_pixels)
         chip_size = n_pixels
         if background_sigma==None:
-            background_sigma = np.sqrt(background_level)  
+            background_sigma = np.sqrt(background_level)
+        self.sigmaSky = background_sigma
         
         #set prescan regions (this simulates the maximum possible CTI trailing, averaged at the far edge of the real CCD)
         if 'parallel_roe' in kwargs:
@@ -469,62 +494,91 @@ class ReadNoise:
         #container for optimised values
         self.optVals = {}
 
-        #pre-make the sky background and readnoise images, keep these constant over all quadrants
-        skyFrame, readNoiseFrame = self._create_initial_sim_images(background_level,background_sigma,image_size=subchip_size)
+        #if they don't exist, make the sky background and readnoise images for the simulations
+        self._create_initial_sim_images(background_level,background_sigma,image_size=subchip_size)
 
         #run S+R routine at 0% and 100% S+R fraction
         result_array = np.array([])
         matrix_array = np.zeros((2,matrix_size,matrix_size))
         sr_frac = np.array([0.0,1.0])
         for frac in sr_frac:
-            raw_matrix,correction_matrix = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,frac,matrix_size=matrix_size,**kwargs)
+            print('\nestimating S+R covariance at %d percent level'%(100*frac))
+            raw_matrix,correction_matrix = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,frac,matrix_size=matrix_size,**self.arcKwargs,**kwargs)
             matrix_array[int(frac)] = correction_matrix
-            result = self.figure_of_merit(correction_matrix) #TODO: check to see if changing subgrid_size actually matters
+            result = self.figure_of_merit(correction_matrix,fom_method=fom_method) #TODO: check to see if changing subgrid_size actually matters
             result_array = np.append(result_array,result)
-            print('both progression:',result_array)
         #interpolate between the results to determine the point of minimum residual covariance
         a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
         m = a_fit[1]
         b = a_fit[0]
-        xint = -b/m
+        xint = -b/m #this intercept will be the optimised S+R fraction (where mean covariance=0)
 
-        frac_opt = xint #set the optimized S+R fraction
+        #store final optimised fraction as a class variable
+        self.optVals['optSRfrac'] = xint
+    ###############
+    ###############
+    def measure_covariance_quadrants(
+            self,
+            n_pixels=2048,    #the size of the entire CCD over which the procedure will be run
+            subchip_size=500, #size of the cutout region, to test CTI behaviour (a subset of pixels far form the readout)  
+            matrix_size=5,    #covariance matrix size (NxN array)
+            fom_method='box',
+            **kwargs
+    ):
+        '''
+        Apply optimised S+R correction to the four quadrants of the CCD (close to readout, far from parallel register, far from serial register, far from both)
+        and estimate a covariance matrix for each quadrant. These matrices can be used to correct any residual covariance in weak lensing shapes.
+        '''
 
+        #update any keyword arguments
+        allKwargs = kwargs|self.arcKwargs
+        
+        frac_opt =  self.optVals['optSRfrac'] #set the optimized S+R fraction
+
+        if type(n_pixels) == int:
+            n_pixels=(n_pixels,n_pixels)
+        chip_size = n_pixels
+        
+        ##set prescan regions (this simulates the maximum possible CTI trailing, averaged at the far edge of the real CCD)
+        #if 'parallel_roe' in allKwargs:
+        #    kwargs['parallel_roe'].prescan_offset = n_pixels[0]+(subchip_size//2)
+        #if 'serial_roe' in allKwargs:
+        #    kwargs['serial_roe'].prescan_offset = n_pixels[1]+(subchip_size//2)
+        
         #re-run the S+R routine with the optimised level
-        raw_matrix_opt,correction_matrix_opt = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,frac_opt,matrix_size=matrix_size,**kwargs)
-        raw_matrix_opt_noSR,correction_matrix_opt_noSR = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,frac_opt,matrix_size=matrix_size,**kwargs) #this is dumb...do it better
+        raw_matrix_opt,correction_matrix_opt = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**self.arcKwargs,**kwargs)
+        raw_matrix_opt_noSR,correction_matrix_opt_noSR = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**self.arcKwargs,**kwargs) #this is dumb...do it better
 
         #run a second S+R routine in the region close to the readout registers, to identify/remove stochastic simulation noise
-        kwargs_noCTI = kwargs.copy()
+        kwargs_noCTI = kwargs|self.arcKwargs
         kwargs_noCTI['parallel_traps']=None 
         kwargs_noCTI['serial_traps']=None
         #effectively, we are removing the effects of CTI, but still calculating a covariance matrix
-        raw_matrix_opt_noCTI,correction_matrix_opt_noCTI = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,frac_opt,matrix_size=matrix_size,**kwargs_noCTI)
-        raw_matrix_opt_noCTI_noSR,correction_matrix_opt_noCTI_noSR = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,0,matrix_size=matrix_size,**kwargs_noCTI)
+        raw_matrix_opt_noCTI,correction_matrix_opt_noCTI = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_noCTI)
+        raw_matrix_opt_noCTI_noSR,correction_matrix_opt_noCTI_noSR = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_noCTI)
 
         #create the "benchmark" covariance matrix: a purely non-correlated array with the central pixel equal to (readnoise_sigma**2 + background_sigma**2)
         #Any difference between this and "raw_matrix_opt_noCTI" is the simulation noise, and can be eliminated
         benchmark_matrix = raw_matrix_opt_noCTI*0
         centrePix = matrix_size//2
-        benchmark_matrix[centrePix,centrePix] = self.sigmaRN**2 + background_sigma**2
+        benchmark_matrix[centrePix,centrePix] = self.sigmaRN**2 + self.sigmaSky**2
         #calculate the simulation-noise residual
         residual_benchmark_matrix = raw_matrix_opt_noCTI - benchmark_matrix
 
         #Finally, if both parallel and serial CTI are present, calculate covariances of the "cross-region" chip quadrants (far from serial readout but close to parallel readout, and vice-versa)
-        if ('parallel_traps' in kwargs)&('serial_traps' in kwargs):
-            if (kwargs['parallel_traps'] is not None)&(kwargs['serial_traps'] is not None):
-                kwargs_parallelOnly = kwargs.copy()
+        if ('parallel_traps' in allKwargs)&('serial_traps' in allKwargs):
+            if (allKwargs['parallel_traps'] is not None)&(allKwargs['serial_traps'] is not None):
+                kwargs_parallelOnly = kwargs|self.arcKwargs
                 kwargs_parallelOnly['serial_traps']=None #make a parallel-only quadrant
-                kwargs_serialOnly = kwargs.copy()
+                kwargs_serialOnly = kwargs|self.arcKwargs
                 kwargs_serialOnly['parallel_traps']=None #make a serial-only quadrant
 
-                raw_matrix_opt_parallel,correction_matrix_opt_parallel = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,frac_opt,matrix_size=matrix_size,**kwargs_parallelOnly)
-                raw_matrix_opt_serial,correction_matrix_opt_serial = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,frac_opt,matrix_size=matrix_size,**kwargs_serialOnly)
-                raw_matrix_opt_parallel_noSR,correction_matrix_opt_parallel_noSR = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,0,matrix_size=matrix_size,**kwargs_parallelOnly)
-                raw_matrix_opt_serial_noSR,correction_matrix_opt_serial_noSR = self._estimate_residual_covariance_for_opt_premade(skyFrame,readNoiseFrame,0,matrix_size=matrix_size,**kwargs_serialOnly)
+                raw_matrix_opt_parallel,correction_matrix_opt_parallel = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_parallelOnly)
+                raw_matrix_opt_serial,correction_matrix_opt_serial = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_serialOnly)
+                raw_matrix_opt_parallel_noSR,correction_matrix_opt_parallel_noSR = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_parallelOnly)
+                raw_matrix_opt_serial_noSR,correction_matrix_opt_serial_noSR = self._estimate_residual_covariance_for_opt_premade(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_serialOnly)
 
                 #package all relevant quantities into optVals and return
-                self.optVals['optSRfrac'] = frac_opt
                 self.optVals['combinedQuadMatrix'] = raw_matrix_opt
                 self.optVals['combinedQuadMatrix_diff'] = correction_matrix_opt
                 self.optVals['combinedQuadMatrix_noSR'] = raw_matrix_opt_noSR
@@ -543,239 +597,7 @@ class ReadNoise:
                 self.optVals['noCTIQuadMatrix_diff_noSR'] = correction_matrix_opt_noCTI
                 self.optVals['benchmark'] = benchmark_matrix
                 self.optVals['benchmark_resid'] = residual_benchmark_matrix
-
-        #return optVals                 
     ###############        
-#    ###############
-#    def optimise_parameters(
-#        self,
-#        background_level,
-#        chip_size=500,
-#        matrix_size=5,
-#        **kwargs    
-#        ##figure_of_merit=figure_of_merit(), # should probably pass a function here
-#    ):
-#        '''
-#        S+R optimisation routine. Given a specified set of CTI trap parameters, this routine calculates the optimum S+R fraction to minimise image correlations during correction
-#        '''
-#        optVals = {}
-#        
-#        kwargs['parallel_roe'].prescan_offset = 1900
-#        kwargs['serial_roe'].prescan_offset = 1900
-#        
-#        if 'parallel_traps' in kwargs:
-#            if kwargs['parallel_traps'] is not None:
-#                kwargs_parallel = kwargs.copy()
-#                kwargs_parallel['serial_traps']=None #make a parallel-only quadrant
-#                #things to compare over iterations
-#                result_array = np.array([])
-#                matrix_array = np.zeros((11,matrix_size,matrix_size))
-#                sr_frac = np.arange(0,1.01,0.1)##np.array([0.0,0.5,1.0])##
-#                for frac in sr_frac:
-#                    raw_matrix,correction_matrix = self._estimate_residual_covariance_for_opt(background_level,frac,chip_size=chip_size,matrix_size=matrix_size,**kwargs_parallel)
-#                    matrix_array[int(frac*10)] = correction_matrix
-#                    result = self.figure_of_merit(correction_matrix) #see if changing subgrid_size actually matters
-#                    result_array = np.append(result_array,result)
-#                    print('parallel progression:',result_array) 
-#                    
-#                a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
-#                m = a_fit[1]
-#                b = a_fit[0]
-#                xint = -b/m
-#
-#                lo = np.floor(xint*10).astype(int)
-#                hi = np.ceil(xint*10).astype(int)
-#                mean_grid = (matrix_array[lo]+matrix_array[hi])/2
-#                
-#                optVals['parallelQuadMatrix'] = mean_grid
-#                optVals['parallelQuadFrac'] = xint
-#        
-#        if 'serial_traps' in kwargs:
-#            if kwargs['serial_traps'] is not None:
-#                kwargs_serial = kwargs.copy()
-#                kwargs_serial['parallel_traps']=None #make a serial-only quadrant
-#                #things to compare over iterations
-#                result_array = np.array([])
-#                matrix_array = np.zeros((11,matrix_size,matrix_size))
-#                sr_frac = np.arange(0,1.01,0.1)##np.array([0.0,0.5,1.0])##
-#                for frac in sr_frac:
-#                    raw_matrix,correction_matrix = self._estimate_residual_covariance_for_opt(background_level,frac,chip_size=chip_size,matrix_size=matrix_size,**kwargs_serial)
-#                    matrix_array[int(frac*10)] = correction_matrix
-#                    result = self.figure_of_merit(correction_matrix) #see if changing subgrid_size actually matters
-#                    result_array = np.append(result_array,result)
-#                    print('serial progression:',result_array) 
-#                    
-#                a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
-#                m = a_fit[1]
-#                b = a_fit[0]
-#                xint = -b/m
-#
-#                lo = np.floor(xint*10).astype(int)
-#                hi = np.ceil(xint*10).astype(int)
-#                mean_grid = (matrix_array[lo]+matrix_array[hi])/2
-#
-#                optVals['serialQuadMatrix'] = mean_grid
-#                optVals['serialQuadFrac'] = xint
-#        
-#        if ('parallel_traps' in kwargs)&('serial_traps' in kwargs):
-#            if (kwargs['parallel_traps'] is not None)&(kwargs['serial_traps'] is not None):
-#                #things to compare over iterations
-#                result_array = np.array([])
-#                matrix_array = np.zeros((11,matrix_size,matrix_size))
-#                sr_frac = np.arange(0,1.01,0.1)##np.array([0.0,0.5,1.0])##
-#                for frac in sr_frac:
-#                    raw_matrix,correction_matrix = self._estimate_residual_covariance_for_opt(background_level,frac,chip_size=chip_size,matrix_size=matrix_size,**kwargs)
-#                    matrix_array[int(frac*10)] = correction_matrix
-#                    result = self.figure_of_merit(correction_matrix) #see if changing subgrid_size actually matters
-#                    result_array = np.append(result_array,result)
-#                    print('both progression:',result_array) 
-#                    
-#                a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
-#                m = a_fit[1]
-#                b = a_fit[0]
-#                xint = -b/m
-#
-#                lo = np.floor(xint*10).astype(int)
-#                hi = np.ceil(xint*10).astype(int)
-#                mean_grid = (matrix_array[lo]+matrix_array[hi])/2
-#
-#                optVals['combinedQuadMatrix'] = mean_grid
-#                optVals['combinedQuadFrac'] = xint
-#            
-#        
-#        return optVals
-#            
-#        ##outputFrame,noiseFrame = self.estimate_read_noise_model_from_image(image)
-#        ##covar = self.covariance_matrix_from_image(image)
-#
-#    ###############
-#    ###############
-#    def optimise_parameters_from_image(
-#        self,
-#        image,
-#        background_level=None,
-#        chip_size=500,
-#        matrix_size=matrix_size,
-#        **kwargs    
-#    ):
-#        '''
-#        version of the S+R optimiser routine, but parameters can be determined from a supplied image rather than manually specified
-#        '''
-#        optVals = {}
-#        image_nrows = image.shape[0]
-#        image_ncols = image.shape[1]
-#
-#        #use CTI prescan offset to ensure sample region is at the far edge of the full chip
-#        kwargs['parallel_roe'].prescan_offset = kwargs['parallel_roe'].prescan_offset + image_nrows - chip_size//2
-#        kwargs['serial_roe'].prescan_offset = kwargs['serial_roe'].prescan_offset + image_ncols - chip_size//2
-#
-#        #if background nevel is not specified, estimate using the median pixel value
-#        if background_level == None:
-#            background_level = np.median(image)
-#            
-#        #
-#        optimise_parameters(
-#            self,
-#            background_level,
-#            background_sigma=None,
-#            chip_size=image_nrows,  #the size of the entire CCD over which the procedure will be run
-#            subchip_size=500,       #size of the cutout region, to test CTI behaviour in different regimes (e.g. far from readout, close to readout, etc.) 
-#            matrix_size=5,          #covariance matrix size (NxN array)
-#            **kwargs
-#
-#
-#
-#        
-#        if 'parallel_traps' in kwargs:
-#            if kwargs['parallel_traps'] is not None:
-#                kwargs_parallel = kwargs.copy()
-#                kwargs_parallel['serial_traps']=None #make a parallel-only quadrant
-#                ###use CTI prescan offset to ensure sample region is at the far edge of the full chip
-#                ##kwargs_parallel['parallel_roe'].prescan_offset = kwargs_parallel['parallel_roe'].prescan_offset + image_nrows - chip_size//2
-#                #things to compare over iterations
-#                result_array = np.array([])
-#                matrix_array = np.zeros((11,matrix_size,matrix_size))
-#                sr_frac =  np.array([0.0,0.5,1.0])##np.arange(0,1.01,0.1)
-#                for frac in sr_frac:
-#                    correction_matrix = self._estimate_residual_covariance_for_opt(background_level,frac,**kwargs_parallel)
-#                    matrix_array[int(frac*10)] = correction_matrix
-#                    result = self.figure_of_merit(correction_matrix) #see if changing subgrid_size actually matters
-#                    result_array = np.append(result_array,result)
-#                    
-#                a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
-#                m = a_fit[1]
-#                b = a_fit[0]
-#                xint = -b/m
-#
-#                lo = np.floor(xint*10).astype(int)
-#                hi = np.ceil(xint*10).astype(int)
-#                mean_grid = (matrix_array[lo]+matrix_array[hi])/2
-#                
-#                optVals['parallelQuadMatrix'] = mean_grid
-#                optVals['parallelQuadFrac'] = xint
-#        
-#        if 'serial_traps' in kwargs:
-#            if kwargs['serial_traps'] is not None:
-#                kwargs_serial = kwargs.copy()
-#                kwargs_serial['parallel_traps']=None #make a serial-only quadrant
-#                ###use CTI prescan offset to ensure sample region is at the far edge of the full chip
-#                ##kwargs_serial['serial_roe'].prescan_offset = kwargs_serial['serial_roe'].prescan_offset + image_ncols - chip_size//2
-#                #things to compare over iterations
-#                result_array = np.array([])
-#                matrix_array = np.zeros((11,matrix_size,matrix_size))
-#                sr_frac = np.array([0.0,0.5,1.0])##np.arange(0,1.01,0.1)
-#                for frac in sr_frac:
-#                    correction_matrix = self._estimate_residual_covariance_for_opt(background_level,frac,**kwargs_serial)
-#                    matrix_array[int(frac*10)] = correction_matrix
-#                    result = self.figure_of_merit(correction_matrix) #see if changing subgrid_size actually matters
-#                    result_array = np.append(result_array,result)
-#                    
-#                a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
-#                m = a_fit[1]
-#                b = a_fit[0]
-#                xint = -b/m
-#
-#                lo = np.floor(xint*10).astype(int)
-#                hi = np.ceil(xint*10).astype(int)
-#                mean_grid = (matrix_array[lo]+matrix_array[hi])/2
-#
-#                optVals['serialQuadMatrix'] = mean_grid
-#                optVals['serialQuadFrac'] = xint
-#        
-#        if ('parallel_traps' in kwargs)&('serial_traps' in kwargs):
-#            if (kwargs['parallel_traps'] is not None)&(kwargs['serial_traps'] is not None):
-#                ###use CTI prescan offset to ensure sample region is at the far edge of the full chip
-#                ##kwargs_parallel['parallel_roe'].prescan_offset = kwargs_parallel['parallel_roe'].prescan_offset + image_nrows - chip_size//2
-#                ##kwargs_serial['serial_roe'].prescan_offset = kwargs_serial['serial_roe'].prescan_offset + image_ncols - chip_size//2
-#                #things to compare over iterations
-#                result_array = np.array([])
-#                matrix_array = np.zeros((11,matrix_size,matrix_size))
-#                sr_frac =  np.array([0.0,0.5,1.0])##np.arange(0,1.01,0.1)
-#                for frac in sr_frac:
-#                    correction_matrix = self._estimate_residual_covariance_for_opt(background_level,frac,**kwargs)
-#                    matrix_array[int(frac*10)] = correction_matrix
-#                    result = self.figure_of_merit(correction_matrix) #see if changing subgrid_size actually matters
-#                    result_array = np.append(result_array,result)
-#                    
-#                a_fit,cov=curve_fit(self._fitter_function,sr_frac,result_array,absolute_sigma=True)
-#                m = a_fit[1]
-#                b = a_fit[0]
-#                xint = -b/m
-#
-#                lo = np.floor(xint*10).astype(int)
-#                hi = np.ceil(xint*10).astype(int)
-#                mean_grid = (matrix_array[lo]+matrix_array[hi])/2
-#
-#                optVals['combinedQuadMatrix'] = mean_grid
-#                optVals['combinedQuadFrac'] = xint
-#            
-#        
-#        return optVals
-#            
-#        ##outputFrame,noiseFrame = self.estimate_read_noise_model_from_image(image)
-#        ##covar = self.covariance_matrix_from_image(image)
-#
-#    ###############    
     ###############
     def figure_of_merit(self, covariance_matrix, fom_method='box',subgrid_size=None):
         '''
@@ -807,7 +629,6 @@ class ReadNoise:
             result_mean = (np.sum(covariance_matrix[ystart:yend,xcenter]) - covariance_matrix[ycenter,xcenter])/4  #sum over central column (for parallel CTI)
         #raise NotImplementedError
         return result_mean
-
     ###############
     ###############
     def covariance_matrix_from_image(self, image, matrix_size=5,fprSize=5):
