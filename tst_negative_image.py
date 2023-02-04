@@ -108,7 +108,7 @@ image_corrected_nonoise = arcticpy.remove_cti(
     parallel_express=parallel_express,
     parallel_prune_n_electrons=parallel_prune_n_electrons,
     parallel_prune_frequency=parallel_prune_frequency,
-    allow_negative_pixels=0,
+    allow_negative_pixels=1,
     verbosity=0
 )
 print(f"Correction Time No Noise = {((time.time_ns() - start)/1e9)} s")

@@ -724,7 +724,6 @@ std::valarray<std::valarray<double> > remove_cti(
 
         // Prevent negative image values
         if (!allow_negative_pixels) {
-            print_v(0, "Positive definite check remove\n");
             for (int row_index = 0; row_index < n_rows; row_index++) {
                 image_remove_cti[row_index][image_remove_cti[row_index] < 0.0] = 0.0;
             }
