@@ -417,8 +417,9 @@ def remove_cti(
     
     # Attempt to estimate and remove read noise, so it it not amplified
     if read_noise is not None:
-        image_read_noise = read_noise.esimate_image_remove_cti(image_remove_cti)
-        image_remove_cti -= image_read_noise
+        image_remove_cti,image_read_noise = read_noise.estimate_read_noise_model_from_image(image_remove_cti)
+        #image_remove_cti -= image_read_noise
+        print("\nMean of read noise:",np.mean(image_read_noise))        
 
     # Estimate the image with removed CTI more accurately each iteration
     for iteration in range(1, n_iterations + 1):
@@ -465,15 +466,18 @@ def remove_cti(
         # Improve the estimate of the image with CTI trails removed
         delta = image - image_add_cti
         if read_noise is not None:
+            delta -= image_read_noise
             delta_squared = delta ** 2
-            delta *= delta_squared / ( delta_squared + read_noise.sigma ** 2 )
+            # Doing the following should be right, but biases the
+            # mean of the output image
+            #delta *= delta_squared / ( delta_squared + read_noise.sigmaRN ** 2 )
         image_remove_cti += delta
         
         # Prevent negative image values
         if not allow_negative_pixels:
             image_remove_cti[image_remove_cti < 0.0] = 0.0
         
-        print("i",iteration)
+        print(iteration)
         if iteration == 1 and n_iterations >= 2:
             image_remove_cti[image_remove_cti < 0.0] = 0.0
 
