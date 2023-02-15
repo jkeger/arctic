@@ -11,18 +11,38 @@ adjacent pixels.
 
 This class provides a set of routines to predict this effect, and counteract it.
 
-If you have an image as a 2D numpy array, image
-and an arctic model with parameters parallel_roe, parallel_ccd, parallel_traps
-run
+#################
+SAMPLE USAGE CASE
+#################
 
-readnoise = arctic.ReadNoise(4.5)
+If you have an image as a 2D numpy array and an arctic model (with parameters such as parallel_roe, 
+parallel_ccd, parallel_traps, etc...) run the following:
+
+1.) readnoise = arctic.ReadNoise(4.5) 
+  The argument sets the level of readnoise (in units of electrons)
+
+2.) [optional] readnoise.set_arctic_parameters(**kwargs)
+  Input each arctic parameter as a keyword argument. 
+  These will then be passed to subsequent function calls automatically
+  (Note: these choices can always be overridden in functions, if desired)
+
+3.) [optional] readnoise.optimise_SR_fraction_from_image(image)
+  Input your data image. The function will determine the optimum
+  fraction of S+R separation to apply to minimise CTI covariance
+
+4.) generate_SR_frames_from_image(image)
+  Do the actual S+R splitting on your science image. If the SR
+  optimisation routine is not run, assume a correction level of 100%
+
+5.) [optional] calculate_covariance_corners_from image(image)
+
+6.) [optional] plot_covariance_matrices()
 
 
-[optionally]
-[readnoise.optimise_parameters]
-
-
-skyImage, readNoiseImage = readnoise.estimate_read_noise_model_from_image(image, sr_fraction=None,
+#################
+EXAMPLE COMMANDS
+#################
+skyImage, readNoiseImage = readnoise.generate_SR_frames_from_image(image, sr_fraction=None,
                   parallel_roe, parallel_ccd, parallel_traps)
 
 image_corrected = arctic.cti_correct(skyImage,
@@ -31,11 +51,9 @@ image_corrected = arctic.cti_correct(skyImage,
 image_corrected += readNoiseImage         
 
 
+#to be updated
 
 readnoise.covariance
-
-
-
 
 covariance = readnoise.etimate_residual_covariance_from_image(image, 
                   matrix_size=5, fprSize=5, 
@@ -72,7 +90,7 @@ class ReadNoise:
         self.sigmaSky = None        
         self.skyFrameSim = None
         self.readnoiseFrameSim = None
-        self.optimised_SR_fraction = None
+        self.SRfrac_optimised = None
         self.arcKwargs = {}
         self.covarianceMatrices = {}
         self.dataFrames = {}
@@ -142,10 +160,10 @@ class ReadNoise:
         self.arcKwargs = kwargs
     ###############
     ###############
-    def estimate_read_noise_model_from_image(
+    def generate_SR_frames_from_image(
             self,
             image,
-            sr_fraction = 1.0
+            sr_fraction = self.SRfrac_optimised
     ):
         '''
         Function for generating a model of read noise in an image, using the level specified in the
@@ -161,12 +179,16 @@ class ReadNoise:
 
         sr_fraction: float
             scale fraction specifying what percentage of read noise should be separated into the R
-            frame. Default is 100%, but this can be changed based on other information (e.g., the
-            output of <optimise_SR_fraction>
+            frame. Default is set to the optimised value measured in <optimise_SR_frac>, or 100%
+            if <optimise_SR_frac> has not been previously run.
 
         
         '''
         ampReadNoise = self.sigmaRN
+
+        #if sr_fraction is unset, default to 100%
+        if sr_fraction == None:
+            sr_fraction = 1.0
 
         imageIn = image
         imageAdj = np.zeros_like(imageIn) #adjustment image (for read noise modeling)
@@ -316,10 +338,11 @@ class ReadNoise:
         xint = -b/m #this intercept will be the optimised S+R fraction (where mean covariance=0)
 
         #store final optimised fraction as a class variable
-        self.optVals['optSRfrac'] = xint
+        self.SRfrac_optimised = xint
+        #self.optVals['optSRfrac'] = xint
     ###############
     ###############
-    def optimise_SR_fraction_from_data(
+    def optimise_SR_fraction_from_image(
             self,
             image,
             subchip_size=500, #size of the cutout region, to test CTI behaviour (a subset of pixels far form the readout)  
@@ -359,89 +382,20 @@ class ReadNoise:
         self.optimise_SR_fraction(sky_level,sky_back,image_shape,subchip_size,matrix_size,fom_method,**kwargs)     
     ###############
     ###############
-    def measure_covariance_quadrants(
+    def calculate_covariance_corners_from_image(
             self,
-            n_pixels=2048,    #the size of the entire CCD over which the procedure will be run
-            subchip_size=500, #size of the cutout region, to test CTI behaviour (a subset of pixels far form the readout)  
-            matrix_size=5,    #covariance matrix size (NxN array)
-            fom_method='box',
-            **kwargs
+            image,
     ):
-        '''
-        Apply optimised S+R correction to the four quadrants of the CCD (close to readout, far from parallel register, far from serial register, far from both)
-        and estimate a covariance matrix for each quadrant. These matrices can be used to correct any residual covariance in weak lensing shapes.
-        '''
-
-        #update any keyword arguments
-        allKwargs = kwargs|self.arcKwargs
-        
-        frac_opt =  self.optVals['optSRfrac'] #set the optimized S+R fraction
-
-        if type(n_pixels) == int:
-            n_pixels=(n_pixels,n_pixels)
-        chip_size = n_pixels
-        
-        ##set prescan regions (this simulates the maximum possible CTI trailing, averaged at the far edge of the real CCD)
-        #if 'parallel_roe' in allKwargs:
-        #    kwargs['parallel_roe'].prescan_offset = n_pixels[0]+(subchip_size//2)
-        #if 'serial_roe' in allKwargs:
-        #    kwargs['serial_roe'].prescan_offset = n_pixels[1]+(subchip_size//2)
-        
-        #re-run the S+R routine with the optimised level
-        raw_matrix_opt,correction_matrix_opt = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**self.arcKwargs,**kwargs)
-        raw_matrix_opt_noSR,correction_matrix_opt_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**self.arcKwargs,**kwargs) #this is dumb...do it better
-
-        #run a second S+R routine in the region close to the readout registers, to identify/remove stochastic simulation noise
-        kwargs_noCTI = kwargs|self.arcKwargs
-        kwargs_noCTI['parallel_traps']=None 
-        kwargs_noCTI['serial_traps']=None
-        #effectively, we are removing the effects of CTI, but still calculating a covariance matrix
-        raw_matrix_opt_noCTI,correction_matrix_opt_noCTI = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_noCTI)
-        raw_matrix_opt_noCTI_noSR,correction_matrix_opt_noCTI_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_noCTI)
-
-        #create the "benchmark" covariance matrix: a purely non-correlated array with the central pixel equal to (readnoise_sigma**2 + background_sigma**2)
-        #Any difference between this and "raw_matrix_opt_noCTI" is the simulation noise, and can be eliminated
-        benchmark_matrix = raw_matrix_opt_noCTI*0
-        centrePix = matrix_size//2
-        benchmark_matrix[centrePix,centrePix] = self.sigmaRN**2 + self.sigmaSky**2
-        #calculate the simulation-noise residual
-        residual_benchmark_matrix = raw_matrix_opt_noCTI - benchmark_matrix
-
-        #Finally, if both parallel and serial CTI are present, calculate covariances of the "cross-region" chip quadrants (far from serial readout but close to parallel readout, and vice-versa)
-        if ('parallel_traps' in allKwargs)&('serial_traps' in allKwargs):
-            if (allKwargs['parallel_traps'] is not None)&(allKwargs['serial_traps'] is not None):
-                kwargs_parallelOnly = kwargs|self.arcKwargs
-                kwargs_parallelOnly['serial_traps']=None #make a parallel-only quadrant
-                kwargs_serialOnly = kwargs|self.arcKwargs
-                kwargs_serialOnly['parallel_traps']=None #make a serial-only quadrant
-
-                raw_matrix_opt_parallel,correction_matrix_opt_parallel = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_parallelOnly)
-                raw_matrix_opt_serial,correction_matrix_opt_serial = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_serialOnly)
-                raw_matrix_opt_parallel_noSR,correction_matrix_opt_parallel_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_parallelOnly)
-                raw_matrix_opt_serial_noSR,correction_matrix_opt_serial_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_serialOnly)
-
-                #package all relevant quantities into optVals and return
-                self.optVals['combinedQuadMatrix'] = raw_matrix_opt
-                self.optVals['combinedQuadMatrix_diff'] = correction_matrix_opt
-                self.optVals['combinedQuadMatrix_noSR'] = raw_matrix_opt_noSR
-                self.optVals['combinedQuadMatrix_noSR_diff'] = correction_matrix_opt_noSR
-                self.optVals['parallelQuadMatrix'] = raw_matrix_opt_parallel
-                self.optVals['parallelQuadMatrix_diff'] = correction_matrix_opt_parallel
-                self.optVals['parallelQuadMatrix_noSR'] = raw_matrix_opt_parallel_noSR
-                self.optVals['parallelQuadMatrix_noSR_diff'] = correction_matrix_opt_parallel_noSR
-                self.optVals['serialQuadMatrix'] = raw_matrix_opt_serial
-                self.optVals['serialQuadMatrix_diff'] = correction_matrix_opt_serial
-                self.optVals['serialQuadMatrix_noSR'] = raw_matrix_opt_serial_noSR
-                self.optVals['serialQuadMatrix_noSR_diff'] = correction_matrix_opt_serial_noSR
-                self.optVals['noCTIQuadMatrix'] = raw_matrix_opt_noCTI
-                self.optVals['noCTIQuadMatrix_diff'] = correction_matrix_opt_noCTI
-                self.optVals['noCTIQuadMatrix_noSR'] = raw_matrix_opt_noCTI
-                self.optVals['noCTIQuadMatrix_diff_noSR'] = correction_matrix_opt_noCTI
-                self.optVals['benchmark'] = benchmark_matrix
-                self.optVals['benchmark_resid'] = residual_benchmark_matrix
+        return           
     ###############
     ###############    
-    def plot_matrix(self,covariance_matrix,supressCentralPix=True,title='MyPlotMatrix',**kwargs):
+    def plot_matrix(
+            self,
+            covariance_matrix,
+            supressCentralPix=True,
+            title='MyPlotMatrix',
+            **kwargs
+    ):
         if supressCentralPix == True:
             matrix = covariance_matrix.copy()
             matrix_size = matrix.shape[0]
@@ -455,6 +409,7 @@ class ReadNoise:
         mpl.pyplot.title(title)
         mpl.pyplot.show()
     ###############
+    
     ###############
     #
     #BACKGROUND FUNCTIONS
@@ -588,7 +543,7 @@ class ReadNoise:
 
         These components will create a baseline "clean" image (sky + readnoise) that we
         would expect to observe in the absence of CTI smearing effects
-        in each simulated quadrant. Keeping this fixed will control random noise fluctuations
+        in each simulated corner. Keeping this fixed will control random noise fluctuations
         ("simulation noise") when estimating covariances throughout the simulation.
 
         Note: This routine will be normally be called in <optimise_sr_fraction>
@@ -625,7 +580,7 @@ class ReadNoise:
         #add read noise to CTI-trailed image
         readNoiseAddedFrame = ctiTrailedFrame + noiseFrame
         #do S+R routine
-        sFrame, rFrame = self.estimate_read_noise_model_from_image(readNoiseAddedFrame,sr_fraction)
+        sFrame, rFrame = self.generate_SR_frames_from_image(readNoiseAddedFrame,sr_fraction)
         ###rescale S+R correction to a fractional value (for optimization)
         ##sFrame+=rFrame
         ##rFrame*=sr_fraction
@@ -709,3 +664,95 @@ class ReadNoise:
                 
         return covariance_matrix
     ###############
+
+
+
+    
+    ###############
+    #
+    # FUNCTIONS TO BE REFORMATTED / RETHOUGHT? (WORK IN PROGRESS)
+    #
+    ###############
+    def measure_simulated_covariance_corners(
+            self,
+            n_pixels=2048,    #the size of the entire CCD over which the procedure will be run
+            subchip_size=500, #size of the cutout region, to test CTI behaviour (a subset of pixels far form the readout)  
+            matrix_size=5,    #covariance matrix size (NxN array)
+            fom_method='box',
+            **kwargs
+    ):
+        '''
+        Apply optimised S+R correction to the four corners of the CCD (close to readout, far from parallel register, far from serial register, far from both)
+        and estimate a covariance matrix for each corner. These matrices can be used to correct any residual covariance in weak lensing shapes.
+        '''
+
+        #update any keyword arguments
+        allKwargs = kwargs|self.arcKwargs
+        
+        frac_opt = self.SRfrac_optimised #self.optVals['optSRfrac'] #set the optimized S+R fraction
+        if frac_opt == None:
+            frac_opt = 1.0
+
+        if type(n_pixels) == int:
+            n_pixels=(n_pixels,n_pixels)
+        chip_size = n_pixels
+        
+        ##set prescan regions (this simulates the maximum possible CTI trailing, averaged at the far edge of the real CCD)
+        #if 'parallel_roe' in allKwargs:
+        #    kwargs['parallel_roe'].prescan_offset = n_pixels[0]+(subchip_size//2)
+        #if 'serial_roe' in allKwargs:
+        #    kwargs['serial_roe'].prescan_offset = n_pixels[1]+(subchip_size//2)
+        
+        #re-run the S+R routine with the optimised level
+        raw_matrix_opt,correction_matrix_opt = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**self.arcKwargs,**kwargs)
+        raw_matrix_opt_noSR,correction_matrix_opt_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**self.arcKwargs,**kwargs) #this is dumb...do it better
+
+        #run a second S+R routine in the region close to the readout registers, to identify/remove stochastic simulation noise
+        kwargs_noCTI = kwargs|self.arcKwargs
+        kwargs_noCTI['parallel_traps']=None 
+        kwargs_noCTI['serial_traps']=None
+        #effectively, we are removing the effects of CTI, but still calculating a covariance matrix
+        raw_matrix_opt_noCTI,correction_matrix_opt_noCTI = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_noCTI)
+        raw_matrix_opt_noCTI_noSR,correction_matrix_opt_noCTI_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_noCTI)
+
+        #create the "benchmark" covariance matrix: a purely non-correlated array with the central pixel equal to (readnoise_sigma**2 + background_sigma**2)
+        #Any difference between this and "raw_matrix_opt_noCTI" is the simulation noise, and can be eliminated
+        benchmark_matrix = raw_matrix_opt_noCTI*0
+        centrePix = matrix_size//2
+        benchmark_matrix[centrePix,centrePix] = self.sigmaRN**2 + self.sigmaSky**2
+        #calculate the simulation-noise residual
+        residual_benchmark_matrix = raw_matrix_opt_noCTI - benchmark_matrix
+
+        #Finally, if both parallel and serial CTI are present, calculate covariances of the "cross-region" chip corners (far from serial readout but close to parallel readout, and vice-versa)
+        if ('parallel_traps' in allKwargs)&('serial_traps' in allKwargs):
+            if (allKwargs['parallel_traps'] is not None)&(allKwargs['serial_traps'] is not None):
+                kwargs_parallelOnly = kwargs|self.arcKwargs
+                kwargs_parallelOnly['serial_traps']=None #make a parallel-only corner
+                kwargs_serialOnly = kwargs|self.arcKwargs
+                kwargs_serialOnly['parallel_traps']=None #make a serial-only corner
+
+                raw_matrix_opt_parallel,correction_matrix_opt_parallel = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_parallelOnly)
+                raw_matrix_opt_serial,correction_matrix_opt_serial = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,frac_opt,matrix_size=matrix_size,**kwargs_serialOnly)
+                raw_matrix_opt_parallel_noSR,correction_matrix_opt_parallel_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_parallelOnly)
+                raw_matrix_opt_serial_noSR,correction_matrix_opt_serial_noSR = self._estimate_residual_covariance(self.skyFrameSim,self.readnoiseFrameSim,0,matrix_size=matrix_size,**kwargs_serialOnly)
+
+                #package all relevant quantities into optVals and return
+                self.optVals['combinedQuadMatrix'] = raw_matrix_opt
+                self.optVals['combinedQuadMatrix_diff'] = correction_matrix_opt
+                self.optVals['combinedQuadMatrix_noSR'] = raw_matrix_opt_noSR
+                self.optVals['combinedQuadMatrix_noSR_diff'] = correction_matrix_opt_noSR
+                self.optVals['parallelQuadMatrix'] = raw_matrix_opt_parallel
+                self.optVals['parallelQuadMatrix_diff'] = correction_matrix_opt_parallel
+                self.optVals['parallelQuadMatrix_noSR'] = raw_matrix_opt_parallel_noSR
+                self.optVals['parallelQuadMatrix_noSR_diff'] = correction_matrix_opt_parallel_noSR
+                self.optVals['serialQuadMatrix'] = raw_matrix_opt_serial
+                self.optVals['serialQuadMatrix_diff'] = correction_matrix_opt_serial
+                self.optVals['serialQuadMatrix_noSR'] = raw_matrix_opt_serial_noSR
+                self.optVals['serialQuadMatrix_noSR_diff'] = correction_matrix_opt_serial_noSR
+                self.optVals['noCTIQuadMatrix'] = raw_matrix_opt_noCTI
+                self.optVals['noCTIQuadMatrix_diff'] = correction_matrix_opt_noCTI
+                self.optVals['noCTIQuadMatrix_noSR'] = raw_matrix_opt_noCTI
+                self.optVals['noCTIQuadMatrix_diff_noSR'] = correction_matrix_opt_noCTI
+                self.optVals['benchmark'] = benchmark_matrix
+                self.optVals['benchmark_resid'] = residual_benchmark_matrix
+    ###############    
