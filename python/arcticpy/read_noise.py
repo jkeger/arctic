@@ -34,9 +34,18 @@ parallel_ccd, parallel_traps, etc...) run the following:
   Do the actual S+R splitting on your science image. If the SR
   optimisation routine is not run, assume a correction level of 100%
 
-5.) [optional] calculate_covariance_corners_from image(image)
+5.) [optional]  readnoise.measure_simulated_covariance_corners()
+  estimate the resulting covariance matrices in each ccd corner, using the optimised simulation
 
-6.) [optional] plot_covariance_matrices()
+######POSSIBLE ALTERNATIVE OPTION?#####
+5.) [optional] readnoise.calculate_covariance_corners_from image(image)
+  measure covariance matrices using the real image data
+  (not yet implemented)
+#######################################
+
+6.) [optional] readnoise.plot_covariance_matrices()
+  plot the covariance matrices of all four corners
+  (not fully implemented)
 
 
 #################
@@ -389,7 +398,7 @@ class ReadNoise:
             self,
             image,
     ):
-        return           
+        raise NotImplementedError           
     ###############
     ###############    
     def plot_matrix(
@@ -397,6 +406,7 @@ class ReadNoise:
             covariance_matrix,
             supressCentralPix=True,
             title='MyPlotMatrix',
+            clearFrame=True,
             **kwargs
     ):
         if supressCentralPix == True:
@@ -406,12 +416,28 @@ class ReadNoise:
         else:
             matrix = covariance_matrix.copy()
 
-        mpl.pyplot.clf()
+        if clearFrame:
+            mpl.pyplot.clf()
         mpl.pyplot.imshow(matrix,cmap='bwr',**kwargs)
         mpl.pyplot.colorbar()
         mpl.pyplot.title(title)
         mpl.pyplot.show()
     ###############
+    ###############
+    def plot_optimised_covariance_matrices(
+            self
+    ):
+        mpl.pyplot.figure()
+        mpl.pyplot.subplot(221)
+        self.plot_matrix(self.optVals['noCTIQuadMatrix_diff'],title='Readout Corner',clearFrame=False,vmin=-0.01,vmax=0.01)
+        mpl.pyplot.subplot(222)
+        self.plot_matrix(self.optVals['serialQuadMatrix_diff'],title='Serial Corner',clearFrame=False,vmin=-0.01,vmax=0.01)
+        mpl.pyplot.subplot(223)
+        self.plot_matrix(self.optVals['parallelQuadMatrix_diff'],title='Parallel Corner',clearFrame=False,vmin=-0.01,vmax=0.01)
+        mpl.pyplot.subplot(224)
+        self.plot_matrix(self.optVals['combinedQuadMatrix_diff'],title='Combined Corner',clearFrame=False,vmin=-0.01,vmax=0.01)            
+    ###############
+
     
     ###############
     #
@@ -678,7 +704,7 @@ class ReadNoise:
     ###############
     def measure_simulated_covariance_corners(
             self,
-            n_pixels=2048,    #the size of the entire CCD over which the procedure will be run
+            n_pixels=None,    #the size of the entire CCD over which the procedure will be run
             subchip_size=500, #size of the cutout region, to test CTI behaviour (a subset of pixels far form the readout)  
             matrix_size=5,    #covariance matrix size (NxN array)
             fom_method='box',
