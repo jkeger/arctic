@@ -163,7 +163,7 @@ class ReadNoise:
     def generate_SR_frames_from_image(
             self,
             image,
-            sr_fraction = self.SRfrac_optimised
+            sr_fraction = None
     ):
         '''
         Function for generating a model of read noise in an image, using the level specified in the
@@ -186,9 +186,12 @@ class ReadNoise:
         '''
         ampReadNoise = self.sigmaRN
 
-        #if sr_fraction is unset, default to 100%
+        #if sr_fraction is unset, use system value
         if sr_fraction == None:
-            sr_fraction = 1.0
+            sr_fraction = self.SRfrac_optimised
+            # if optimisation is not set, default to 100%
+            if sr_fraction == None:
+                sr_fraction = 1.0
 
         imageIn = image
         imageAdj = np.zeros_like(imageIn) #adjustment image (for read noise modeling)
