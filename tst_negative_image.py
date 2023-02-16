@@ -14,12 +14,12 @@ parallel_express=1
 #
 parallel_prune_n_electrons=1e-6
 parallel_prune_frequency=10
-parallel_express=1
+parallel_express=0
 
 #
 # Set up test image
 #
-image_model = np.zeros((20,1))-1
+image_model = np.zeros((50,1))+0
 image_model[3:8,:]+=70
 #image_model[12:17,:]-=20
 #image_model[13:17,:]-=50
@@ -43,9 +43,9 @@ parallel_ccd = arcticpy.CCD(full_well_depth=1000,
                             first_electron_fill=0.0)
 parallel_roe = arcticpy.ROE(
     empty_traps_between_columns=True,
-    empty_traps_for_first_transfers=False,
+    empty_traps_for_first_transfers=True,
     overscan_start=1990,
-    prescan_offset=1
+    prescan_offset=10
 )
 #parallel_roe = arcticpy.ROEChargeInjection()
 
@@ -99,9 +99,9 @@ image_post_cti_nonoise = arcticpy.add_cti(
 )
 
 print(f"Clocking Time No Noise = {((time.time_ns() - start)/1e9)} s")
-print(image_model[0:49,0])
-#print(image_post_cti_noisy[0:49,0])
-print(image_post_cti_nonoise[0:49,0])
+print(np.sum(image_model),image_model[0:49,0])
+print(np.sum(image_post_cti_noisy),image_post_cti_noisy[0:49,0])
+print(np.sum(image_post_cti_nonoise),image_post_cti_nonoise[0:49,0])
 
 
 

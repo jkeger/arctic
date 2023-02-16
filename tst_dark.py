@@ -38,7 +38,7 @@ parallel_traps = [
     #arcticpy.TrapSlowCaptureContinuum(density=10.0, release_timescale=(1.), capture_timescale=1, release_timescale_sigma=0.1),
 ]
 
-parallel_ccd = arcticpy.CCD(full_well_depth=1000, well_fill_power=1.0)
+parallel_ccd = arcticpy.CCD(full_well_depth=10000, well_fill_power=1.0)
 parallel_roe = arcticpy.ROE(
     empty_traps_between_columns=True,
     empty_traps_for_first_transfers=False,
@@ -87,15 +87,16 @@ read_noise_obj.set_arctic_parameters(
     parallel_prune_n_electrons=parallel_prune_n_electrons,
     parallel_prune_frequency=parallel_prune_frequency,
 )
-#read_noise_obj.optimise_SR_fraction_from_image(image_post_cti_noisy)
-
+read_noise_obj.optimise_SR_fraction_from_image(image_post_cti_noisy)
+print("Optimum S+R fraction: ",read_noise_obj.SRfrac_optimised)
+read_noise_obj.SRfrac_optimised = 0.3
 
 #
 # Correct CTI
 #
 start = time.time_ns()
 image_corrected_noisy = arcticpy.remove_cti(
-    image=image_post_cti_noisy, n_iterations=5,
+    image=image_post_cti_noisy, n_iterations=19,
     parallel_traps=parallel_traps,
     parallel_ccd=parallel_ccd,
     parallel_roe=parallel_roe,
