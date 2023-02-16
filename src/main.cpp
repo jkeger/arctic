@@ -57,7 +57,7 @@ int run_demo() {
     bool empty_traps_between_columns = true;
     bool empty_traps_for_first_transfers = true;
     ROE roe(dwell_times, 0, -1, empty_traps_between_columns, empty_traps_for_first_transfers);
-    CCD ccd(CCDPhase(1e3, 0.0, 1.0));
+    CCD ccd(CCDPhase(1e3, 0.0, 1.0, 0.0));
     int express = 0;
     int offset = 0;
     int window_start = 0;
@@ -129,7 +129,7 @@ int run_benchmark() {
     std::valarray<TrapInstantCapture> traps = {trap};
     std::valarray<double> dwell_times = {1.0};
     ROE roe(dwell_times, 0, -1, true, false, true, false);
-    CCD ccd(CCDPhase(1e4, 0.0, 1.0));
+    CCD ccd(CCDPhase(1e4, 0.0, 1.0, 0.0));
     int express = 5;
     int offset = 0;
     int start = 0;

@@ -5,6 +5,7 @@
 
 #include "util.hpp"
 
+
 int sgn(double v) {
   return (v < 0) ? -1 : ((v > 0) ? 1 : 0);
 }
@@ -41,10 +42,14 @@ int sgn(double v) {
         of electrons. This can, in principle, vary between phases.
 */
 CCDPhase::CCDPhase(
-    double full_well_depth, double well_notch_depth, double well_fill_power)
+    double full_well_depth, 
+    double well_notch_depth, 
+    double well_fill_power, 
+    double first_electron_fill)
     : full_well_depth(full_well_depth),
       well_notch_depth(well_notch_depth),
-      well_fill_power(well_fill_power) {}
+      well_fill_power(well_fill_power),
+      first_electron_fill(first_electron_fill) {}
 
 /*
     Calculate the fractional volume that a charge cloud reaches in the pixel.
@@ -61,16 +66,18 @@ CCDPhase::CCDPhase(
 */
 double CCDPhase::cloud_fractional_volume_from_electrons(double n_electrons) {
     
-    double frac = (n_electrons - well_notch_depth) / full_well_depth;
-    //frac = clamp(frac, 0., 1.);
-    return sgn(frac) * pow( abs(frac), well_fill_power );
     
+    //double frac = (n_electrons - well_notch_depth) / full_well_depth;
     //if (n_electrons == 0.0)
-    //    return 0.0;
-    //else
-    //    return pow(
-    //        clamp((n_electrons - well_notch_depth) / full_well_depth, 0.0, 1.0),
-    //        well_fill_power);
+    if (n_electrons <= 0.0)
+        return first_electron_fill ; //0.0;
+    else
+        //return sgn(frac) * pow( abs(frac), well_fill_power );
+        //return pow( clamp(frac, 0.0, 1.0), well_fill_power);
+        return first_electron_fill + (1 - first_electron_fill) * pow( 
+            clamp( (n_electrons - well_notch_depth) / 
+                   (full_well_depth - well_notch_depth), 0.0, 1.0), 
+            well_fill_power);
 }
 
 // ========
@@ -119,3 +126,4 @@ CCD::CCD(CCDPhase phase) {
     n_phases = 1;
     fraction_of_traps_per_phase = {1.0};
 }
+

@@ -7,12 +7,16 @@
 class CCDPhase {
    public:
     CCDPhase(){};
-    CCDPhase(double full_well_depth, double well_notch_depth, double well_fill_power);
+    CCDPhase(double full_well_depth, 
+            double well_notch_depth, 
+            double well_fill_power,
+            double first_electron_fill = 0);
     ~CCDPhase(){};
 
     double full_well_depth;
     double well_notch_depth;
     double well_fill_power;
+    double first_electron_fill;
 
     virtual double cloud_fractional_volume_from_electrons(double n_electrons);
 };

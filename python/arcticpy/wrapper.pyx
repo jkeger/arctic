@@ -34,6 +34,7 @@ cdef extern from "interface.hpp":
         double* parallel_full_well_depths,
         double* parallel_well_notch_depths,
         double* parallel_well_fill_powers,
+        double* parallel_first_electron_fills,
         # Traps
         double* parallel_trap_densities,
         double* parallel_trap_release_timescales,
@@ -72,6 +73,7 @@ cdef extern from "interface.hpp":
         double* serial_full_well_depths,
         double* serial_well_notch_depths,
         double* serial_well_fill_powers,
+        double* serial_first_electron_fills,
         # Traps
         double* serial_trap_densities,
         double* serial_trap_release_timescales,
@@ -90,6 +92,10 @@ cdef extern from "interface.hpp":
         int serial_time_stop,
         double* serial_prune_n_electrons, 
         int serial_prune_frequency,
+        # ========
+        # Combined
+        # ========
+        int allow_negative_pixels,
         # Output
         int verbosity,
         int iteration
@@ -142,6 +148,7 @@ def cy_add_cti(
     np.ndarray[np.double_t, ndim=1] parallel_full_well_depths,
     np.ndarray[np.double_t, ndim=1] parallel_well_notch_depths,
     np.ndarray[np.double_t, ndim=1] parallel_well_fill_powers,
+    np.ndarray[np.double_t, ndim=1] parallel_first_electron_fills,
     # Traps
     np.ndarray[np.double_t, ndim=1] parallel_trap_densities,
     np.ndarray[np.double_t, ndim=1] parallel_trap_release_timescales,
@@ -178,6 +185,7 @@ def cy_add_cti(
     np.ndarray[np.double_t, ndim=1] serial_full_well_depths,
     np.ndarray[np.double_t, ndim=1] serial_well_notch_depths,
     np.ndarray[np.double_t, ndim=1] serial_well_fill_powers,
+    np.ndarray[np.double_t, ndim=1] serial_first_electron_fills,
     # Traps
     np.ndarray[np.double_t, ndim=1] serial_trap_densities,
     np.ndarray[np.double_t, ndim=1] serial_trap_release_timescales,
@@ -196,6 +204,10 @@ def cy_add_cti(
     int serial_time_stop,
     np.ndarray[np.double_t, ndim=1] serial_prune_n_electrons, 
     int serial_prune_frequency,
+    # ========
+    # Combined
+    # ========
+    int allow_negative_pixels,
     # Output
     int verbosity,
     int iteration,
@@ -233,6 +245,7 @@ def cy_add_cti(
         &parallel_full_well_depths[0],
         &parallel_well_notch_depths[0],
         &parallel_well_fill_powers[0],
+        &parallel_first_electron_fills[0],
         # Traps
         &parallel_trap_densities[0],
         &parallel_trap_release_timescales[0],
@@ -271,6 +284,7 @@ def cy_add_cti(
         &serial_full_well_depths[0],
         &serial_well_notch_depths[0],
         &serial_well_fill_powers[0],
+        &serial_first_electron_fills[0],
         # Traps
         &serial_trap_densities[0],
         &serial_trap_release_timescales[0],
@@ -289,9 +303,13 @@ def cy_add_cti(
         serial_time_stop,
         &serial_prune_n_electrons[0], 
         serial_prune_frequency,
+        # ========
+        # Combined
+        # ========
+        allow_negative_pixels,
         # Output
         verbosity,
-        iteration,
+        iteration
     )
 
     return image
