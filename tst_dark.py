@@ -77,7 +77,17 @@ print("mean level (trailed) ",np.mean(image_post_cti[stats_range,:]))
 read_noise_image = np.random.normal(0,read_noise,image_model.shape)
 image_pre_cti_noisy = image_model + read_noise_image
 image_post_cti_noisy = image_post_cti + read_noise_image
+
 read_noise_obj = arcticpy.ReadNoise(read_noise)
+read_noise_obj.set_arctic_parameters(
+    parallel_traps=parallel_traps,
+    parallel_ccd=parallel_ccd,
+    parallel_roe=parallel_roe,
+    parallel_express=parallel_express,
+    parallel_prune_n_electrons=parallel_prune_n_electrons,
+    parallel_prune_frequency=parallel_prune_frequency,
+)
+#read_noise_obj.optimise_SR_fraction_from_image(image_post_cti_noisy)
 
 
 #
@@ -114,7 +124,7 @@ fig, ax = plt.subplots()
 ax.plot(pixels[plot_range], image_model[plot_range,0], alpha=0.8, label="No read noise")
 #ax.plot(pixels[0:50], image_post_cti_nonoise[0:50,0]-image_model[0,0:50], alpha=0.8, label="%d")
 ax.plot(pixels[plot_range], image_pre_cti_noisy[plot_range,0], alpha=0.8, label="Ideal correction")
-#ax.plot(pixels[plot_range], image_corrected_noisy[plot_range,0], alpha=0.8, label="Achieved correction")
+ax.plot(pixels[plot_range], image_corrected_noisy[plot_range,0], alpha=0.8, label="Achieved correction")
 ax.plot(pixels[plot_range], image_post_cti_noisy[plot_range,0], alpha=0.8, label="Downloaded")
 
 ax.set(xlabel='pixel', ylabel='offset bias [n_e]',

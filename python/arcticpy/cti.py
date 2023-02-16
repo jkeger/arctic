@@ -419,7 +419,7 @@ def remove_cti(
     
     # Attempt to estimate and remove read noise, so it it not amplified
     if read_noise is not None:
-        image_remove_cti,image_read_noise = read_noise.estimate_read_noise_model_from_image(image_remove_cti)
+        image_remove_cti,image_read_noise = read_noise.generate_SR_frames_from_image(image_remove_cti)
         #image_remove_cti -= image_read_noise
         print("\nMean of read noise:",np.mean(image_read_noise))        
 
