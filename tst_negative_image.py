@@ -37,7 +37,10 @@ parallel_traps = [
     #arcticpy.TrapSlowCaptureContinuum(density=10.0, release_timescale=(1.), capture_timescale=1, release_timescale_sigma=0.1),
 ]
 
-parallel_ccd = arcticpy.CCD(full_well_depth=100, well_fill_power=1.0)
+parallel_ccd = arcticpy.CCD(full_well_depth=1000, 
+                            well_fill_power=1.0, 
+                            well_notch_depth=0.0,
+                            first_electron_fill=0.0)
 parallel_roe = arcticpy.ROE(
     empty_traps_between_columns=True,
     empty_traps_for_first_transfers=False,
@@ -51,25 +54,28 @@ parallel_roe = arcticpy.ROE(
 #
 # Noisy image
 #
-image_pre_cti_noisy = image_model + np.random.normal(0,4.5,image_model.shape)
+image_pre_cti_noisy = image_model #+ np.random.normal(0,4.5,image_model.shape)
 #image_pre_cti = np.maximum(image_pre_cti,np.zeros(image_pre_cti.shape));
 #print(image_pre_cti[0:10,0])
+parallel_ccd_alt = arcticpy.CCD(full_well_depth=1000, 
+                                well_fill_power=1.0, 
+                                well_notch_depth=-200,
+                                first_electron_fill=0.)
 
-#start = time.time_ns()
+start = time.time_ns()
 
-#image_post_cti_noisy = arcticpy.add_cti(
-#    image=image_pre_cti_noisy,
-#    parallel_traps=parallel_traps,
-#    parallel_ccd=parallel_ccd,
-#    parallel_roe=parallel_roe,
-#    parallel_express=parallel_express,
-#    parallel_prune_n_electrons=parallel_prune_n_electrons,
-#    parallel_prune_frequency=parallel_prune_frequency,
-#    verbosity=0
-#)
+image_post_cti_noisy = arcticpy.add_cti(
+    image=image_pre_cti_noisy,
+    parallel_traps=parallel_traps,
+    parallel_ccd=parallel_ccd_alt,
+    parallel_roe=parallel_roe,
+    parallel_express=parallel_express,
+    parallel_prune_n_electrons=parallel_prune_n_electrons,
+    parallel_prune_frequency=parallel_prune_frequency,
+    verbosity=0
+)
 
-#print(f"Clocking Time Noisy = {((time.time_ns() - start)/1e9)} s")
-#print(image_post_cti[0:10,0])
+print(f"Clocking Time Noisy = {((time.time_ns() - start)/1e9)} s")
 
 #
 # Noise-free image
@@ -131,6 +137,7 @@ ax.plot(pixels[0:50], image_model[0:50,0], alpha=0.8, label="Input")
 #ax.plot(pixels[0:50], image_post_cti_nonoise[0:50,0]-image_model[0,0:50], alpha=0.8, label="%d")
 #ax.plot(pixels[0:50], image_post_cti[0:50,0], alpha=0.8, label="%d")
 ax.plot(pixels[0:50], image_post_cti_nonoise[0:50,0], alpha=0.8, label="Trailed")
+ax.plot(pixels[0:50], image_post_cti_noisy[0:50,0], alpha=0.8, label="Alt CCD")
 #ax.plot(pixels[0:50], image_corrected_nonoise[0:50,0], alpha=0.8, label="%d")
 
 ax.set(xlabel='pixel', ylabel='offset bias [n_e]',

@@ -89,7 +89,7 @@ def _set_dummy_parameters():
     clocking is not being used.
     """
     roe = ROE()
-    ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
+    ccd = CCD([CCDPhase(0.0, 0.0, 0.0, 0.0)], [0.0])
     trap_densities = np.array([0.0], dtype=np.double)
     trap_release_timescales = np.array([0.0], dtype=np.double)
     trap_third_params = np.array([0.0], dtype=np.double)
@@ -259,6 +259,7 @@ def add_cti(
         parallel_ccd.full_well_depths,
         parallel_ccd.well_notch_depths,
         parallel_ccd.well_fill_powers,
+        parallel_ccd.first_electron_fills,
         # Traps
         parallel_trap_densities,
         parallel_trap_release_timescales,
@@ -295,6 +296,7 @@ def add_cti(
         serial_ccd.full_well_depths,
         serial_ccd.well_notch_depths,
         serial_ccd.well_fill_powers,
+        serial_ccd.first_electron_fills,
         # Traps
         serial_trap_densities,
         serial_trap_release_timescales,

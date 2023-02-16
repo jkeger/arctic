@@ -61,7 +61,7 @@ void add_cti(
     // CCD
     double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
     double* parallel_full_well_depths, double* parallel_well_notch_depths,
-    double* parallel_well_fill_powers,
+    double* parallel_well_fill_powers, double* parallel_first_electron_fills,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
     double* parallel_trap_third_params, double* parallel_trap_fourth_params,
@@ -89,7 +89,7 @@ void add_cti(
     // CCD
     double* serial_fraction_of_traps_per_phase_in, int serial_n_phases,
     double* serial_full_well_depths, double* serial_well_notch_depths,
-    double* serial_well_fill_powers,
+    double* serial_well_fill_powers, double* serial_first_electron_fills,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
     double* serial_trap_third_params, double* serial_trap_fourth_params,
@@ -163,6 +163,7 @@ void add_cti(
         parallel_phases[i_phase].full_well_depth = parallel_full_well_depths[i_phase];
         parallel_phases[i_phase].well_notch_depth = parallel_well_notch_depths[i_phase];
         parallel_phases[i_phase].well_fill_power = parallel_well_fill_powers[i_phase];
+        parallel_phases[i_phase].first_electron_fill = parallel_first_electron_fills[i_phase];
     }
     CCD parallel_ccd(parallel_phases, parallel_fraction_of_traps_per_phase);
 
@@ -249,6 +250,7 @@ void add_cti(
         serial_phases[i_phase].full_well_depth = serial_full_well_depths[i_phase];
         serial_phases[i_phase].well_notch_depth = serial_well_notch_depths[i_phase];
         serial_phases[i_phase].well_fill_power = serial_well_fill_powers[i_phase];
+        serial_phases[i_phase].first_electron_fill = serial_first_electron_fills[i_phase];
     }
     CCD serial_ccd(serial_phases, serial_fraction_of_traps_per_phase);
 

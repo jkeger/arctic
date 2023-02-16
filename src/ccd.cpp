@@ -68,13 +68,15 @@ double CCDPhase::cloud_fractional_volume_from_electrons(double n_electrons) {
     
     
     //double frac = (n_electrons - well_notch_depth) / full_well_depth;
-    if (n_electrons == 0.0)
-        return 0.0;
+    //if (n_electrons == 0.0)
+    if (n_electrons <= 0.0)
+        return first_electron_fill ; //0.0;
     else
         //return sgn(frac) * pow( abs(frac), well_fill_power );
         //return pow( clamp(frac, 0.0, 1.0), well_fill_power);
         return first_electron_fill + (1 - first_electron_fill) * pow( 
-            clamp((n_electrons - well_notch_depth) / full_well_depth, 0.0, 1.0), 
+            clamp( (n_electrons - well_notch_depth) / 
+                   (full_well_depth - well_notch_depth), 0.0, 1.0), 
             well_fill_power);
 }
 
