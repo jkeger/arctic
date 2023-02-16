@@ -367,7 +367,7 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
 
                         print_v(2, "row_read  %d \n", row_read);
                         print_v(2, "n_free_electrons  %g \n", n_free_electrons);
-
+ 
                         // Release and capture electrons with the traps in this
                         // pixel/phase, for each type of traps
                         n_electrons_released_and_captured = 0;
@@ -395,19 +395,7 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
                                     .n_electrons_released_and_captured(
                                         n_free_electrons +
                                         n_electrons_released_and_captured);
-
                       
-/*                        print_v(
-                            0, "%d ",
-                            trap_manager_manager.trap_managers_ic[i_phase]
-                                    .n_active_watermarks);
-                        print_array(
-                            trap_manager_manager.trap_managers_ic[i_phase]
-                                    .watermark_volumes);
-                        print_array(
-                            trap_manager_manager.trap_managers_ic[i_phase]
-                                    .watermark_fills);
-*/                      
                         print_v(
                             2, "n_electrons_released_and_captured  %g \n",
                             n_electrons_released_and_captured);
