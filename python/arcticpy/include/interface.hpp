@@ -28,7 +28,7 @@ void add_cti(
     // CCD
     double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
     double* parallel_full_well_depths, double* parallel_well_notch_depths,
-    double* parallel_well_fill_powers,
+    double* parallel_well_fill_powers, double* parallel_first_electron_fills,
     // Traps
     double* parallel_trap_densities, double* parallel_trap_release_timescales,
     double* parallel_trap_third_params, double* parallel_trap_fourth_params,
@@ -54,7 +54,7 @@ void add_cti(
     // CCD
     double* serial_fraction_of_traps_per_phase_in, int serial_n_phases,
     double* serial_full_well_depths, double* serial_well_notch_depths,
-    double* serial_well_fill_powers,
+    double* serial_well_fill_powers, double* serial_first_electron_fills,
     // Traps
     double* serial_trap_densities, double* serial_trap_release_timescales,
     double* serial_trap_third_params, double* serial_trap_fourth_params,
@@ -65,5 +65,9 @@ void add_cti(
     int serial_window_start, int serial_window_stop, 
     int serial_time_start, int serial_time_stop,
     double* serial_prune_n_electrons, int serial_prune_frequency,
+    // ========
+    // Combined
+    // ========
+    int allow_negative_pixels,
     // Output
     int verbosity, int iteration);
