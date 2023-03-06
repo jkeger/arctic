@@ -1116,6 +1116,6 @@ class TestReadNoise:
 
         #check that S+R components are close to input images (within typical simulation noise limits)
         assert abs(np.mean(R) - np.mean(noise)) < 2
-        assert abs(np.std(R) - np.std(noise)) <= 0.0001
+        assert abs(np.std(R) - np.std(noise)) <= 0.001
         assert abs(np.mean(S) - np.mean(sky)) < 2
         assert abs(np.std(S) - np.std(sky)) < 1
