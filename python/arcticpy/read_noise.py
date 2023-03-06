@@ -456,114 +456,118 @@ class ReadNoise:
         Method for estimating readnoise on image (in S+R fashion)
         assumes parallel+serial CTI trailing by default
         '''
+        #set target read noise amplitude to be equal to the value specified in the input function 
         readNoiseAmp = self.sigmaRN
+
+        '''
+        Define up the "comparison" variables for each S+R realisation. In every run, the current value of each pixel in the array is compared 
+        to its neighbours; these comparisons will determine how much the pixel value will change in the next interation of the loop. There are 
+        six such comparisons, some of which want the pixel to keep its current value, and others that want it to change. The result is a tug-of-war 
+        between different modifiers, preventing the pixel value from varying by too much too quickly.
+
+        The comparisons are:
         
+        dval0 -- compare the pixel to itself. This comparison tries to keep the pixel value unchanged
+
+        dval9 -- compare the pixel to its "local" average (the block of pixels surrounding it). In most 
+        cases this is a (3x3) block, but pixels at the edge of the array are appropriately truncated. 
+        Once again, this comparison tries to keep the pixel value unchanged.
+
+        dmod1 and dmod2 -- compare pixel to its upper (dmod1) and lower (dmod2) row reighbours.
+        These comparisons try to bring the pixel closer to the average of its neighbours
+
+        cmod1 and cmod2 -- compare pixel to its right (cmod1) and left (cmod2) column reighbours.
+        These comparisons try to bring the pixel closer to the average of its neighbours
+        
+        Finally, each comparison has a "clipped" version (e.g., dval0u) which truncates the comparison difference 
+        to be within some upper/lower limits. These clipped values will determine the actual pixel modification.
+
+        Note: all of these comparisons *should* be done with python broadcasting tricks...but I'm not sure this is actually the case
+        '''
+        #initialize dval0 comparison
         dval0 = imageIn - imageOut
         dval0u = dval0.copy()
-        
+
+        #set the clipped dval0 comparison
+        #note, this clipping is more stringent than the others
         dval0u[dval0u>1] = 1
         dval0u[dval0u<-1] = -1
-        
+
+        #initialize dval9 value and count (average will be (summed value)/(summed count))
         dval9 = imageIn*0
         dcount = imageIn*0
-        
-        dval9[:-1,:-1]+=(imageIn[1: ,1: ]-imageOut[1: ,1: ]); dcount[:-1,:-1]+=1
-        dval9[:-1,:  ]+=(imageIn[1: ,:  ]-imageOut[1: ,:  ]); dcount[:-1,:  ]+=1
-        dval9[:-1,1: ]+=(imageIn[1: ,:-1]-imageOut[1: ,:-1]); dcount[:-1,1: ]+=1
-        dval9[:  ,:-1]+=(imageIn[:  ,1: ]-imageOut[:  ,1: ]); dcount[:  ,:-1]+=1
-        dval9[:  ,:  ]+=(imageIn[:  ,:  ]-imageOut[:  ,:  ]); dcount[:  ,:  ]+=1
-        dval9[:  ,1: ]+=(imageIn[:  ,:-1]-imageOut[:  ,:-1]); dcount[:  ,1: ]+=1
-        dval9[1: ,:-1]+=(imageIn[:-1,1: ]-imageOut[:-1,1: ]); dcount[1: ,:-1]+=1
-        dval9[1: ,:  ]+=(imageIn[:-1,:  ]-imageOut[:-1,:  ]); dcount[1: ,:  ]+=1
-        dval9[1: ,1: ]+=(imageIn[:-1,:-1]-imageOut[:-1,:-1]); dcount[1: ,1: ]+=1
-        
+
+        #do the dval9 calculation
+        dval9[:-1,:-1]+=(imageIn[1: ,1: ]-imageOut[1: ,1: ]); dcount[:-1,:-1]+=1 #comparison with bottom-left neighbour
+        dval9[:-1,:  ]+=(imageIn[1: ,:  ]-imageOut[1: ,:  ]); dcount[:-1,:  ]+=1 #comparison with bottom-central neighbour
+        dval9[:-1,1: ]+=(imageIn[1: ,:-1]-imageOut[1: ,:-1]); dcount[:-1,1: ]+=1 #comparison with bottom-right neighbour
+        dval9[:  ,:-1]+=(imageIn[:  ,1: ]-imageOut[:  ,1: ]); dcount[:  ,:-1]+=1 #comparison with middle-left neighbour
+        dval9[:  ,:  ]+=(imageIn[:  ,:  ]-imageOut[:  ,:  ]); dcount[:  ,:  ]+=1 #comparison with itself (middle-centre)
+        dval9[:  ,1: ]+=(imageIn[:  ,:-1]-imageOut[:  ,:-1]); dcount[:  ,1: ]+=1 #comparison with middle-right neighbour
+        dval9[1: ,:-1]+=(imageIn[:-1,1: ]-imageOut[:-1,1: ]); dcount[1: ,:-1]+=1 #comparison with top-left neighbour
+        dval9[1: ,:  ]+=(imageIn[:-1,:  ]-imageOut[:-1,:  ]); dcount[1: ,:  ]+=1 #comparison with top-central neighbour
+        dval9[1: ,1: ]+=(imageIn[:-1,:-1]-imageOut[:-1,:-1]); dcount[1: ,1: ]+=1 #comparison with top-right neighbour
+
+        #get the dval9 average
         dval9/=dcount
-        
+
+        #set the clipping modifier
+        #limit any difference to be at most the 1-sigma readnoise value (readNoiseAmp) scaled by a preset modifier (readNoiseAmpFraction) -- currently hard-coded to 0.2
         readNoiseAmpFraction = self.ampScale
+        mod_clip = readNoiseAmp*readNoiseAmpFraction 
+
+        #set the clipped dval9 comparison
         dval9u = dval9.copy()
-        if type(readNoiseAmp)==np.ndarray:
-            dval9u = dval9u.flatten()
-            readNoiseAmp = readNoiseAmp.flatten()
-            dval9u[dval9u > readNoiseAmp*readNoiseAmpFraction] = (readNoiseAmp*readNoiseAmpFraction)[dval9u > readNoiseAmp*readNoiseAmpFraction]
-            dval9u[dval9u < readNoiseAmp*-readNoiseAmpFraction] = (readNoiseAmp*-readNoiseAmpFraction)[dval9u < readNoiseAmp*-readNoiseAmpFraction]
-            dval9u = dval9u.reshape(imageIn.shape)
-            readNoiseAmp = readNoiseAmp.reshape(imageIn.shape)        
-        else:
-            dval9u[dval9u > readNoiseAmp*readNoiseAmpFraction] = readNoiseAmp*readNoiseAmpFraction
-            dval9u[dval9u < readNoiseAmp*-readNoiseAmpFraction] = readNoiseAmp*-readNoiseAmpFraction
-            
+        dval9u[dval9u > mod_clip] = mod_clip
+        dval9u[dval9u < -mod_clip] = -mod_clip
+
+        #initialise and set the dmod comparisons
         dmod1 = imageIn*0
         dmod1[1:,:] = imageOut[:-1,:] - imageOut[1:,:]
         dmod2 = imageIn*0
         dmod2[:-1,:] = imageOut[1:,:] - imageOut[:-1,:]
-        
+
+        #if specified, also initialise and set the cmod comparions
         if self.smoothCol:
             cmod1 = imageIn*0
             cmod1[:,1:] = imageOut[:,:-1] - imageOut[:,1:]
             cmod2 = imageIn*0
             cmod2[:,:-1] = imageOut[:,1:] - imageOut[:,:-1]
-            
+
+        #set the clipped dmod values
         dmod1u = dmod1.copy()
-        if type(readNoiseAmp)==np.ndarray:
-            dmod1u = dmod1u.flatten()
-            readNoiseAmp = readNoiseAmp.flatten()
-            dmod1u[dmod1u>readNoiseAmp*readNoiseAmpFraction] = (readNoiseAmp*readNoiseAmpFraction)[dmod1u>readNoiseAmp*readNoiseAmpFraction]
-            dmod1u[dmod1u<readNoiseAmp*-readNoiseAmpFraction] = (readNoiseAmp*-readNoiseAmpFraction)[dmod1u<readNoiseAmp*-readNoiseAmpFraction]
-            dmod1u = dmod1u.reshape(imageIn.shape)       
-        else:
-            dmod1u[dmod1u>readNoiseAmp*readNoiseAmpFraction] = readNoiseAmp*readNoiseAmpFraction
-            dmod1u[dmod1u<readNoiseAmp*-readNoiseAmpFraction] = readNoiseAmp*-readNoiseAmpFraction
+        dmod1u[dmod1u>mod_clip] = mod_clip
+        dmod1u[dmod1u<-mod_clip] = -mod_clip
             
         dmod2u = dmod2.copy()
-        if type(readNoiseAmp)==np.ndarray:
-            dmod2u = dmod2u.flatten()
-            readNoiseAmp = readNoiseAmp.flatten()
-            dmod2u[dmod2u>readNoiseAmp*readNoiseAmpFraction] = (readNoiseAmp*readNoiseAmpFraction)[dmod2u>readNoiseAmp*readNoiseAmpFraction]
-            dmod2u[dmod2u<readNoiseAmp*-readNoiseAmpFraction] = (readNoiseAmp*-readNoiseAmpFraction)[dmod2u<readNoiseAmp*-readNoiseAmpFraction]
-            dmod2u = dmod2u.reshape(imageIn.shape)
-            readNoiseAmp = readNoiseAmp.reshape(imageIn.shape) 
-        else:
-            dmod2u[dmod2u>readNoiseAmp*readNoiseAmpFraction] = readNoiseAmp*readNoiseAmpFraction
-            dmod2u[dmod2u<readNoiseAmp*-readNoiseAmpFraction] = readNoiseAmp*-readNoiseAmpFraction
+        dmod2u[dmod2u>mod_clip] = mod_clip
+        dmod2u[dmod2u<-mod_clip] = -mod_clip
             
+        #if specified, also set the clipped cmod values
         if self.smoothCol:
             cmod1u = cmod1.copy()
-            if type(readNoiseAmp)==np.ndarray:
-                cmod1u = cmod1u.flatten()
-                readNoiseAmp = readNoiseAmp.flatten()
-                cmod1u[cmod1u>readNoiseAmp*readNoiseAmpFraction] = (readNoiseAmp*readNoiseAmpFraction)[cmod1u>readNoiseAmp*readNoiseAmpFraction]
-                cmod1u[cmod1u<readNoiseAmp*-readNoiseAmpFraction] = (readNoiseAmp*-readNoiseAmpFraction)[cmod1u<readNoiseAmp*-readNoiseAmpFraction]
-                cmod1u = cmod1u.reshape(imageIn.shape)
-                readNoiseAmp = readNoiseAmp.reshape(imageIn.shape)
-            else:
-                cmod1u[cmod1u>readNoiseAmp*readNoiseAmpFraction] = readNoiseAmp*readNoiseAmpFraction
-                cmod1u[cmod1u<readNoiseAmp*-readNoiseAmpFraction] = readNoiseAmp*-readNoiseAmpFraction
+            cmod1u[cmod1u>mod_clip] = mod_clip
+            cmod1u[cmod1u<-mod_clip] = -mod_clip
                 
             cmod2u = cmod2.copy()
-            if type(readNoiseAmp)==np.ndarray:
-                cmod2u = cmod2u.flatten()
-                readNoiseAmp = readNoiseAmp.flatten()
-                cmod2u[cmod2u>readNoiseAmp*readNoiseAmpFraction] = (readNoiseAmp*readNoiseAmpFraction)[cmod2u>readNoiseAmp*readNoiseAmpFraction]
-                cmod2u[cmod2u<readNoiseAmp*-readNoiseAmpFraction] = (readNoiseAmp*-readNoiseAmpFraction)[cmod2u<readNoiseAmp*-readNoiseAmpFraction]
-                cmod2u = cmod2u.reshape(imageIn.shape)
-                readNoiseAmp = readNoiseAmp.reshape(imageIn.shape)          
-            else:
-                cmod2u[cmod2u>readNoiseAmp*readNoiseAmpFraction] = readNoiseAmp*readNoiseAmpFraction
-                cmod2u[cmod2u<readNoiseAmp*-readNoiseAmpFraction] = readNoiseAmp*-readNoiseAmpFraction
-                
+            cmod2u[cmod2u>mod_clip] = mod_clip
+            cmod2u[cmod2u<-mod_clip] = -mod_clip
+
+        #calulate weight parameters for each comparison (these were taken from the STScI code)
         readNoiseAmp2 = readNoiseAmp**2
         w0 =     dval0 * dval0 / (dval0 * dval0 + 4.0 * readNoiseAmp2)
         w9 =     dval9 * dval9 / (dval9 * dval9 + 18.0 * readNoiseAmp2)
-        w1 = 4 * readNoiseAmp2 / (dmod1 * dmod1 + 4.0 * readNoiseAmp2)
-        w2 = 4 * readNoiseAmp2 / (dmod2 * dmod2 + 4.0 * readNoiseAmp2)
+        wr1 = 4 * readNoiseAmp2 / (dmod1 * dmod1 + 4.0 * readNoiseAmp2)
+        wr2 = 4 * readNoiseAmp2 / (dmod2 * dmod2 + 4.0 * readNoiseAmp2)
         if self.smoothCol:
             wc1 = 4 * readNoiseAmp2 / (cmod1 * cmod1 + 4.0 * readNoiseAmp2)
             wc2 = 4 * readNoiseAmp2 / (cmod2 * cmod2 + 4.0 * readNoiseAmp2)    
-            
+
+        #return the appropriately-modified array (which can be sent to the next S+R iteration)
         if self.smoothCol:
-            return  (dval0u * w0 / 6) + (dval9u * w9 / 6) +(dmod1u * w1 / 6) + (dmod2u * w2 / 6) +(cmod1u * wc1 / 6) + (cmod2u * wc2 / 6)
+            return  (dval0u*w0 + dval9u*w9 + dmod1u*wr1 + dmod2u*wr2 + cmod1u*wc1 + cmod2u*wc2) / 6 
         else:
-            return  (dval0u * w0 * 0.25) + (dval9u * w9 * 0.25) +(dmod1u * w1 * 0.25) + (dmod2u * w2 * 0.25)
+            return  (dval0u*w0 + dval9u*w9 + dmod1u*wr1 + dmod2u*wr2) / 4
 
     ###############
     ###############
