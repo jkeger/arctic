@@ -1,5 +1,12 @@
 import numpy as np
-import arcticpy as ac
+#import arcticpy as ac
+
+try:
+    from arcticpy import wrapper as w
+except ImportError:
+    import wrapper as w
+
+from arcticpy.cti import add_cti,remove_cti
 import matplotlib as mpl
 from scipy.optimize import curve_fit 
 
@@ -177,7 +184,7 @@ class ReadNoise:
         '''
         Function for generating a model of read noise in an image, using the level specified in the
         initial ReadNoise call. Once modeled, the read noise component is separated from the data, 
-        leaving a smooth "S" component and a read-noise-only "R" component. The S somponent can then 
+        leaving a smooth "S" component and a read-noise-only "R" component. The S component can then 
         be CTI-corrected and recombined with the R model to minimise residual covariance in the image.
 
         Parameters
@@ -605,7 +612,7 @@ class ReadNoise:
         Estimate a covariance matrix for an optimising simulation, assuming the sky/noise frames have already been created
         '''
         #add CTI effects to skyFrame
-        ctiTrailedFrame = ac.add_cti(skyFrame,**kwargs)
+        ctiTrailedFrame = add_cti(skyFrame,**kwargs)
         #add read noise to CTI-trailed image
         readNoiseAddedFrame = ctiTrailedFrame + noiseFrame
         #do S+R routine
@@ -615,7 +622,7 @@ class ReadNoise:
         ##rFrame*=sr_fraction
         ##sFrame-=rFrame 
         #clean CTI from S frame
-        ctiCorrectedFrame = ac.remove_cti(sFrame,1,**kwargs)
+        ctiCorrectedFrame = remove_cti(sFrame,1,**kwargs)
         #re-add R frame to correction
         outputFrame = ctiCorrectedFrame + rFrame
 

@@ -1091,3 +1091,31 @@ if __name__ == "__main__":
             print_help()
     except IndexError:
         print_help()
+
+class testReadNoise:
+
+    def test_noiseEstimation():
+        #make simple "sky" and "noise" frames and combine them
+        sky = array([[104.62689576,  96.26344068, 102.05736548, 76.16124587, 107.55689551],
+                     [ 96.87789779,  87.37248667, 110.70696472, 112.3185982 , 84.7109744 ],
+                     [104.06312714,  99.2960313 , 105.16551541,  97.52700805, 104.66187477],
+                     [100.90670311, 108.95078214, 100.96009345, 100.06043671, 92.82319682],
+                     [ 87.42418643, 109.87867837, 108.59791761, 102.64102994, 77.73118275]])
+        noise = np. array([[ 8.21416447, -4.40936237, -1.18755795,  0.06791093, -2.33996983],
+                           [ 4.93207717,  6.17463103, -3.60709428,  7.50694942, -2.27221275],
+                           [ 0.63142708,  4.19195127,  4.99175746,  6.83683726, -6.91249208],
+                           [-1.50630185,  1.91698306,  6.03575168, 11.84120206,  1.78779769],
+                           [ 0.21060601,  4.81669569,  2.89002324, -2.14453015, -1.87141227]])
+        combo = sky+noise
+
+        #create a read_noise object with sigma_noise == 4.5 electrons (matches input noise model)
+        testRN = cti.read_noise.ReadNoise(4.5)
+
+        #separate combination into S ("smooth") + R ("readnoise") components
+        S,R = testRN.generate_SR_frames_from_image(combo)
+
+        #check that S+R components are close to input images (within typical simulation noise limits)
+        assert abs(np.mean(R) - np.mean(noise)) < 2
+        assert abs(np.std(R) - np.std(noise)) <= 0.0001
+        assert abs(np.mean(S) - np.mean(sky)) < 2
+        assert abs(np.std(S) - np.std(sky)) < 1
