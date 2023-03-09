@@ -8,6 +8,7 @@ except ImportError:
 
 from arcticpy.cti import add_cti,remove_cti
 import matplotlib as mpl
+import numpy as np
 from scipy.optimize import curve_fit 
 
 """
@@ -451,7 +452,7 @@ class ReadNoise:
     #BACKGROUND FUNCTIONS
     #
     ###############
-    def _determine_noise_model(self, imageIn, imageOut):
+    def _determine_noise_model(self, imageIn: np.ndarray, imageOut: np.ndarray):
         '''
         Method for estimating readnoise on image (in S+R fashion)
         assumes parallel+serial CTI trailing by default
@@ -484,28 +485,27 @@ class ReadNoise:
 
         Note: all of these comparisons *should* be done with python broadcasting tricks...but I'm not sure this is actually the case
         '''
-        #initialize dval0 comparison
+        # initialize dval0 comparison
         dval0 = imageIn - imageOut
 
-        #set the clipped dval0 comparison
-        #note, this clipping is more stringent than the others
+        # set the clipped dval0 comparison
+        # note, this clipping is more stringent than the others
         dval0u = np.clip(dval0, -1, 1)
 
-        #initialize dval9 value and count (average will be (summed value)/(summed count))
-        dval9 = np.zeros(imageIn.shape)
+        # initialize dval9 value and count (average will be (summed value)/(summed count))
+        dval9 = dval0.copy()
         
-        #do the dval9 calculation
-        dval9[:-1,:-1]+=(dval0[1: ,1: ]) # comparison with bottom-left neighbour
-        dval9[:-1,:  ]+=(dval0[1: ,:  ]) # comparison with bottom-central neighbour
-        dval9[:-1,1: ]+=(dval0[1: ,:-1]) # comparison with bottom-right neighbour
-        dval9[:  ,:-1]+=(dval0[:  ,1: ]) # comparison with middle-left neighbour
-        dval9[:  ,:  ]+=(dval0[:  ,:  ]) # ...
-        dval9[:  ,1: ]+=(dval0[:  ,:-1])
-        dval9[1: ,:-1]+=(dval0[:-1,1: ])
-        dval9[1: ,:  ]+=(dval0[:-1,:  ])
-        dval9[1: ,1: ]+=(dval0[:-1,:-1])
+        # do the dval9 calculation
+        dval9[:-1, :-1] += dval0[1:, 1:]  # comparison with bottom-left neighbour
+        dval9[:-1, :] += dval0[1: ,:]  # comparison with bottom-central neighbour
+        dval9[:-1, 1:] += dval0[1:, :-1]  # comparison with bottom-right neighbour
+        dval9[:, :-1] += dval0[:, 1:]  # comparison with middle-left neighbour
+        dval9[:, 1:] += dval0[:, :-1]
+        dval9[1:, :-1] += dval0[:-1, 1:]
+        dval9[1:, :] += dval0[:-1, :]
+        dval9[1:, 1:] += dval0[:-1, :-1]
 
-        #get the dval9 average
+        # get the dval9 average
         dval9[1:-1,1:-1] /= 9
         # edges (excl. corners)
         dval9[1:-1,0] /= 6
@@ -518,37 +518,37 @@ class ReadNoise:
         dval9[0, -1] /= 4
         dval9[-1, -1] /= 4
 
-        #set the clipping modifier
-        #limit any difference to be at most the 1-sigma readnoise value (readNoiseAmp) scaled by a preset modifier (readNoiseAmpFraction) -- currently hard-coded to 0.2
+        # set the clipping modifier
+        # limit any difference to be at most the 1-sigma readnoise value (readNoiseAmp) scaled by a preset modifier (readNoiseAmpFraction) -- currently hard-coded to 0.2
         readNoiseAmpFraction = self.ampScale
         mod_clip = readNoiseAmp * readNoiseAmpFraction 
 
-        #set the clipped dval9 comparison
+        # set the clipped dval9 comparison
         dval9u = np.clip(dval9, -mod_clip, mod_clip)
 
-        #initialise and set the dmod comparisons
+        # initialise and set the dmod comparisons
         dmod1 = np.zeros(imageIn.shape)
         dmod1[1:,:] = imageOut[:-1,:] - imageOut[1:,:]
         dmod2 = np.zeros(imageIn.shape)
         dmod2[:-1,:] = imageOut[1:,:] - imageOut[:-1,:]
 
-        #if specified, also initialise and set the cmod comparions
+        # if specified, also initialise and set the cmod comparions
         if self.smoothCol:
             cmod1 = np.zeros(imageIn.shape)
             cmod1[:,1:] = imageOut[:,:-1] - imageOut[:,1:]
             cmod2 = np.zeros(imageIn.shape)
             cmod2[:,:-1] = imageOut[:,1:] - imageOut[:,:-1]
 
-        #set the clipped dmod values
+        # set the clipped dmod values
         dmod1u = np.clip(dmod1, -mod_clip, mod_clip)
         dmod2u = np.clip(dmod2, -mod_clip, mod_clip)
             
-        #if specified, also set the clipped cmod values
+        # if specified, also set the clipped cmod values
         if self.smoothCol:
             cmod1u = np.clip(cmod1, -mod_clip, mod_clip)
             cmod2u = np.clip(cmod2, -mod_clip, mod_clip)
 
-        #calulate weight parameters for each comparison (these were taken from the STScI code)
+        # calulate weight parameters for each comparison (these were taken from the STScI code)
         readNoiseAmp2 = readNoiseAmp**2
         dval0u *= np.square(dval0) / (np.square(dval0) + 4.0 * readNoiseAmp2)
         dval9u *= np.square(dval9) / (np.square(dval9) + 18.0 * readNoiseAmp2)
@@ -558,7 +558,7 @@ class ReadNoise:
             cmod1u = 4 * readNoiseAmp2 / (np.square(cmod1) + 4.0 * readNoiseAmp2)
             cmod2u = 4 * readNoiseAmp2 / (np.square(cmod2) + 4.0 * readNoiseAmp2)    
 
-        #return the appropriately-modified array (which can be sent to the next S+R iteration)
+        # return the appropriately-modified array (which can be sent to the next S+R iteration)
         if self.smoothCol:
             return  (dval0u + dval9u + dmod1u + dmod2u + cmod1u + cmod2u) / 6 
         else:
