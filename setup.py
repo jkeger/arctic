@@ -56,5 +56,7 @@ setup(
         extensions,
         compiler_directives={"language_level": "3"}
     ),
+    packages=['arcticpy'],
+    package_dir={'arcticpy': dir_wrapper},
     headers=ext_headers,  # currently ignored (?)
 )
