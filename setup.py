@@ -32,8 +32,8 @@ for root, dirs, files in os.walk(dir_wrapper, topdown=False):
             os.remove(file)
 
 # Build
-if "CC" not in os.environ:
-    os.environ["CC"] = "g++"
+#if "CC" not in os.environ:
+#    os.environ["CC"] = "g++"
 
 ext_headers = [os.path.join(dir_include, header) for header in os.listdir(dir_include)]
 ext_sources = [os.path.join(dir_src, src) for src in os.listdir(dir_src)]
@@ -46,8 +46,16 @@ extensions = [
         libraries=["gsl"],
         runtime_library_dirs=[dir_gsl_lib],
         include_dirs=[dir_wrapper_include, dir_include, np.get_include(), dir_gsl_include],
-        extra_compile_args=["-std=c++17", "-O3"],
+        extra_compile_args=["-std=c++17", "-O3", "-fopenmp"],
+        extra_link_args=["-fopenmp"],
         define_macros=[('NPY_NO_DEPRECATED_API', 0)],
+    ),
+    Extension(
+        'read_noise_c',
+        sources=[os.path.join(dir_wrapper, "read_noise_wrapper.pyx"), os.path.join(dir_wrapper, "read_noise.c")],
+        include_dirs=[np.get_include()],
+        extra_compile_args=["-O3", "-fopenmp"],
+        extra_link_args=["-fopenmp"]
     ),
 ]
 
@@ -56,5 +64,7 @@ setup(
         extensions,
         compiler_directives={"language_level": "3"}
     ),
+    packages=['arcticpy'],
+    package_dir={'arcticpy': dir_wrapper},
     headers=ext_headers,  # currently ignored (?)
 )
