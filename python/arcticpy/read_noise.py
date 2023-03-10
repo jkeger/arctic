@@ -555,8 +555,8 @@ class ReadNoise:
         dmod1u *= 4 * readNoiseAmp2 / (np.square(dmod1) + 4.0 * readNoiseAmp2)
         dmod2u *= 4 * readNoiseAmp2 / (np.square(dmod2) + 4.0 * readNoiseAmp2)
         if self.smoothCol:
-            cmod1u = 4 * readNoiseAmp2 / (np.square(cmod1) + 4.0 * readNoiseAmp2)
-            cmod2u = 4 * readNoiseAmp2 / (np.square(cmod2) + 4.0 * readNoiseAmp2)    
+            cmod1u *= 4 * readNoiseAmp2 / (np.square(cmod1) + 4.0 * readNoiseAmp2)
+            cmod2u *= 4 * readNoiseAmp2 / (np.square(cmod2) + 4.0 * readNoiseAmp2)    
 
         # return the appropriately-modified array (which can be sent to the next S+R iteration)
         if self.smoothCol:
