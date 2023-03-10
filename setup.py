@@ -32,8 +32,8 @@ for root, dirs, files in os.walk(dir_wrapper, topdown=False):
             os.remove(file)
 
 # Build
-if "CC" not in os.environ:
-    os.environ["CC"] = "g++"
+#if "CC" not in os.environ:
+#    os.environ["CC"] = "g++"
 
 ext_headers = [os.path.join(dir_include, header) for header in os.listdir(dir_include)]
 ext_sources = [os.path.join(dir_src, src) for src in os.listdir(dir_src)]
