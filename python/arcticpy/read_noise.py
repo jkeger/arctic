@@ -1,5 +1,6 @@
 import numpy as np
 #import arcticpy as ac
+from read_noise_c import determine_noise_model_c
 
 try:
     from arcticpy import wrapper as w
@@ -9,7 +10,7 @@ except ImportError:
 from arcticpy.cti import add_cti,remove_cti
 import matplotlib as mpl
 import numpy as np
-from scipy.optimize import curve_fit 
+from scipy.optimize import curve_fit
 
 """
 CTI correction moves trailed electrons back to their proper location, but also
@@ -457,9 +458,13 @@ class ReadNoise:
         Method for estimating readnoise on image (in S+R fashion)
         assumes parallel+serial CTI trailing by default
         '''
+
+        # the following line returns the result from the C implementation instead (comment out to switch back to native python code)
+        return determine_noise_model_c(imageIn, imageOut, self.sigmaRN, self.ampScale, self.smoothCol)
+        
         #set target read noise amplitude to be equal to the value specified in the input function 
         readNoiseAmp = self.sigmaRN
-
+        
         '''
         Define up the "comparison" variables for each S+R realisation. In every run, the current value of each pixel in the array is compared 
         to its neighbours; these comparisons will determine how much the pixel value will change in the next interation of the loop. There are 
