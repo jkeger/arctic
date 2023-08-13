@@ -9,6 +9,7 @@ from arcticpy.traps import (
     TrapSlowCaptureContinuum,
 )
 from arcticpy.read_noise import ReadNoise
+from arcticpy.vv_test import VVTestBench, VVResult
 try:
     from arcticpy.wrapper import (
         cy_print_array as print_array,

@@ -13,7 +13,6 @@ from arcticpy.traps import (
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
-#from arcticpy.src.pixel_bounce import add_pixel_bounce
 from arcticpy.pixel_bounce import PixelBounce, add_pixel_bounce
 
 
@@ -543,23 +542,35 @@ def CTI_model_for_HST_ACS(date):
     trap_densities = relative_densities * total_trap_density
 
     # arctic objects
-    roe = ROE(
+    # There is CTI only in the parallel direction, so don't worry about e.g. serial prescan
+    parallel_roe = ROE(
         dwell_times=[1.0],
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
+        overscan_start=2048
+    )
+    serial_roe = ROE(
+        dwell_times=[1.0],
+        empty_traps_between_columns=True,
+        empty_traps_for_first_transfers=False,
+        force_release_away_from_readout=True,
+        use_integer_express_matrix=False,
+        prescan_length=24
     )
 
     # Single-phase CCD
-    ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
+    parallel_ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
+    serial_ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
 
     # Instant-capture traps
-    traps = [
+    parallel_traps = [
         TrapInstantCapture(
             density=trap_densities[i], release_timescale=release_times[i]
         )
         for i in range(len(trap_densities))
     ]
+    serial_traps = None
 
-    return roe, ccd, traps
+    return parallel_roe, parallel_ccd, parallel_traps, serial_roe, serial_ccd, serial_traps

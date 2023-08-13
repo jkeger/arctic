@@ -17,7 +17,7 @@ image_A, image_B, image_C, image_D = [
 
 # Automatic CTI model  (see CTI_model_for_HST_ACS() in arcticpy/src/cti.py)
 date = 2400000.5 + image_A.header.modified_julian_date
-roe, ccd, traps = arctic.CTI_model_for_HST_ACS(date)
+parallel_roe, parallel_ccd, parallel_traps, serial_roe, serial_ccd, serial_traps = arctic.CTI_model_for_HST_ACS(date)
 
 # Remove CTI  (see remove_cti() in src/cti.cpp)
 start = time.time_ns()
@@ -25,9 +25,9 @@ image_out_A, image_out_B, image_out_C, image_out_D = [
     arctic.remove_cti(
            image=image,
            n_iterations=5,
-           parallel_roe=roe,
-           parallel_ccd=ccd,
-           parallel_traps=traps,
+           parallel_roe=parallel_roe,
+           parallel_ccd=parallel_ccd,
+           parallel_traps=parallel_traps,
            parallel_express=5,
            verbosity=1,
     )
@@ -37,7 +37,7 @@ print(f"Time taken = {((time.time_ns() - start)/1e9)} s")
 
 # Save the corrected image
 aa.acs.output_quadrants_to_fits(
-    file_path=image_path + "_out.fits",
+    file_path=image_path + "_cti.fits",
     quadrant_a=image_out_A,
     quadrant_b=image_out_B,
     quadrant_c=image_out_C,
