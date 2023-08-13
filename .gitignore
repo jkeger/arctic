@@ -17,7 +17,7 @@ gsl/
 *.tar.gz
 *.bck
 
-*test*.*
+*tst*.*
 gmon.out
 callgrind.out.*
 hst_acs_10_col.txt
