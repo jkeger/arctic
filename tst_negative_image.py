@@ -19,17 +19,19 @@ parallel_express=0
 #
 # Set up test image
 #
-image_model = np.zeros((50,1))+0
+image_model = np.zeros((60,1))+0
 image_model[3:8,:]+=70
 #image_model[12:17,:]-=20
 #image_model[13:17,:]-=50
-image_model[12:17,:]-=70
+image_model[10:15,:]-=70
 #image_model[500:505,:]+=700
 #image_model[1000:1005,:]+=700
 #image_model[1500:1505,:]+=700
+image_model[33:38,:]-=60
+image_model[42:47,:]+=60
 
 parallel_traps = [
-    arcticpy.TrapInstantCapture(density=10.0, release_timescale=(-1/np.log(0.5))),
+    arcticpy.TrapInstantCapture(density=100.0, release_timescale=(-1/np.log(0.5))),
     #arcticpy.TrapInstantCapture(density=10.0, release_timescale=100),
     #arcticpy.TrapSlowCapture(density=10.0, release_timescale=(-1/np.log(0.5)), capture_timescale=0.001),
     #arcticpy.TrapSlowCapture(density=10.0, release_timescale=(4), capture_timescale=0.001),
@@ -40,7 +42,7 @@ parallel_traps = [
 parallel_ccd = arcticpy.CCD(full_well_depth=1000, 
                             well_fill_power=1.0, 
                             well_notch_depth=0.0,
-                            first_electron_fill=0.0)
+                            first_electron_fill=0.7)
 parallel_roe = arcticpy.ROE(
     empty_traps_between_columns=True,
     empty_traps_for_first_transfers=True,

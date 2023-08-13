@@ -14,6 +14,18 @@ class CCDPhase(Dictable):
         self.well_fill_power = well_fill_power
         self.first_electron_fill = first_electron_fill
 
+    def volume(self, n_e):
+        # Fraction of a pixel volume that is occupied by n_e electrons
+        # Mirrors the ("volume-driven") model used by ArCTIc in ccd.cpp
+        # Provided here for convenience
+        well_range = self.full_well_depth - self.well_notch_depth
+        volume = ( self.first_electron_fill 
+            + (1 - self.first_electron_fill) 
+            * np.clip((n_e - self.well_notch_depth) / well_range ,
+            0, 1) ** self.well_fill_power
+        )
+        return volume  
+
 
 class CCD(object):
     def __init__(

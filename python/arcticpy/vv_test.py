@@ -3,17 +3,17 @@ import matplotlib.pyplot as plt
 import arcticpy as arctic
 import copy
 
-def frac_of_pixel_volume(n_e, ccd):
-    # Volume-driven model used by ArCTIc ccd.cpp for the fraction of a pixel volume filled by n_e electrons
-    well_range = ccd.full_well_depths[0] - ccd.well_notch_depths[0]
-    volume = min(max(((n_e - ccd.well_notch_depths[0]) / well_range ), 0), 1) ** ccd.well_fill_powers[0]
-    return ccd.first_electron_fills[0] + (1 - ccd.first_electron_fills[0]) * volume  
+#def frac_of_pixel_volume(n_e, ccd):
+#    # Volume-driven model used by ArCTIc ccd.cpp for the fraction of a pixel volume filled by n_e electrons
+#    well_range = ccd.full_well_depths[0] - ccd.well_notch_depths[0]
+#    volume = min(max(((n_e - ccd.well_notch_depths[0]) / well_range ), 0), 1) ** ccd.well_fill_powers[0]
+#    return ccd.first_electron_fills[0] + (1 - ccd.first_electron_fills[0]) * volume  
         
 class VVTestBench:
 
     """
-    Set up and carry out a 'Verification and Validation' test of the level of 
-    CTI trailing in an image, by fitting the trailing of sky background into 
+    Set up and carry out a 'Verification and Validation' EPER test of the level
+    of CTI trailing in an image, by fitting the trailing of sky background into 
     the overscan regions. Comparing the output before and after CTI correction
     can test that the CTI correction has worked (or at least improved) an image.
     The whole trail profile is not fitted (e.g. optimising the release times),
@@ -236,7 +236,7 @@ class VVTestBench:
             valid_pixels = np.ones_like(background_image, dtype=bool)
             for iteration in np.flip(np.arange(self.sigma_clipping_niter)):
                 background_level = ( np.median(background_image[valid_pixels]) )
-                background_rms = np.sqrt(np.mean( 
+                background_rms = np.sqrt(np.mean(
                     (background_image[valid_pixels] - background_level)**2  
                 ))
                 #tolerance = background_rms * ( self.sigma_clipping_threshold + iteration )
@@ -274,23 +274,21 @@ class VVTestBench:
         if self.sum_of_exponentials:
             # Simple, approximate analytic model of trail
             self.print("Generating sum-of-exponentials model of EPER trail")
-            traps_effect_on_final_pixel = ( y_roe.overscan_start * (
-                frac_of_pixel_volume(model_pre_cti[y_roe.overscan_start-1],y_ccd) - 
-                frac_of_pixel_volume(model_bias,y_ccd)
-            ))
+            traps_effect_on_final_pixel = y_roe.overscan_start * (
+                y_ccd.phases[0].volume(model_pre_cti[y_roe.overscan_start-1]) - y_ccd.phases[0].volume(model_bias)
+            )
             model_overscan = np.full( len(overscan), model_bias )
             for trap in y_traps:
-                model_overscan += ( trap.density * traps_effect_on_final_pixel * 
-                    np.exp((-np.arange(len(overscan))) / trap.release_timescale) * 
-                    (1 - np.exp(-1 / trap.release_timescale))
+                model_overscan += ( trap.density * traps_effect_on_final_pixel
+                    * np.exp((-np.arange(len(overscan))) / trap.release_timescale)
+                    * (1 - np.exp(-1 / trap.release_timescale))
                 )
         else:
             # Use arCTIc to trail the pre-CTI data
             # Start trailing a few pixels early, to reach stead state with traps filled
             self.print("Using arCTIc to generate model of EPER trail")
-            n_traps_seen_by_final_pixel = ( 
-                y_roe.overscan_start * model_trap_density * 
-                frac_of_pixel_volume(model_pre_cti[y_roe.overscan_start-1],y_ccd) 
+            n_traps_seen_by_final_pixel = ( y_roe.overscan_start * model_trap_density
+                * y_ccd.phases[0].volume(model_pre_cti[y_roe.overscan_start-1]) 
             )
             nrows_buffer = 10 # Minimum number of pixels in buffer 
             while np.sum(model_pre_cti[y_roe.overscan_start-nrows_buffer:y_roe.overscan_start]) < ( 
@@ -326,9 +324,9 @@ class VVTestBench:
        
         # Interpret the best-fit coefficients properly, assuming volume-driven CTI
         best_fit_bias = best_fit_coefficients[1] #+ best_fit_coefficients[1] * model_bias 
-        model_volume_filled = frac_of_pixel_volume(model_pre_cti[y_roe.overscan_start-1],y_ccd)
-        model_volume_active = model_volume_filled - frac_of_pixel_volume(model_bias,y_ccd) 
-        best_fit_volume_active = model_volume_filled - frac_of_pixel_volume(best_fit_bias,y_ccd)
+        model_volume_filled = y_ccd.phases[0].volume(model_pre_cti[y_roe.overscan_start-1])
+        model_volume_active = model_volume_filled - y_ccd.phases[0].volume(model_bias) 
+        best_fit_volume_active = model_volume_filled - y_ccd.phases[0].volume(best_fit_bias)
         # Account for fitted trail amplitude and fitted volume of pixel that it came from
         best_fit_trap_density = model_trap_density * (
             best_fit_coefficients[0] * ( model_volume_active / best_fit_volume_active )
@@ -384,7 +382,8 @@ class VVResult1D(object):
         best_fit_trap_density = None
     ):
         """
-        A simple class merely containing the result of a V&V test
+        A simple class merely containing the result of a V&V test,
+        and a function to plot the EPER trail with fit
         """
         self.valid_columns = valid_columns
         self.pixels_pre_cti = pixels_pre_cti
@@ -416,27 +415,12 @@ class VVResult(object):
         
 
 
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
 """
 Standalone functions to call the above, but mirroring syntax of add_cti() and remove_cti()
-
+"""
 def vv_test(
     image,
-    vv_testbench = vv_testbench,
+    vv_testbench = None,
     parallel_ccd = None,
     parallel_roe = None,
     parallel_traps = None,
@@ -460,15 +444,27 @@ def vv_test(
     serial_fit_bias = None,
     serial_iterate_bias = None
 ):
-    if pixel_bounce is not None:
-        image = pixel_bounce.add_pixel_bounce(
-            image,
-            parallel_window_start=parallel_window_start,
-            parallel_window_stop=parallel_window_stop,
-            serial_window_start=serial_window_start,
-            serial_window_stop=serial_window_stop,
-            verbosity=verbosity
+    if vv_testbench is None:
+        vv_testbench=arctic.VVTestBench(
+            parallel_roe=parallel_roe, 
+            parallel_ccd=parallel_ccd, 
+            parallel_traps=parallel_traps, 
+            serial_roe=serial_roe, 
+            serial_ccd=serial_ccd, 
+            serial_traps=serial_traps, 
+            sum_of_exponentials=sum_of_exponentials,
+            verbose=verbose
         )
-    return image
-   
-"""
+    result=vv.test(image,
+        parallel_valid_columns  = parallel_valid_columns,
+        parallel_pixels_pre_cti = parallel_pixels_pre_cti,
+        parallel_model_bias     = parallel_model_bias,
+        parallel_fit_bias       = parallel_fit_bias,
+        parallel_iterate_bias   = parallel_iterate_bias,
+        serial_valid_columns    = serial_valid_columns,
+        serial_pixels_pre_cti   = serial_pixels_pre_cti,
+        serial_model_bias       = serial_model_bias,
+        serial_fit_bias         = serial_fit_bias,
+        serial_iterate_bias     = serial_iterate_bias
+    )  
+    return result
