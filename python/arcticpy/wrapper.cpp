@@ -23,27 +23,25 @@
             "-O3"
         ],
         "include_dirs": [
-            "./include/",
-            "/home/jammy/venvs/PyAuto/lib/python3.10/site-packages/numpy/core/include",
-            "./python/arcticpy/include/"
+            "python/arcticpy/include",
+            "include/",
+            "/home/jammy/venvs/PyAuto/lib/python3.10/site-packages/numpy/core/include"
         ],
         "language": "c++",
-        "libraries": [
-            "arctic"
-        ],
-        "library_dirs": [
-            "./"
-        ],
-        "name": "wrapper",
-        "runtime_library_dirs": [
-            "./"
-        ],
+        "name": "arcticpy.wrapper",
         "sources": [
-            "./python/arcticpy/wrapper.pyx",
-            "./python/arcticpy/src/interface.cpp"
+            "python/arcticpy/wrapper.pyx",
+            "python/arcticpy/src/interface.cpp",
+            "src/ccd.cpp",
+            "src/cti.cpp",
+            "src/main.cpp",
+            "src/roe.cpp",
+            "src/traps.cpp",
+            "src/trap_managers.cpp",
+            "src/util.cpp"
         ]
     },
-    "module_name": "wrapper"
+    "module_name": "arcticpy.wrapper"
 }
 END: Cython Metadata */
 
@@ -805,8 +803,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__wrapper
-#define __PYX_HAVE_API__wrapper
+#define __PYX_HAVE__arcticpy__wrapper
+#define __PYX_HAVE_API__arcticpy__wrapper
 /* Early includes */
 #include <string.h>
 #include <stdio.h>
@@ -1933,18 +1931,18 @@ static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 
 /* Module declarations from 'libcpp.string' */
 
-/* Module declarations from 'wrapper' */
+/* Module declarations from 'arcticpy.wrapper' */
 static CYTHON_INLINE PyObject *__pyx_convert_PyObject_string_to_py_std__in_string(std::string const &); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyUnicode_string_to_py_std__in_string(std::string const &); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyStr_string_to_py_std__in_string(std::string const &); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyBytes_string_to_py_std__in_string(std::string const &); /*proto*/
 static CYTHON_INLINE PyObject *__pyx_convert_PyByteArray_string_to_py_std__in_string(std::string const &); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_double_t = { "double_t", NULL, sizeof(__pyx_t_5numpy_double_t), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "wrapper"
-extern int __pyx_module_is_main_wrapper;
-int __pyx_module_is_main_wrapper = 0;
+#define __Pyx_MODULE_NAME "arcticpy.wrapper"
+extern int __pyx_module_is_main_arcticpy__wrapper;
+int __pyx_module_is_main_arcticpy__wrapper = 0;
 
-/* Implementation of 'wrapper' */
+/* Implementation of 'arcticpy.wrapper' */
 static PyObject *__pyx_builtin_ImportError;
 static const char __pyx_k_np[] = "np";
 static const char __pyx_k_main[] = "__main__";
@@ -1955,7 +1953,6 @@ static const char __pyx_k_flags[] = "flags";
 static const char __pyx_k_image[] = "image";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_import[] = "__import__";
-static const char __pyx_k_wrapper[] = "wrapper";
 static const char __pyx_k_iteration[] = "iteration";
 static const char __pyx_k_verbosity[] = "verbosity";
 static const char __pyx_k_cy_add_cti[] = "cy_add_cti";
@@ -1965,6 +1962,7 @@ static const char __pyx_k_cy_print_array[] = "cy_print_array";
 static const char __pyx_k_serial_express[] = "serial_express";
 static const char __pyx_k_serial_n_pumps[] = "serial_n_pumps";
 static const char __pyx_k_serial_roe_type[] = "serial_roe_type";
+static const char __pyx_k_arcticpy_wrapper[] = "arcticpy.wrapper";
 static const char __pyx_k_check_contiguous[] = "check_contiguous";
 static const char __pyx_k_cy_print_version[] = "cy_print_version";
 static const char __pyx_k_parallel_express[] = "parallel_express";
@@ -2035,6 +2033,7 @@ static const char __pyx_k_serial_use_integer_express_matri[] = "serial_use_integ
 static PyObject *__pyx_n_u_C_CONTIGUOUS;
 static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_n_s_allow_negative_pixels;
+static PyObject *__pyx_n_s_arcticpy_wrapper;
 static PyObject *__pyx_n_s_array;
 static PyObject *__pyx_n_s_ascontiguousarray;
 static PyObject *__pyx_n_s_check_contiguous;
@@ -2117,13 +2116,12 @@ static PyObject *__pyx_n_s_serial_window_start;
 static PyObject *__pyx_n_s_serial_window_stop;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_verbosity;
-static PyObject *__pyx_n_s_wrapper;
-static PyObject *__pyx_pf_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_array); /* proto */
-static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array); /* proto */
-static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array); /* proto */
-static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_image, PyArrayObject *__pyx_v_parallel_dwell_times, int __pyx_v_parallel_prescan_offset, int __pyx_v_parallel_overscan_start, int __pyx_v_parallel_empty_traps_between_columns, int __pyx_v_parallel_empty_traps_for_first_transfers, int __pyx_v_parallel_force_release_away_from_readout, int __pyx_v_parallel_use_integer_express_matrix, int __pyx_v_parallel_n_pumps, int __pyx_v_parallel_roe_type, PyArrayObject *__pyx_v_parallel_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_parallel_full_well_depths, PyArrayObject *__pyx_v_parallel_well_notch_depths, PyArrayObject *__pyx_v_parallel_well_fill_powers, PyArrayObject *__pyx_v_parallel_first_electron_fills, PyArrayObject *__pyx_v_parallel_trap_densities, PyArrayObject *__pyx_v_parallel_trap_release_timescales, PyArrayObject *__pyx_v_parallel_trap_third_params, PyArrayObject *__pyx_v_parallel_trap_fourth_params, int __pyx_v_parallel_n_traps_ic, int __pyx_v_parallel_n_traps_sc, int __pyx_v_parallel_n_traps_ic_co, int __pyx_v_parallel_n_traps_sc_co, int __pyx_v_parallel_express, int __pyx_v_parallel_window_offset, int __pyx_v_parallel_window_start, int __pyx_v_parallel_window_stop, int __pyx_v_parallel_time_start, int __pyx_v_parallel_time_stop, PyArrayObject *__pyx_v_parallel_prune_n_electrons, int __pyx_v_parallel_prune_frequency, PyArrayObject *__pyx_v_serial_dwell_times, int __pyx_v_serial_prescan_offset, int __pyx_v_serial_overscan_start, int __pyx_v_serial_empty_traps_between_columns, int __pyx_v_serial_empty_traps_for_first_transfers, int __pyx_v_serial_force_release_away_from_readout, int __pyx_v_serial_use_integer_express_matrix, int __pyx_v_serial_n_pumps, int __pyx_v_serial_roe_type, PyArrayObject *__pyx_v_serial_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_serial_full_well_depths, PyArrayObject *__pyx_v_serial_well_notch_depths, PyArrayObject *__pyx_v_serial_well_fill_powers, PyArrayObject *__pyx_v_serial_first_electron_fills, PyArrayObject *__pyx_v_serial_trap_densities, PyArrayObject *__pyx_v_serial_trap_release_timescales, PyArrayObject *__pyx_v_serial_trap_third_params, PyArrayObject *__pyx_v_serial_trap_fourth_params, int __pyx_v_serial_n_traps_ic, int __pyx_v_serial_n_traps_sc, int __pyx_v_serial_n_traps_ic_co, int __pyx_v_serial_n_traps_sc_co, int __pyx_v_serial_express, int __pyx_v_serial_window_offset, int __pyx_v_serial_window_start, int __pyx_v_serial_window_stop, int __pyx_v_serial_time_start, int __pyx_v_serial_time_stop, PyArrayObject *__pyx_v_serial_prune_n_electrons, int __pyx_v_serial_prune_frequency, int __pyx_v_allow_negative_pixels, int __pyx_v_verbosity, int __pyx_v_iteration); /* proto */
+static PyObject *__pyx_pf_8arcticpy_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_8arcticpy_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
+static PyObject *__pyx_pf_8arcticpy_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_array); /* proto */
+static PyObject *__pyx_pf_8arcticpy_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array); /* proto */
+static PyObject *__pyx_pf_8arcticpy_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array); /* proto */
+static PyObject *__pyx_pf_8arcticpy_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_image, PyArrayObject *__pyx_v_parallel_dwell_times, int __pyx_v_parallel_prescan_offset, int __pyx_v_parallel_overscan_start, int __pyx_v_parallel_empty_traps_between_columns, int __pyx_v_parallel_empty_traps_for_first_transfers, int __pyx_v_parallel_force_release_away_from_readout, int __pyx_v_parallel_use_integer_express_matrix, int __pyx_v_parallel_n_pumps, int __pyx_v_parallel_roe_type, PyArrayObject *__pyx_v_parallel_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_parallel_full_well_depths, PyArrayObject *__pyx_v_parallel_well_notch_depths, PyArrayObject *__pyx_v_parallel_well_fill_powers, PyArrayObject *__pyx_v_parallel_first_electron_fills, PyArrayObject *__pyx_v_parallel_trap_densities, PyArrayObject *__pyx_v_parallel_trap_release_timescales, PyArrayObject *__pyx_v_parallel_trap_third_params, PyArrayObject *__pyx_v_parallel_trap_fourth_params, int __pyx_v_parallel_n_traps_ic, int __pyx_v_parallel_n_traps_sc, int __pyx_v_parallel_n_traps_ic_co, int __pyx_v_parallel_n_traps_sc_co, int __pyx_v_parallel_express, int __pyx_v_parallel_window_offset, int __pyx_v_parallel_window_start, int __pyx_v_parallel_window_stop, int __pyx_v_parallel_time_start, int __pyx_v_parallel_time_stop, PyArrayObject *__pyx_v_parallel_prune_n_electrons, int __pyx_v_parallel_prune_frequency, PyArrayObject *__pyx_v_serial_dwell_times, int __pyx_v_serial_prescan_offset, int __pyx_v_serial_overscan_start, int __pyx_v_serial_empty_traps_between_columns, int __pyx_v_serial_empty_traps_for_first_transfers, int __pyx_v_serial_force_release_away_from_readout, int __pyx_v_serial_use_integer_express_matrix, int __pyx_v_serial_n_pumps, int __pyx_v_serial_roe_type, PyArrayObject *__pyx_v_serial_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_serial_full_well_depths, PyArrayObject *__pyx_v_serial_well_notch_depths, PyArrayObject *__pyx_v_serial_well_fill_powers, PyArrayObject *__pyx_v_serial_first_electron_fills, PyArrayObject *__pyx_v_serial_trap_densities, PyArrayObject *__pyx_v_serial_trap_release_timescales, PyArrayObject *__pyx_v_serial_trap_third_params, PyArrayObject *__pyx_v_serial_trap_fourth_params, int __pyx_v_serial_n_traps_ic, int __pyx_v_serial_n_traps_sc, int __pyx_v_serial_n_traps_ic_co, int __pyx_v_serial_n_traps_sc_co, int __pyx_v_serial_express, int __pyx_v_serial_window_offset, int __pyx_v_serial_window_start, int __pyx_v_serial_window_stop, int __pyx_v_serial_time_start, int __pyx_v_serial_time_stop, PyArrayObject *__pyx_v_serial_prune_n_electrons, int __pyx_v_serial_prune_frequency, int __pyx_v_allow_negative_pixels, int __pyx_v_verbosity, int __pyx_v_iteration); /* proto */
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__5;
@@ -2138,7 +2136,7 @@ static PyObject *__pyx_codeobj__10;
 static PyObject *__pyx_codeobj__12;
 /* Late includes */
 
-/* "wrapper.pyx":105
+/* "arcticpy/wrapper.pyx":105
  * 
  * 
  * def cy_print_version():             # <<<<<<<<<<<<<<
@@ -2147,25 +2145,25 @@ static PyObject *__pyx_codeobj__12;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7wrapper_1cy_print_version(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyMethodDef __pyx_mdef_7wrapper_1cy_print_version = {"cy_print_version", (PyCFunction)__pyx_pw_7wrapper_1cy_print_version, METH_NOARGS, 0};
-static PyObject *__pyx_pw_7wrapper_1cy_print_version(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_8arcticpy_7wrapper_1cy_print_version(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyMethodDef __pyx_mdef_8arcticpy_7wrapper_1cy_print_version = {"cy_print_version", (PyCFunction)__pyx_pw_8arcticpy_7wrapper_1cy_print_version, METH_NOARGS, 0};
+static PyObject *__pyx_pw_8arcticpy_7wrapper_1cy_print_version(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cy_print_version (wrapper)", 0);
-  __pyx_r = __pyx_pf_7wrapper_cy_print_version(__pyx_self);
+  __pyx_r = __pyx_pf_8arcticpy_7wrapper_cy_print_version(__pyx_self);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_8arcticpy_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cy_print_version", 0);
 
-  /* "wrapper.pyx":106
+  /* "arcticpy/wrapper.pyx":106
  * 
  * def cy_print_version():
  *     print_version()             # <<<<<<<<<<<<<<
@@ -2174,7 +2172,7 @@ static PyObject *__pyx_pf_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__py
  */
   print_version();
 
-  /* "wrapper.pyx":105
+  /* "arcticpy/wrapper.pyx":105
  * 
  * 
  * def cy_print_version():             # <<<<<<<<<<<<<<
@@ -2189,7 +2187,7 @@ static PyObject *__pyx_pf_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__py
   return __pyx_r;
 }
 
-/* "wrapper.pyx":108
+/* "arcticpy/wrapper.pyx":108
  *     print_version()
  * 
  * def cy_version_arctic():             # <<<<<<<<<<<<<<
@@ -2198,20 +2196,20 @@ static PyObject *__pyx_pf_7wrapper_cy_print_version(CYTHON_UNUSED PyObject *__py
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7wrapper_3cy_version_arctic(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyMethodDef __pyx_mdef_7wrapper_3cy_version_arctic = {"cy_version_arctic", (PyCFunction)__pyx_pw_7wrapper_3cy_version_arctic, METH_NOARGS, 0};
-static PyObject *__pyx_pw_7wrapper_3cy_version_arctic(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_8arcticpy_7wrapper_3cy_version_arctic(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyMethodDef __pyx_mdef_8arcticpy_7wrapper_3cy_version_arctic = {"cy_version_arctic", (PyCFunction)__pyx_pw_8arcticpy_7wrapper_3cy_version_arctic, METH_NOARGS, 0};
+static PyObject *__pyx_pw_8arcticpy_7wrapper_3cy_version_arctic(PyObject *__pyx_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cy_version_arctic (wrapper)", 0);
-  __pyx_r = __pyx_pf_7wrapper_2cy_version_arctic(__pyx_self);
+  __pyx_r = __pyx_pf_8arcticpy_7wrapper_2cy_version_arctic(__pyx_self);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__pyx_self) {
+static PyObject *__pyx_pf_8arcticpy_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__pyx_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2220,7 +2218,7 @@ static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("cy_version_arctic", 0);
 
-  /* "wrapper.pyx":109
+  /* "arcticpy/wrapper.pyx":109
  * 
  * def cy_version_arctic():
  *     return version_arctic().decode("utf-8")             # <<<<<<<<<<<<<<
@@ -2234,7 +2232,7 @@ static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "wrapper.pyx":108
+  /* "arcticpy/wrapper.pyx":108
  *     print_version()
  * 
  * def cy_version_arctic():             # <<<<<<<<<<<<<<
@@ -2245,7 +2243,7 @@ static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("wrapper.cy_version_arctic", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("arcticpy.wrapper.cy_version_arctic", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2253,7 +2251,7 @@ static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "wrapper.pyx":111
+/* "arcticpy/wrapper.pyx":111
  *     return version_arctic().decode("utf-8")
  * 
  * def check_contiguous(array):             # <<<<<<<<<<<<<<
@@ -2262,21 +2260,21 @@ static PyObject *__pyx_pf_7wrapper_2cy_version_arctic(CYTHON_UNUSED PyObject *__
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7wrapper_5check_contiguous(PyObject *__pyx_self, PyObject *__pyx_v_array); /*proto*/
-static char __pyx_doc_7wrapper_4check_contiguous[] = " Make sure an array is contiguous and C-style. ";
-static PyMethodDef __pyx_mdef_7wrapper_5check_contiguous = {"check_contiguous", (PyCFunction)__pyx_pw_7wrapper_5check_contiguous, METH_O, __pyx_doc_7wrapper_4check_contiguous};
-static PyObject *__pyx_pw_7wrapper_5check_contiguous(PyObject *__pyx_self, PyObject *__pyx_v_array) {
+static PyObject *__pyx_pw_8arcticpy_7wrapper_5check_contiguous(PyObject *__pyx_self, PyObject *__pyx_v_array); /*proto*/
+static char __pyx_doc_8arcticpy_7wrapper_4check_contiguous[] = " Make sure an array is contiguous and C-style. ";
+static PyMethodDef __pyx_mdef_8arcticpy_7wrapper_5check_contiguous = {"check_contiguous", (PyCFunction)__pyx_pw_8arcticpy_7wrapper_5check_contiguous, METH_O, __pyx_doc_8arcticpy_7wrapper_4check_contiguous};
+static PyObject *__pyx_pw_8arcticpy_7wrapper_5check_contiguous(PyObject *__pyx_self, PyObject *__pyx_v_array) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("check_contiguous (wrapper)", 0);
-  __pyx_r = __pyx_pf_7wrapper_4check_contiguous(__pyx_self, ((PyObject *)__pyx_v_array));
+  __pyx_r = __pyx_pf_8arcticpy_7wrapper_4check_contiguous(__pyx_self, ((PyObject *)__pyx_v_array));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_array) {
+static PyObject *__pyx_pf_8arcticpy_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_array) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -2289,7 +2287,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("check_contiguous", 0);
 
-  /* "wrapper.pyx":113
+  /* "arcticpy/wrapper.pyx":113
  * def check_contiguous(array):
  *     """ Make sure an array is contiguous and C-style. """
  *     if not array.flags['C_CONTIGUOUS']:             # <<<<<<<<<<<<<<
@@ -2306,7 +2304,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
   __pyx_t_4 = ((!__pyx_t_3) != 0);
   if (__pyx_t_4) {
 
-    /* "wrapper.pyx":114
+    /* "arcticpy/wrapper.pyx":114
  *     """ Make sure an array is contiguous and C-style. """
  *     if not array.flags['C_CONTIGUOUS']:
  *         return np.ascontiguousarray(array)             # <<<<<<<<<<<<<<
@@ -2338,7 +2336,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "wrapper.pyx":113
+    /* "arcticpy/wrapper.pyx":113
  * def check_contiguous(array):
  *     """ Make sure an array is contiguous and C-style. """
  *     if not array.flags['C_CONTIGUOUS']:             # <<<<<<<<<<<<<<
@@ -2347,7 +2345,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
  */
   }
 
-  /* "wrapper.pyx":116
+  /* "arcticpy/wrapper.pyx":116
  *         return np.ascontiguousarray(array)
  *     else:
  *         return array             # <<<<<<<<<<<<<<
@@ -2361,7 +2359,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
     goto __pyx_L0;
   }
 
-  /* "wrapper.pyx":111
+  /* "arcticpy/wrapper.pyx":111
  *     return version_arctic().decode("utf-8")
  * 
  * def check_contiguous(array):             # <<<<<<<<<<<<<<
@@ -2374,7 +2372,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("wrapper.check_contiguous", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("arcticpy.wrapper.check_contiguous", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2382,7 +2380,7 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
   return __pyx_r;
 }
 
-/* "wrapper.pyx":119
+/* "arcticpy/wrapper.pyx":119
  * 
  * 
  * def cy_print_array(np.ndarray[np.double_t, ndim=1] array):             # <<<<<<<<<<<<<<
@@ -2391,9 +2389,9 @@ static PyObject *__pyx_pf_7wrapper_4check_contiguous(CYTHON_UNUSED PyObject *__p
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7wrapper_7cy_print_array(PyObject *__pyx_self, PyObject *__pyx_v_array); /*proto*/
-static PyMethodDef __pyx_mdef_7wrapper_7cy_print_array = {"cy_print_array", (PyCFunction)__pyx_pw_7wrapper_7cy_print_array, METH_O, 0};
-static PyObject *__pyx_pw_7wrapper_7cy_print_array(PyObject *__pyx_self, PyObject *__pyx_v_array) {
+static PyObject *__pyx_pw_8arcticpy_7wrapper_7cy_print_array(PyObject *__pyx_self, PyObject *__pyx_v_array); /*proto*/
+static PyMethodDef __pyx_mdef_8arcticpy_7wrapper_7cy_print_array = {"cy_print_array", (PyCFunction)__pyx_pw_8arcticpy_7wrapper_7cy_print_array, METH_O, 0};
+static PyObject *__pyx_pw_8arcticpy_7wrapper_7cy_print_array(PyObject *__pyx_self, PyObject *__pyx_v_array) {
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2401,7 +2399,7 @@ static PyObject *__pyx_pw_7wrapper_7cy_print_array(PyObject *__pyx_self, PyObjec
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cy_print_array (wrapper)", 0);
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_array), __pyx_ptype_5numpy_ndarray, 1, "array", 0))) __PYX_ERR(0, 119, __pyx_L1_error)
-  __pyx_r = __pyx_pf_7wrapper_6cy_print_array(__pyx_self, ((PyArrayObject *)__pyx_v_array));
+  __pyx_r = __pyx_pf_8arcticpy_7wrapper_6cy_print_array(__pyx_self, ((PyArrayObject *)__pyx_v_array));
 
   /* function exit code */
   goto __pyx_L0;
@@ -2412,7 +2410,7 @@ static PyObject *__pyx_pw_7wrapper_7cy_print_array(PyObject *__pyx_self, PyObjec
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array) {
+static PyObject *__pyx_pf_8arcticpy_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_array;
   __Pyx_Buffer __pyx_pybuffer_array;
   PyObject *__pyx_r = NULL;
@@ -2441,7 +2439,7 @@ static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx
   }
   __pyx_pybuffernd_array.diminfo[0].strides = __pyx_pybuffernd_array.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_array.diminfo[0].shape = __pyx_pybuffernd_array.rcbuffer->pybuffer.shape[0];
 
-  /* "wrapper.pyx":120
+  /* "arcticpy/wrapper.pyx":120
  * 
  * def cy_print_array(np.ndarray[np.double_t, ndim=1] array):
  *     array = check_contiguous(array)             # <<<<<<<<<<<<<<
@@ -2488,7 +2486,7 @@ static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx
   __Pyx_DECREF_SET(__pyx_v_array, ((PyArrayObject *)__pyx_t_1));
   __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":122
+  /* "arcticpy/wrapper.pyx":122
  *     array = check_contiguous(array)
  * 
  *     print_array(&array[0], array.shape[0])             # <<<<<<<<<<<<<<
@@ -2507,7 +2505,7 @@ static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx
   }
   print_array((&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_array.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_array.diminfo[0].strides))), (__pyx_v_array->dimensions[0]));
 
-  /* "wrapper.pyx":119
+  /* "arcticpy/wrapper.pyx":119
  * 
  * 
  * def cy_print_array(np.ndarray[np.double_t, ndim=1] array):             # <<<<<<<<<<<<<<
@@ -2528,7 +2526,7 @@ static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx
     __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_array.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("wrapper.cy_print_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("arcticpy.wrapper.cy_print_array", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2540,7 +2538,7 @@ static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx
   return __pyx_r;
 }
 
-/* "wrapper.pyx":125
+/* "arcticpy/wrapper.pyx":125
  * 
  * 
  * def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):             # <<<<<<<<<<<<<<
@@ -2549,9 +2547,9 @@ static PyObject *__pyx_pf_7wrapper_6cy_print_array(CYTHON_UNUSED PyObject *__pyx
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7wrapper_9cy_print_array_2D(PyObject *__pyx_self, PyObject *__pyx_v_array); /*proto*/
-static PyMethodDef __pyx_mdef_7wrapper_9cy_print_array_2D = {"cy_print_array_2D", (PyCFunction)__pyx_pw_7wrapper_9cy_print_array_2D, METH_O, 0};
-static PyObject *__pyx_pw_7wrapper_9cy_print_array_2D(PyObject *__pyx_self, PyObject *__pyx_v_array) {
+static PyObject *__pyx_pw_8arcticpy_7wrapper_9cy_print_array_2D(PyObject *__pyx_self, PyObject *__pyx_v_array); /*proto*/
+static PyMethodDef __pyx_mdef_8arcticpy_7wrapper_9cy_print_array_2D = {"cy_print_array_2D", (PyCFunction)__pyx_pw_8arcticpy_7wrapper_9cy_print_array_2D, METH_O, 0};
+static PyObject *__pyx_pw_8arcticpy_7wrapper_9cy_print_array_2D(PyObject *__pyx_self, PyObject *__pyx_v_array) {
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2559,7 +2557,7 @@ static PyObject *__pyx_pw_7wrapper_9cy_print_array_2D(PyObject *__pyx_self, PyOb
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("cy_print_array_2D (wrapper)", 0);
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_array), __pyx_ptype_5numpy_ndarray, 1, "array", 0))) __PYX_ERR(0, 125, __pyx_L1_error)
-  __pyx_r = __pyx_pf_7wrapper_8cy_print_array_2D(__pyx_self, ((PyArrayObject *)__pyx_v_array));
+  __pyx_r = __pyx_pf_8arcticpy_7wrapper_8cy_print_array_2D(__pyx_self, ((PyArrayObject *)__pyx_v_array));
 
   /* function exit code */
   goto __pyx_L0;
@@ -2570,7 +2568,7 @@ static PyObject *__pyx_pw_7wrapper_9cy_print_array_2D(PyObject *__pyx_self, PyOb
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array) {
+static PyObject *__pyx_pf_8arcticpy_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_array) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_array;
   __Pyx_Buffer __pyx_pybuffer_array;
   PyObject *__pyx_r = NULL;
@@ -2600,7 +2598,7 @@ static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__
   }
   __pyx_pybuffernd_array.diminfo[0].strides = __pyx_pybuffernd_array.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_array.diminfo[0].shape = __pyx_pybuffernd_array.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_array.diminfo[1].strides = __pyx_pybuffernd_array.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_array.diminfo[1].shape = __pyx_pybuffernd_array.rcbuffer->pybuffer.shape[1];
 
-  /* "wrapper.pyx":126
+  /* "arcticpy/wrapper.pyx":126
  * 
  * def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):
  *     array = check_contiguous(array)             # <<<<<<<<<<<<<<
@@ -2647,7 +2645,7 @@ static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF_SET(__pyx_v_array, ((PyArrayObject *)__pyx_t_1));
   __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":128
+  /* "arcticpy/wrapper.pyx":128
  *     array = check_contiguous(array)
  * 
  *     print_array_2D(&array[0, 0], array.shape[0], array.shape[1])             # <<<<<<<<<<<<<<
@@ -2671,7 +2669,7 @@ static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__
   }
   print_array_2D((&(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_array.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_array.diminfo[0].strides, __pyx_t_10, __pyx_pybuffernd_array.diminfo[1].strides))), (__pyx_v_array->dimensions[0]), (__pyx_v_array->dimensions[1]));
 
-  /* "wrapper.pyx":125
+  /* "arcticpy/wrapper.pyx":125
  * 
  * 
  * def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):             # <<<<<<<<<<<<<<
@@ -2692,7 +2690,7 @@ static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__
     __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_array.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("wrapper.cy_print_array_2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("arcticpy.wrapper.cy_print_array_2D", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2704,7 +2702,7 @@ static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "wrapper.pyx":131
+/* "arcticpy/wrapper.pyx":131
  * 
  * 
  * def cy_add_cti(             # <<<<<<<<<<<<<<
@@ -2713,10 +2711,10 @@ static PyObject *__pyx_pf_7wrapper_8cy_print_array_2D(CYTHON_UNUSED PyObject *__
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_7wrapper_10cy_add_cti[] = "\n    Cython wrapper for arctic's add_cti() in src/cti.cpp.\n\n    This wrapper passes the individual numbers and arrays extracted by the\n    python wrapper to the C++ interface. See add_cti() in cti.py and add_cti()\n    in interface.cpp.\n    ";
-static PyMethodDef __pyx_mdef_7wrapper_11cy_add_cti = {"cy_add_cti", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_7wrapper_11cy_add_cti, METH_VARARGS|METH_KEYWORDS, __pyx_doc_7wrapper_10cy_add_cti};
-static PyObject *__pyx_pw_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8arcticpy_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8arcticpy_7wrapper_10cy_add_cti[] = "\n    Cython wrapper for arctic's add_cti() in src/cti.cpp.\n\n    This wrapper passes the individual numbers and arrays extracted by the\n    python wrapper to the C++ interface. See add_cti() in cti.py and add_cti()\n    in interface.cpp.\n    ";
+static PyMethodDef __pyx_mdef_8arcticpy_7wrapper_11cy_add_cti = {"cy_add_cti", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_8arcticpy_7wrapper_11cy_add_cti, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8arcticpy_7wrapper_10cy_add_cti};
+static PyObject *__pyx_pw_8arcticpy_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_image = 0;
   PyArrayObject *__pyx_v_parallel_dwell_times = 0;
   int __pyx_v_parallel_prescan_offset;
@@ -3449,7 +3447,7 @@ static PyObject *__pyx_pw_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("cy_add_cti", 1, 64, 64, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 131, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("wrapper.cy_add_cti", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("arcticpy.wrapper.cy_add_cti", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
@@ -3476,7 +3474,7 @@ static PyObject *__pyx_pw_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_serial_trap_third_params), __pyx_ptype_5numpy_ndarray, 1, "serial_trap_third_params", 0))) __PYX_ERR(0, 192, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_serial_trap_fourth_params), __pyx_ptype_5numpy_ndarray, 1, "serial_trap_fourth_params", 0))) __PYX_ERR(0, 193, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_serial_prune_n_electrons), __pyx_ptype_5numpy_ndarray, 1, "serial_prune_n_electrons", 0))) __PYX_ERR(0, 205, __pyx_L1_error)
-  __pyx_r = __pyx_pf_7wrapper_10cy_add_cti(__pyx_self, __pyx_v_image, __pyx_v_parallel_dwell_times, __pyx_v_parallel_prescan_offset, __pyx_v_parallel_overscan_start, __pyx_v_parallel_empty_traps_between_columns, __pyx_v_parallel_empty_traps_for_first_transfers, __pyx_v_parallel_force_release_away_from_readout, __pyx_v_parallel_use_integer_express_matrix, __pyx_v_parallel_n_pumps, __pyx_v_parallel_roe_type, __pyx_v_parallel_fraction_of_traps_per_phase, __pyx_v_parallel_full_well_depths, __pyx_v_parallel_well_notch_depths, __pyx_v_parallel_well_fill_powers, __pyx_v_parallel_first_electron_fills, __pyx_v_parallel_trap_densities, __pyx_v_parallel_trap_release_timescales, __pyx_v_parallel_trap_third_params, __pyx_v_parallel_trap_fourth_params, __pyx_v_parallel_n_traps_ic, __pyx_v_parallel_n_traps_sc, __pyx_v_parallel_n_traps_ic_co, __pyx_v_parallel_n_traps_sc_co, __pyx_v_parallel_express, __pyx_v_parallel_window_offset, __pyx_v_parallel_window_start, __pyx_v_parallel_window_stop, __pyx_v_parallel_time_start, __pyx_v_parallel_time_stop, __pyx_v_parallel_prune_n_electrons, __pyx_v_parallel_prune_frequency, __pyx_v_serial_dwell_times, __pyx_v_serial_prescan_offset, __pyx_v_serial_overscan_start, __pyx_v_serial_empty_traps_between_columns, __pyx_v_serial_empty_traps_for_first_transfers, __pyx_v_serial_force_release_away_from_readout, __pyx_v_serial_use_integer_express_matrix, __pyx_v_serial_n_pumps, __pyx_v_serial_roe_type, __pyx_v_serial_fraction_of_traps_per_phase, __pyx_v_serial_full_well_depths, __pyx_v_serial_well_notch_depths, __pyx_v_serial_well_fill_powers, __pyx_v_serial_first_electron_fills, __pyx_v_serial_trap_densities, __pyx_v_serial_trap_release_timescales, __pyx_v_serial_trap_third_params, __pyx_v_serial_trap_fourth_params, __pyx_v_serial_n_traps_ic, __pyx_v_serial_n_traps_sc, __pyx_v_serial_n_traps_ic_co, __pyx_v_serial_n_traps_sc_co, __pyx_v_serial_express, __pyx_v_serial_window_offset, __pyx_v_serial_window_start, __pyx_v_serial_window_stop, __pyx_v_serial_time_start, __pyx_v_serial_time_stop, __pyx_v_serial_prune_n_electrons, __pyx_v_serial_prune_frequency, __pyx_v_allow_negative_pixels, __pyx_v_verbosity, __pyx_v_iteration);
+  __pyx_r = __pyx_pf_8arcticpy_7wrapper_10cy_add_cti(__pyx_self, __pyx_v_image, __pyx_v_parallel_dwell_times, __pyx_v_parallel_prescan_offset, __pyx_v_parallel_overscan_start, __pyx_v_parallel_empty_traps_between_columns, __pyx_v_parallel_empty_traps_for_first_transfers, __pyx_v_parallel_force_release_away_from_readout, __pyx_v_parallel_use_integer_express_matrix, __pyx_v_parallel_n_pumps, __pyx_v_parallel_roe_type, __pyx_v_parallel_fraction_of_traps_per_phase, __pyx_v_parallel_full_well_depths, __pyx_v_parallel_well_notch_depths, __pyx_v_parallel_well_fill_powers, __pyx_v_parallel_first_electron_fills, __pyx_v_parallel_trap_densities, __pyx_v_parallel_trap_release_timescales, __pyx_v_parallel_trap_third_params, __pyx_v_parallel_trap_fourth_params, __pyx_v_parallel_n_traps_ic, __pyx_v_parallel_n_traps_sc, __pyx_v_parallel_n_traps_ic_co, __pyx_v_parallel_n_traps_sc_co, __pyx_v_parallel_express, __pyx_v_parallel_window_offset, __pyx_v_parallel_window_start, __pyx_v_parallel_window_stop, __pyx_v_parallel_time_start, __pyx_v_parallel_time_stop, __pyx_v_parallel_prune_n_electrons, __pyx_v_parallel_prune_frequency, __pyx_v_serial_dwell_times, __pyx_v_serial_prescan_offset, __pyx_v_serial_overscan_start, __pyx_v_serial_empty_traps_between_columns, __pyx_v_serial_empty_traps_for_first_transfers, __pyx_v_serial_force_release_away_from_readout, __pyx_v_serial_use_integer_express_matrix, __pyx_v_serial_n_pumps, __pyx_v_serial_roe_type, __pyx_v_serial_fraction_of_traps_per_phase, __pyx_v_serial_full_well_depths, __pyx_v_serial_well_notch_depths, __pyx_v_serial_well_fill_powers, __pyx_v_serial_first_electron_fills, __pyx_v_serial_trap_densities, __pyx_v_serial_trap_release_timescales, __pyx_v_serial_trap_third_params, __pyx_v_serial_trap_fourth_params, __pyx_v_serial_n_traps_ic, __pyx_v_serial_n_traps_sc, __pyx_v_serial_n_traps_ic_co, __pyx_v_serial_n_traps_sc_co, __pyx_v_serial_express, __pyx_v_serial_window_offset, __pyx_v_serial_window_start, __pyx_v_serial_window_stop, __pyx_v_serial_time_start, __pyx_v_serial_time_stop, __pyx_v_serial_prune_n_electrons, __pyx_v_serial_prune_frequency, __pyx_v_allow_negative_pixels, __pyx_v_verbosity, __pyx_v_iteration);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3487,7 +3485,7 @@ static PyObject *__pyx_pw_7wrapper_11cy_add_cti(PyObject *__pyx_self, PyObject *
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_image, PyArrayObject *__pyx_v_parallel_dwell_times, int __pyx_v_parallel_prescan_offset, int __pyx_v_parallel_overscan_start, int __pyx_v_parallel_empty_traps_between_columns, int __pyx_v_parallel_empty_traps_for_first_transfers, int __pyx_v_parallel_force_release_away_from_readout, int __pyx_v_parallel_use_integer_express_matrix, int __pyx_v_parallel_n_pumps, int __pyx_v_parallel_roe_type, PyArrayObject *__pyx_v_parallel_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_parallel_full_well_depths, PyArrayObject *__pyx_v_parallel_well_notch_depths, PyArrayObject *__pyx_v_parallel_well_fill_powers, PyArrayObject *__pyx_v_parallel_first_electron_fills, PyArrayObject *__pyx_v_parallel_trap_densities, PyArrayObject *__pyx_v_parallel_trap_release_timescales, PyArrayObject *__pyx_v_parallel_trap_third_params, PyArrayObject *__pyx_v_parallel_trap_fourth_params, int __pyx_v_parallel_n_traps_ic, int __pyx_v_parallel_n_traps_sc, int __pyx_v_parallel_n_traps_ic_co, int __pyx_v_parallel_n_traps_sc_co, int __pyx_v_parallel_express, int __pyx_v_parallel_window_offset, int __pyx_v_parallel_window_start, int __pyx_v_parallel_window_stop, int __pyx_v_parallel_time_start, int __pyx_v_parallel_time_stop, PyArrayObject *__pyx_v_parallel_prune_n_electrons, int __pyx_v_parallel_prune_frequency, PyArrayObject *__pyx_v_serial_dwell_times, int __pyx_v_serial_prescan_offset, int __pyx_v_serial_overscan_start, int __pyx_v_serial_empty_traps_between_columns, int __pyx_v_serial_empty_traps_for_first_transfers, int __pyx_v_serial_force_release_away_from_readout, int __pyx_v_serial_use_integer_express_matrix, int __pyx_v_serial_n_pumps, int __pyx_v_serial_roe_type, PyArrayObject *__pyx_v_serial_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_serial_full_well_depths, PyArrayObject *__pyx_v_serial_well_notch_depths, PyArrayObject *__pyx_v_serial_well_fill_powers, PyArrayObject *__pyx_v_serial_first_electron_fills, PyArrayObject *__pyx_v_serial_trap_densities, PyArrayObject *__pyx_v_serial_trap_release_timescales, PyArrayObject *__pyx_v_serial_trap_third_params, PyArrayObject *__pyx_v_serial_trap_fourth_params, int __pyx_v_serial_n_traps_ic, int __pyx_v_serial_n_traps_sc, int __pyx_v_serial_n_traps_ic_co, int __pyx_v_serial_n_traps_sc_co, int __pyx_v_serial_express, int __pyx_v_serial_window_offset, int __pyx_v_serial_window_start, int __pyx_v_serial_window_stop, int __pyx_v_serial_time_start, int __pyx_v_serial_time_stop, PyArrayObject *__pyx_v_serial_prune_n_electrons, int __pyx_v_serial_prune_frequency, int __pyx_v_allow_negative_pixels, int __pyx_v_verbosity, int __pyx_v_iteration) {
+static PyObject *__pyx_pf_8arcticpy_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_image, PyArrayObject *__pyx_v_parallel_dwell_times, int __pyx_v_parallel_prescan_offset, int __pyx_v_parallel_overscan_start, int __pyx_v_parallel_empty_traps_between_columns, int __pyx_v_parallel_empty_traps_for_first_transfers, int __pyx_v_parallel_force_release_away_from_readout, int __pyx_v_parallel_use_integer_express_matrix, int __pyx_v_parallel_n_pumps, int __pyx_v_parallel_roe_type, PyArrayObject *__pyx_v_parallel_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_parallel_full_well_depths, PyArrayObject *__pyx_v_parallel_well_notch_depths, PyArrayObject *__pyx_v_parallel_well_fill_powers, PyArrayObject *__pyx_v_parallel_first_electron_fills, PyArrayObject *__pyx_v_parallel_trap_densities, PyArrayObject *__pyx_v_parallel_trap_release_timescales, PyArrayObject *__pyx_v_parallel_trap_third_params, PyArrayObject *__pyx_v_parallel_trap_fourth_params, int __pyx_v_parallel_n_traps_ic, int __pyx_v_parallel_n_traps_sc, int __pyx_v_parallel_n_traps_ic_co, int __pyx_v_parallel_n_traps_sc_co, int __pyx_v_parallel_express, int __pyx_v_parallel_window_offset, int __pyx_v_parallel_window_start, int __pyx_v_parallel_window_stop, int __pyx_v_parallel_time_start, int __pyx_v_parallel_time_stop, PyArrayObject *__pyx_v_parallel_prune_n_electrons, int __pyx_v_parallel_prune_frequency, PyArrayObject *__pyx_v_serial_dwell_times, int __pyx_v_serial_prescan_offset, int __pyx_v_serial_overscan_start, int __pyx_v_serial_empty_traps_between_columns, int __pyx_v_serial_empty_traps_for_first_transfers, int __pyx_v_serial_force_release_away_from_readout, int __pyx_v_serial_use_integer_express_matrix, int __pyx_v_serial_n_pumps, int __pyx_v_serial_roe_type, PyArrayObject *__pyx_v_serial_fraction_of_traps_per_phase, PyArrayObject *__pyx_v_serial_full_well_depths, PyArrayObject *__pyx_v_serial_well_notch_depths, PyArrayObject *__pyx_v_serial_well_fill_powers, PyArrayObject *__pyx_v_serial_first_electron_fills, PyArrayObject *__pyx_v_serial_trap_densities, PyArrayObject *__pyx_v_serial_trap_release_timescales, PyArrayObject *__pyx_v_serial_trap_third_params, PyArrayObject *__pyx_v_serial_trap_fourth_params, int __pyx_v_serial_n_traps_ic, int __pyx_v_serial_n_traps_sc, int __pyx_v_serial_n_traps_ic_co, int __pyx_v_serial_n_traps_sc_co, int __pyx_v_serial_express, int __pyx_v_serial_window_offset, int __pyx_v_serial_window_start, int __pyx_v_serial_window_stop, int __pyx_v_serial_time_start, int __pyx_v_serial_time_stop, PyArrayObject *__pyx_v_serial_prune_n_electrons, int __pyx_v_serial_prune_frequency, int __pyx_v_allow_negative_pixels, int __pyx_v_verbosity, int __pyx_v_iteration) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_image;
   __Pyx_Buffer __pyx_pybuffer_image;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_parallel_dwell_times;
@@ -3785,7 +3783,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
   }
   __pyx_pybuffernd_serial_prune_n_electrons.diminfo[0].strides = __pyx_pybuffernd_serial_prune_n_electrons.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_serial_prune_n_electrons.diminfo[0].shape = __pyx_pybuffernd_serial_prune_n_electrons.rcbuffer->pybuffer.shape[0];
 
-  /* "wrapper.pyx":222
+  /* "arcticpy/wrapper.pyx":222
  *     in interface.cpp.
  *     """
  *     image = check_contiguous(image)             # <<<<<<<<<<<<<<
@@ -3832,7 +3830,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_DECREF_SET(__pyx_v_image, ((PyArrayObject *)__pyx_t_1));
   __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":225
+  /* "arcticpy/wrapper.pyx":225
  * 
  *     add_cti(
  *         &image[0, 0],             # <<<<<<<<<<<<<<
@@ -3855,7 +3853,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 225, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":232
+  /* "arcticpy/wrapper.pyx":232
  *         # ========
  *         # ROE
  *         &parallel_dwell_times[0],             # <<<<<<<<<<<<<<
@@ -3873,7 +3871,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 232, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":233
+  /* "arcticpy/wrapper.pyx":233
  *         # ROE
  *         &parallel_dwell_times[0],
  *         len(parallel_dwell_times),             # <<<<<<<<<<<<<<
@@ -3882,7 +3880,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
  */
   __pyx_t_12 = PyObject_Length(((PyObject *)__pyx_v_parallel_dwell_times)); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 233, __pyx_L1_error)
 
-  /* "wrapper.pyx":243
+  /* "arcticpy/wrapper.pyx":243
  *         parallel_roe_type,
  *         # CCD
  *         &parallel_fraction_of_traps_per_phase[0],             # <<<<<<<<<<<<<<
@@ -3900,7 +3898,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 243, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":244
+  /* "arcticpy/wrapper.pyx":244
  *         # CCD
  *         &parallel_fraction_of_traps_per_phase[0],
  *         len(parallel_fraction_of_traps_per_phase),             # <<<<<<<<<<<<<<
@@ -3909,7 +3907,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
  */
   __pyx_t_14 = PyObject_Length(((PyObject *)__pyx_v_parallel_fraction_of_traps_per_phase)); if (unlikely(__pyx_t_14 == ((Py_ssize_t)-1))) __PYX_ERR(0, 244, __pyx_L1_error)
 
-  /* "wrapper.pyx":245
+  /* "arcticpy/wrapper.pyx":245
  *         &parallel_fraction_of_traps_per_phase[0],
  *         len(parallel_fraction_of_traps_per_phase),
  *         &parallel_full_well_depths[0],             # <<<<<<<<<<<<<<
@@ -3927,7 +3925,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 245, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":246
+  /* "arcticpy/wrapper.pyx":246
  *         len(parallel_fraction_of_traps_per_phase),
  *         &parallel_full_well_depths[0],
  *         &parallel_well_notch_depths[0],             # <<<<<<<<<<<<<<
@@ -3945,7 +3943,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 246, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":247
+  /* "arcticpy/wrapper.pyx":247
  *         &parallel_full_well_depths[0],
  *         &parallel_well_notch_depths[0],
  *         &parallel_well_fill_powers[0],             # <<<<<<<<<<<<<<
@@ -3963,7 +3961,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 247, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":248
+  /* "arcticpy/wrapper.pyx":248
  *         &parallel_well_notch_depths[0],
  *         &parallel_well_fill_powers[0],
  *         &parallel_first_electron_fills[0],             # <<<<<<<<<<<<<<
@@ -3981,7 +3979,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 248, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":250
+  /* "arcticpy/wrapper.pyx":250
  *         &parallel_first_electron_fills[0],
  *         # Traps
  *         &parallel_trap_densities[0],             # <<<<<<<<<<<<<<
@@ -3999,7 +3997,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 250, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":251
+  /* "arcticpy/wrapper.pyx":251
  *         # Traps
  *         &parallel_trap_densities[0],
  *         &parallel_trap_release_timescales[0],             # <<<<<<<<<<<<<<
@@ -4017,7 +4015,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 251, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":252
+  /* "arcticpy/wrapper.pyx":252
  *         &parallel_trap_densities[0],
  *         &parallel_trap_release_timescales[0],
  *         &parallel_trap_third_params[0],             # <<<<<<<<<<<<<<
@@ -4035,7 +4033,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 252, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":253
+  /* "arcticpy/wrapper.pyx":253
  *         &parallel_trap_release_timescales[0],
  *         &parallel_trap_third_params[0],
  *         &parallel_trap_fourth_params[0],             # <<<<<<<<<<<<<<
@@ -4053,7 +4051,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 253, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":265
+  /* "arcticpy/wrapper.pyx":265
  *         parallel_time_start,
  *         parallel_time_stop,
  *         &parallel_prune_n_electrons[0],             # <<<<<<<<<<<<<<
@@ -4071,7 +4069,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 265, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":271
+  /* "arcticpy/wrapper.pyx":271
  *         # ========
  *         # ROE
  *         &serial_dwell_times[0],             # <<<<<<<<<<<<<<
@@ -4089,7 +4087,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 271, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":272
+  /* "arcticpy/wrapper.pyx":272
  *         # ROE
  *         &serial_dwell_times[0],
  *         len(serial_dwell_times),             # <<<<<<<<<<<<<<
@@ -4098,7 +4096,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
  */
   __pyx_t_25 = PyObject_Length(((PyObject *)__pyx_v_serial_dwell_times)); if (unlikely(__pyx_t_25 == ((Py_ssize_t)-1))) __PYX_ERR(0, 272, __pyx_L1_error)
 
-  /* "wrapper.pyx":282
+  /* "arcticpy/wrapper.pyx":282
  *         serial_roe_type,
  *         # CCD
  *         &serial_fraction_of_traps_per_phase[0],             # <<<<<<<<<<<<<<
@@ -4116,7 +4114,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 282, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":283
+  /* "arcticpy/wrapper.pyx":283
  *         # CCD
  *         &serial_fraction_of_traps_per_phase[0],
  *         len(serial_fraction_of_traps_per_phase),             # <<<<<<<<<<<<<<
@@ -4125,7 +4123,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
  */
   __pyx_t_27 = PyObject_Length(((PyObject *)__pyx_v_serial_fraction_of_traps_per_phase)); if (unlikely(__pyx_t_27 == ((Py_ssize_t)-1))) __PYX_ERR(0, 283, __pyx_L1_error)
 
-  /* "wrapper.pyx":284
+  /* "arcticpy/wrapper.pyx":284
  *         &serial_fraction_of_traps_per_phase[0],
  *         len(serial_fraction_of_traps_per_phase),
  *         &serial_full_well_depths[0],             # <<<<<<<<<<<<<<
@@ -4143,7 +4141,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 284, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":285
+  /* "arcticpy/wrapper.pyx":285
  *         len(serial_fraction_of_traps_per_phase),
  *         &serial_full_well_depths[0],
  *         &serial_well_notch_depths[0],             # <<<<<<<<<<<<<<
@@ -4161,7 +4159,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 285, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":286
+  /* "arcticpy/wrapper.pyx":286
  *         &serial_full_well_depths[0],
  *         &serial_well_notch_depths[0],
  *         &serial_well_fill_powers[0],             # <<<<<<<<<<<<<<
@@ -4179,7 +4177,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 286, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":287
+  /* "arcticpy/wrapper.pyx":287
  *         &serial_well_notch_depths[0],
  *         &serial_well_fill_powers[0],
  *         &serial_first_electron_fills[0],             # <<<<<<<<<<<<<<
@@ -4197,7 +4195,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 287, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":289
+  /* "arcticpy/wrapper.pyx":289
  *         &serial_first_electron_fills[0],
  *         # Traps
  *         &serial_trap_densities[0],             # <<<<<<<<<<<<<<
@@ -4215,7 +4213,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 289, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":290
+  /* "arcticpy/wrapper.pyx":290
  *         # Traps
  *         &serial_trap_densities[0],
  *         &serial_trap_release_timescales[0],             # <<<<<<<<<<<<<<
@@ -4233,7 +4231,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 290, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":291
+  /* "arcticpy/wrapper.pyx":291
  *         &serial_trap_densities[0],
  *         &serial_trap_release_timescales[0],
  *         &serial_trap_third_params[0],             # <<<<<<<<<<<<<<
@@ -4251,7 +4249,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 291, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":292
+  /* "arcticpy/wrapper.pyx":292
  *         &serial_trap_release_timescales[0],
  *         &serial_trap_third_params[0],
  *         &serial_trap_fourth_params[0],             # <<<<<<<<<<<<<<
@@ -4269,7 +4267,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 292, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":304
+  /* "arcticpy/wrapper.pyx":304
  *         serial_time_start,
  *         serial_time_stop,
  *         &serial_prune_n_electrons[0],             # <<<<<<<<<<<<<<
@@ -4287,7 +4285,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __PYX_ERR(0, 304, __pyx_L1_error)
   }
 
-  /* "wrapper.pyx":224
+  /* "arcticpy/wrapper.pyx":224
  *     image = check_contiguous(image)
  * 
  *     add_cti(             # <<<<<<<<<<<<<<
@@ -4296,7 +4294,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
  */
   add_cti((&(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_image.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_image.diminfo[0].strides, __pyx_t_10, __pyx_pybuffernd_image.diminfo[1].strides))), (__pyx_v_image->dimensions[0]), (__pyx_v_image->dimensions[1]), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_dwell_times.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_parallel_dwell_times.diminfo[0].strides))), __pyx_t_12, __pyx_v_parallel_prescan_offset, __pyx_v_parallel_overscan_start, __pyx_v_parallel_empty_traps_between_columns, __pyx_v_parallel_empty_traps_for_first_transfers, __pyx_v_parallel_force_release_away_from_readout, __pyx_v_parallel_use_integer_express_matrix, __pyx_v_parallel_n_pumps, __pyx_v_parallel_roe_type, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_fraction_of_traps_per_phase.rcbuffer->pybuffer.buf, __pyx_t_13, __pyx_pybuffernd_parallel_fraction_of_traps_per_phase.diminfo[0].strides))), __pyx_t_14, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_full_well_depths.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_parallel_full_well_depths.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_well_notch_depths.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_parallel_well_notch_depths.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_well_fill_powers.rcbuffer->pybuffer.buf, __pyx_t_17, __pyx_pybuffernd_parallel_well_fill_powers.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_first_electron_fills.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_parallel_first_electron_fills.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_trap_densities.rcbuffer->pybuffer.buf, __pyx_t_19, __pyx_pybuffernd_parallel_trap_densities.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_trap_release_timescales.rcbuffer->pybuffer.buf, __pyx_t_20, __pyx_pybuffernd_parallel_trap_release_timescales.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_trap_third_params.rcbuffer->pybuffer.buf, __pyx_t_21, __pyx_pybuffernd_parallel_trap_third_params.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_trap_fourth_params.rcbuffer->pybuffer.buf, __pyx_t_22, __pyx_pybuffernd_parallel_trap_fourth_params.diminfo[0].strides))), __pyx_v_parallel_n_traps_ic, __pyx_v_parallel_n_traps_sc, __pyx_v_parallel_n_traps_ic_co, __pyx_v_parallel_n_traps_sc_co, __pyx_v_parallel_express, __pyx_v_parallel_window_offset, __pyx_v_parallel_window_start, __pyx_v_parallel_window_stop, __pyx_v_parallel_time_start, __pyx_v_parallel_time_stop, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_parallel_prune_n_electrons.rcbuffer->pybuffer.buf, __pyx_t_23, __pyx_pybuffernd_parallel_prune_n_electrons.diminfo[0].strides))), __pyx_v_parallel_prune_frequency, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_dwell_times.rcbuffer->pybuffer.buf, __pyx_t_24, __pyx_pybuffernd_serial_dwell_times.diminfo[0].strides))), __pyx_t_25, __pyx_v_serial_prescan_offset, __pyx_v_serial_overscan_start, __pyx_v_serial_empty_traps_between_columns, __pyx_v_serial_empty_traps_for_first_transfers, __pyx_v_serial_force_release_away_from_readout, __pyx_v_serial_use_integer_express_matrix, __pyx_v_serial_n_pumps, __pyx_v_serial_roe_type, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_fraction_of_traps_per_phase.rcbuffer->pybuffer.buf, __pyx_t_26, __pyx_pybuffernd_serial_fraction_of_traps_per_phase.diminfo[0].strides))), __pyx_t_27, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_full_well_depths.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_serial_full_well_depths.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_well_notch_depths.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_serial_well_notch_depths.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_well_fill_powers.rcbuffer->pybuffer.buf, __pyx_t_30, __pyx_pybuffernd_serial_well_fill_powers.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_first_electron_fills.rcbuffer->pybuffer.buf, __pyx_t_31, __pyx_pybuffernd_serial_first_electron_fills.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_trap_densities.rcbuffer->pybuffer.buf, __pyx_t_32, __pyx_pybuffernd_serial_trap_densities.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_trap_release_timescales.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_serial_trap_release_timescales.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_trap_third_params.rcbuffer->pybuffer.buf, __pyx_t_34, __pyx_pybuffernd_serial_trap_third_params.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_trap_fourth_params.rcbuffer->pybuffer.buf, __pyx_t_35, __pyx_pybuffernd_serial_trap_fourth_params.diminfo[0].strides))), __pyx_v_serial_n_traps_ic, __pyx_v_serial_n_traps_sc, __pyx_v_serial_n_traps_ic_co, __pyx_v_serial_n_traps_sc_co, __pyx_v_serial_express, __pyx_v_serial_window_offset, __pyx_v_serial_window_start, __pyx_v_serial_window_stop, __pyx_v_serial_time_start, __pyx_v_serial_time_stop, (&(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_double_t *, __pyx_pybuffernd_serial_prune_n_electrons.rcbuffer->pybuffer.buf, __pyx_t_36, __pyx_pybuffernd_serial_prune_n_electrons.diminfo[0].strides))), __pyx_v_serial_prune_frequency, __pyx_v_allow_negative_pixels, __pyx_v_verbosity, __pyx_v_iteration);
 
-  /* "wrapper.pyx":315
+  /* "arcticpy/wrapper.pyx":315
  *     )
  * 
  *     return image             # <<<<<<<<<<<<<<
@@ -4306,7 +4304,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_r = ((PyObject *)__pyx_v_image);
   goto __pyx_L0;
 
-  /* "wrapper.pyx":131
+  /* "arcticpy/wrapper.pyx":131
  * 
  * 
  * def cy_add_cti(             # <<<<<<<<<<<<<<
@@ -4347,7 +4345,7 @@ static PyObject *__pyx_pf_7wrapper_10cy_add_cti(CYTHON_UNUSED PyObject *__pyx_se
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_serial_well_fill_powers.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_serial_well_notch_depths.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("wrapper.cy_add_cti", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("arcticpy.wrapper.cy_add_cti", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -5696,6 +5694,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_u_C_CONTIGUOUS, __pyx_k_C_CONTIGUOUS, sizeof(__pyx_k_C_CONTIGUOUS), 0, 1, 0, 1},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
   {&__pyx_n_s_allow_negative_pixels, __pyx_k_allow_negative_pixels, sizeof(__pyx_k_allow_negative_pixels), 0, 0, 1, 1},
+  {&__pyx_n_s_arcticpy_wrapper, __pyx_k_arcticpy_wrapper, sizeof(__pyx_k_arcticpy_wrapper), 0, 0, 1, 1},
   {&__pyx_n_s_array, __pyx_k_array, sizeof(__pyx_k_array), 0, 0, 1, 1},
   {&__pyx_n_s_ascontiguousarray, __pyx_k_ascontiguousarray, sizeof(__pyx_k_ascontiguousarray), 0, 0, 1, 1},
   {&__pyx_n_s_check_contiguous, __pyx_k_check_contiguous, sizeof(__pyx_k_check_contiguous), 0, 0, 1, 1},
@@ -5778,7 +5777,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_serial_window_stop, __pyx_k_serial_window_stop, sizeof(__pyx_k_serial_window_stop), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_verbosity, __pyx_k_verbosity, sizeof(__pyx_k_verbosity), 0, 0, 1, 1},
-  {&__pyx_n_s_wrapper, __pyx_k_wrapper, sizeof(__pyx_k_wrapper), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
@@ -5814,7 +5812,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "wrapper.pyx":105
+  /* "arcticpy/wrapper.pyx":105
  * 
  * 
  * def cy_print_version():             # <<<<<<<<<<<<<<
@@ -5823,7 +5821,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_arcticpy_wrapper_pyx, __pyx_n_s_cy_print_version, 105, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 105, __pyx_L1_error)
 
-  /* "wrapper.pyx":108
+  /* "arcticpy/wrapper.pyx":108
  *     print_version()
  * 
  * def cy_version_arctic():             # <<<<<<<<<<<<<<
@@ -5832,7 +5830,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  */
   __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_arcticpy_wrapper_pyx, __pyx_n_s_cy_version_arctic, 108, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 108, __pyx_L1_error)
 
-  /* "wrapper.pyx":111
+  /* "arcticpy/wrapper.pyx":111
  *     return version_arctic().decode("utf-8")
  * 
  * def check_contiguous(array):             # <<<<<<<<<<<<<<
@@ -5844,7 +5842,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__5);
   __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__5, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_arcticpy_wrapper_pyx, __pyx_n_s_check_contiguous, 111, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 111, __pyx_L1_error)
 
-  /* "wrapper.pyx":119
+  /* "arcticpy/wrapper.pyx":119
  * 
  * 
  * def cy_print_array(np.ndarray[np.double_t, ndim=1] array):             # <<<<<<<<<<<<<<
@@ -5856,7 +5854,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__7);
   __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_arcticpy_wrapper_pyx, __pyx_n_s_cy_print_array, 119, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 119, __pyx_L1_error)
 
-  /* "wrapper.pyx":125
+  /* "arcticpy/wrapper.pyx":125
  * 
  * 
  * def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):             # <<<<<<<<<<<<<<
@@ -5868,7 +5866,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__9);
   __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_arcticpy_wrapper_pyx, __pyx_n_s_cy_print_array_2D, 125, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 125, __pyx_L1_error)
 
-  /* "wrapper.pyx":131
+  /* "arcticpy/wrapper.pyx":131
  * 
  * 
  * def cy_add_cti(             # <<<<<<<<<<<<<<
@@ -6165,14 +6163,14 @@ if (!__Pyx_RefNanny) {
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_wrapper) {
+  if (__pyx_module_is_main_arcticpy__wrapper) {
     if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name, __pyx_n_s_main) < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 2, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "wrapper")) {
-      if (unlikely(PyDict_SetItemString(modules, "wrapper", __pyx_m) < 0)) __PYX_ERR(0, 2, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "arcticpy.wrapper")) {
+      if (unlikely(PyDict_SetItemString(modules, "arcticpy.wrapper", __pyx_m) < 0)) __PYX_ERR(0, 2, __pyx_L1_error)
     }
   }
   #endif
@@ -6193,7 +6191,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 2, __pyx_L1_error)
   #endif
 
-  /* "wrapper.pyx":3
+  /* "arcticpy/wrapper.pyx":3
  * 
  * cimport numpy as np
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -6205,79 +6203,79 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":105
+  /* "arcticpy/wrapper.pyx":105
  * 
  * 
  * def cy_print_version():             # <<<<<<<<<<<<<<
  *     print_version()
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7wrapper_1cy_print_version, NULL, __pyx_n_s_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8arcticpy_7wrapper_1cy_print_version, NULL, __pyx_n_s_arcticpy_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cy_print_version, __pyx_t_1) < 0) __PYX_ERR(0, 105, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":108
+  /* "arcticpy/wrapper.pyx":108
  *     print_version()
  * 
  * def cy_version_arctic():             # <<<<<<<<<<<<<<
  *     return version_arctic().decode("utf-8")
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7wrapper_3cy_version_arctic, NULL, __pyx_n_s_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8arcticpy_7wrapper_3cy_version_arctic, NULL, __pyx_n_s_arcticpy_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cy_version_arctic, __pyx_t_1) < 0) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":111
+  /* "arcticpy/wrapper.pyx":111
  *     return version_arctic().decode("utf-8")
  * 
  * def check_contiguous(array):             # <<<<<<<<<<<<<<
  *     """ Make sure an array is contiguous and C-style. """
  *     if not array.flags['C_CONTIGUOUS']:
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7wrapper_5check_contiguous, NULL, __pyx_n_s_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8arcticpy_7wrapper_5check_contiguous, NULL, __pyx_n_s_arcticpy_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_check_contiguous, __pyx_t_1) < 0) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":119
+  /* "arcticpy/wrapper.pyx":119
  * 
  * 
  * def cy_print_array(np.ndarray[np.double_t, ndim=1] array):             # <<<<<<<<<<<<<<
  *     array = check_contiguous(array)
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7wrapper_7cy_print_array, NULL, __pyx_n_s_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8arcticpy_7wrapper_7cy_print_array, NULL, __pyx_n_s_arcticpy_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cy_print_array, __pyx_t_1) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":125
+  /* "arcticpy/wrapper.pyx":125
  * 
  * 
  * def cy_print_array_2D(np.ndarray[np.double_t, ndim=2] array):             # <<<<<<<<<<<<<<
  *     array = check_contiguous(array)
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7wrapper_9cy_print_array_2D, NULL, __pyx_n_s_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8arcticpy_7wrapper_9cy_print_array_2D, NULL, __pyx_n_s_arcticpy_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cy_print_array_2D, __pyx_t_1) < 0) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":131
+  /* "arcticpy/wrapper.pyx":131
  * 
  * 
  * def cy_add_cti(             # <<<<<<<<<<<<<<
  *     np.ndarray[np.double_t, ndim=2] image,
  *     # ========
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7wrapper_11cy_add_cti, NULL, __pyx_n_s_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8arcticpy_7wrapper_11cy_add_cti, NULL, __pyx_n_s_arcticpy_wrapper); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_cy_add_cti, __pyx_t_1) < 0) __PYX_ERR(0, 131, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "wrapper.pyx":2
+  /* "arcticpy/wrapper.pyx":2
  * 
  * cimport numpy as np             # <<<<<<<<<<<<<<
  * import numpy as np
@@ -6303,11 +6301,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init wrapper", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init arcticpy.wrapper", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_CLEAR(__pyx_m);
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init wrapper");
+    PyErr_SetString(PyExc_ImportError, "init arcticpy.wrapper");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
