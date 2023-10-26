@@ -13,7 +13,8 @@ from arcticpy.traps import (
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
-#from arcticpy.src.pixel_bounce import add_pixel_bounce
+
+# from arcticpy.src.pixel_bounce import add_pixel_bounce
 from arcticpy.pixel_bounce import PixelBounce, add_pixel_bounce
 
 
@@ -89,7 +90,7 @@ def _set_dummy_parameters():
     clocking is not being used.
     """
     roe = ROE()
-    ccd = CCD([CCDPhase(0.0, 0.0, 0.0)], [0.0])
+    ccd = CCD([CCDPhase(0.0, 0.0, 0.0, 0.0)], [0.0])
     trap_densities = np.array([0.0], dtype=np.double)
     trap_release_timescales = np.array([0.0], dtype=np.double)
     trap_third_params = np.array([0.0], dtype=np.double)
@@ -126,7 +127,7 @@ def add_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-10, 
+    parallel_prune_n_electrons=1e-10,
     parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
@@ -138,8 +139,10 @@ def add_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-10, 
+    serial_prune_n_electrons=1e-10,
     serial_prune_frequency=20,
+    # Combined
+    allow_negative_pixels=1,
     # Pixel bounce
     pixel_bounce=None,
     # Output
@@ -231,7 +234,6 @@ def add_cti(
             serial_n_traps_sc_co,
         ) = _set_dummy_parameters()
     serial_prune_n_es = np.array([serial_prune_n_electrons], dtype=np.double)
-        
 
     # ========
     # Add CTI
@@ -257,6 +259,7 @@ def add_cti(
         parallel_ccd.full_well_depths,
         parallel_ccd.well_notch_depths,
         parallel_ccd.well_fill_powers,
+        parallel_ccd.first_electron_fills,
         # Traps
         parallel_trap_densities,
         parallel_trap_release_timescales,
@@ -293,6 +296,7 @@ def add_cti(
         serial_ccd.full_well_depths,
         serial_ccd.well_notch_depths,
         serial_ccd.well_fill_powers,
+        serial_ccd.first_electron_fills,
         # Traps
         serial_trap_densities,
         serial_trap_release_timescales,
@@ -309,15 +313,18 @@ def add_cti(
         serial_window_stop,
         serial_time_start,
         serial_time_stop,
-        serial_prune_n_es, 
+        serial_prune_n_es,
         serial_prune_frequency,
+        # ========
+        # Combined
+        # ========
+        allow_negative_pixels,
         # ========
         # Output
         # ========
         verbosity,
         iteration,
     )
-    
 
     # ================
     # Add pixel bounce
@@ -329,18 +336,25 @@ def add_cti(
             parallel_window_stop=parallel_window_stop,
             serial_window_start=serial_window_start,
             serial_window_stop=serial_window_stop,
-            verbosity=verbosity
+            verbosity=verbosity,
         )
-    
-    
+
     # ===================
     # Update image header
     # ===================
     if header is not None:
-        #TBD       
-        #print(w.cy_version_arctic())
-        header.set("cticor", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
-        header.set("ctipar", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
+        # TBD
+        # print(w.cy_version_arctic())
+        header.set(
+            "cticor",
+            "ArCTIc",
+            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
+        )
+        header.set(
+            "ctipar",
+            "ArCTIc",
+            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
+        )
 
     return image_trailed
 
@@ -371,8 +385,10 @@ def remove_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-10, 
+    serial_prune_n_electrons=1e-10,
     serial_prune_frequency=20,
+    # Combined
+    allow_negative_pixels=1,
     # Pixel bounce
     pixel_bounce=None,
     # Read noise de-amplification
@@ -406,11 +422,14 @@ def remove_cti(
 
     if verbosity >= 1:
         w.cy_print_version()
-    
+
     # Attempt to estimate and remove read noise, so it it not amplified
     if read_noise is not None:
-        image_read_noise = read_noise.esimate_image_remove_cti(image_remove_cti)
-        image_remove_cti -= image_read_noise
+        image_remove_cti, image_read_noise = read_noise.generate_SR_frames_from_image(
+            image_remove_cti
+        )
+        # image_remove_cti -= image_read_noise
+        print("\nMean of read noise:", np.mean(image_read_noise))
 
     # Estimate the image with removed CTI more accurately each iteration
     for iteration in range(1, n_iterations + 1):
@@ -443,8 +462,10 @@ def remove_cti(
             serial_window_stop=serial_window_stop,
             serial_time_start=serial_time_start,
             serial_time_stop=serial_time_stop,
-            serial_prune_n_electrons=serial_prune_n_electrons, 
+            serial_prune_n_electrons=serial_prune_n_electrons,
             serial_prune_frequency=serial_prune_frequency,
+            # Combined
+            allow_negative_pixels=allow_negative_pixels,
             # Pixel bounce
             pixel_bounce=pixel_bounce,
             # Output
@@ -455,17 +476,25 @@ def remove_cti(
         # Improve the estimate of the image with CTI trails removed
         delta = image - image_add_cti
         if read_noise is not None:
-            delta_squared = delta ** 2
-            delta *= delta_squared / ( delta_squared + read_noise.sigma ** 2 )
+            delta -= image_read_noise
+            delta_squared = delta**2
+            # Doing the following should be right, but biases the
+            # mean of the output image
+            # delta *= delta_squared / ( delta_squared + read_noise.sigmaRN ** 2 )
         image_remove_cti += delta
-        
+
         # Prevent negative image values
-        image_remove_cti[image_remove_cti < 0.0] = 0.0
+        if not allow_negative_pixels:
+            image_remove_cti[image_remove_cti < 0.0] = 0.0
+
+        print(iteration)
+        if iteration == 1 and n_iterations >= 2:
+            image_remove_cti[image_remove_cti < 0.0] = 0.0
 
     # Add back the read noise, if it had been removed
     if read_noise is not None:
         image_remove_cti += image_read_noise
-   
+
     return image_remove_cti
 
 

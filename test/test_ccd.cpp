@@ -7,7 +7,7 @@
 TEST_CASE("Test CCDPhase", "[ccd]") {
     SECTION("Cloud fractional volume from electrons") {
         // Simple numbers
-        CCDPhase ccd_phase(1e4, 0.0, 1.0);
+        CCDPhase ccd_phase(1e4, 0.0, 1.0, 0.0);
 
         REQUIRE(ccd_phase.full_well_depth == 1e4);
         REQUIRE(ccd_phase.well_notch_depth == 0.0);
@@ -20,7 +20,7 @@ TEST_CASE("Test CCDPhase", "[ccd]") {
         REQUIRE(ccd_phase.cloud_fractional_volume_from_electrons(1e5) == 1.0);
 
         // Non-unity power
-        CCDPhase ccd_phase_2(1e4, 0.0, 0.8);
+        CCDPhase ccd_phase_2(1e4, 0.0, 0.8, 0.0);
 
         REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(0.0) == 0.0);
         REQUIRE(
@@ -31,13 +31,15 @@ TEST_CASE("Test CCDPhase", "[ccd]") {
         REQUIRE(ccd_phase_2.cloud_fractional_volume_from_electrons(1e5) == 1.0);
 
         // Non-zero notch
-        CCDPhase ccd_phase_3(1e4, 10.0, 1.0);
+        CCDPhase ccd_phase_3(10010.0, 10.0, 1.0, 0.0);
 
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(0.0) == 0.0);
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1.0) == 0.0);
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(10.0) == 0.0);
-        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e2) == 0.009);
-        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e4) == 0.999);
+        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(110.0) == 0.01);
+        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1010.0) == 0.1);
+        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e4) < 1.0);
+        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e4+10) == 1.0);
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e5) == 1.0);
     }
 }
@@ -47,7 +49,7 @@ TEST_CASE("Test CCD", "[ccd]") {
 
     SECTION("Initialisation, single-phase and multiphase") {
         // Single phase, single-style initialisation
-        CCDPhase phase(1e4, 0.0, 1.0);
+        CCDPhase phase(1e4, 0.0, 1.0, 0.0);
         CCD ccd(phase);
 
         REQUIRE(ccd.n_phases == 1);
@@ -70,7 +72,7 @@ TEST_CASE("Test CCD", "[ccd]") {
         REQUIRE(ccd_2.fraction_of_traps_per_phase[0] == 1.0);
 
         // Multiphase
-        CCDPhase phase_2(2e4, 0.0, 0.8);
+        CCDPhase phase_2(2e4, 0.0, 0.8, 0.0);
         std::valarray<CCDPhase> phases_2 = {phase, phase_2, phase_2};
         std::valarray<double> fractions_2 = {0.5, 0.25, 0.25};
         CCD ccd_3(phases_2, fractions_2);

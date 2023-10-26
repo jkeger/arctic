@@ -40,7 +40,7 @@ CXXFLAGS := -std=c++11 -fPIC -O3 # -Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
-VERSION := "7.0.4"
+VERSION := "7.0.5"
 
 # Executables
 TARGET := arctic
@@ -91,7 +91,7 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
 CXXFLAGS += -Xpreprocessor -fopenmp
 # Use this on a mac
-# LIBS += -L $(DIR_OMP)/lib -lomp
+#LIBS += -L $(DIR_OMP)/lib -lomp
 # Use the following on cosma (can also use with macports)
 LIBS += -L $(DIR_OMP)/lib -lgomp
 

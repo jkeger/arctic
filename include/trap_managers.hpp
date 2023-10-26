@@ -24,6 +24,7 @@ class TrapManagerBase {
 
     int n_traps;
     double empty_watermark;
+    double zeroth_watermark;
     int n_active_watermarks;
     int i_first_active_wmk;
     int n_watermarks_per_transfer;
@@ -31,6 +32,7 @@ class TrapManagerBase {
     int stored_n_active_watermarks;
     int stored_i_first_active_wmk;
     void prune_watermarks(double min_n_electrons = 0);
+    void lower_zeroth_watermark(double min_n_electrons = 0);
 
     std::valarray<double> trap_densities;
 

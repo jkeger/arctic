@@ -41,14 +41,17 @@ setup(
         [
             Extension(
                 "wrapper",
-                sources=[dir_wrapper + "wrapper.pyx", dir_wrapper_src + "interface.cpp"],
+                sources=[
+                    dir_wrapper + "wrapper.pyx",
+                    dir_wrapper_src + "interface.cpp",
+                ],
                 language="c++",
                 libraries=["arctic"],
                 library_dirs=[dir_lib],
                 runtime_library_dirs=[dir_lib],
                 include_dirs=[dir_include, np.get_include(), dir_wrapper_include],
                 extra_compile_args=["-std=c++17", "-O3"],
-                define_macros=[('NPY_NO_DEPRECATED_API', 0)],
+                define_macros=[("NPY_NO_DEPRECATED_API", 0)],
             )
         ],
         compiler_directives={"language_level": "3"},

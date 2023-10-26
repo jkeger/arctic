@@ -38,18 +38,30 @@ ext_sources = [os.path.join(dir_src, src) for src in os.listdir(dir_src)]
 extensions = [
     Extension(
         name="arcticpy.wrapper",
-        sources=[os.path.join(dir_wrapper, "wrapper.pyx"), os.path.join(dir_wrapper_src, "interface.cpp"), *ext_sources],
+        sources=[
+            os.path.join(dir_wrapper, "wrapper.pyx"),
+            os.path.join(dir_wrapper_src, "interface.cpp"),
+            *ext_sources,
+        ],
         language="c++",
+<<<<<<< HEAD
         include_dirs=[dir_wrapper_include, dir_include, np.get_include()],
+=======
+        libraries=["gsl"],
+        runtime_library_dirs=[dir_gsl_lib],
+        include_dirs=[
+            dir_wrapper_include,
+            dir_include,
+            np.get_include(),
+            dir_gsl_include,
+        ],
+>>>>>>> master
         extra_compile_args=["-std=c++17", "-O3"],
-        define_macros=[('NPY_NO_DEPRECATED_API', 0)],
+        define_macros=[("NPY_NO_DEPRECATED_API", 0)],
     ),
 ]
 
 setup(
-    ext_modules=cythonize(
-        extensions,
-        compiler_directives={"language_level": "3"}
-    ),
+    ext_modules=cythonize(extensions, compiler_directives={"language_level": "3"}),
     headers=ext_headers,  # currently ignored (?)
 )

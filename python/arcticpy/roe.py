@@ -1,7 +1,5 @@
 import numpy as np
 
-#from .dictable import Dictable
-
 roe_type_standard = 0
 roe_type_charge_injection = 1
 roe_type_trap_pumping = 2
@@ -17,10 +15,10 @@ class ROE:
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
-        pixel_bounce_kA=0.,
-        pixel_bounce_kv=0.,
-        pixel_bounce_omega=1.,
-        pixel_bounce_gamma=1.
+        pixel_bounce_kA=0.0,
+        pixel_bounce_kv=0.0,
+        pixel_bounce_omega=1.0,
+        pixel_bounce_gamma=1.0,
     ):
         self.dwell_times = np.array(dwell_times, dtype=np.double)
         self.prescan_offset = prescan_offset
@@ -29,14 +27,13 @@ class ROE:
         self.empty_traps_for_first_transfers = empty_traps_for_first_transfers
         self.force_release_away_from_readout = force_release_away_from_readout
         self.use_integer_express_matrix = use_integer_express_matrix
-        self.pixel_bounce_kA    = pixel_bounce_kA
-        self.pixel_bounce_kv    = pixel_bounce_kv
+        self.pixel_bounce_kA = pixel_bounce_kA
+        self.pixel_bounce_kv = pixel_bounce_kv
         self.pixel_bounce_omega = pixel_bounce_omega
         self.pixel_bounce_gamma = pixel_bounce_gamma
         self.n_pumps = -1  # Dummy value
 
         self.type = roe_type_standard
-    
 
 
 class ROEChargeInjection(ROE):
@@ -48,11 +45,10 @@ class ROEChargeInjection(ROE):
         empty_traps_between_columns=True,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
-        pixel_bounce_kA=0.,
-        pixel_bounce_kv=0.,
-        pixel_bounce_omega=1.,
-        pixel_bounce_gamma=1.
-        
+        pixel_bounce_kA=0.0,
+        pixel_bounce_kv=0.0,
+        pixel_bounce_omega=1.0,
+        pixel_bounce_gamma=1.0,
     ):
         ROE.__init__(
             self,
@@ -66,11 +62,11 @@ class ROEChargeInjection(ROE):
             pixel_bounce_kA=pixel_bounce_kA,
             pixel_bounce_kv=pixel_bounce_kv,
             pixel_bounce_omega=pixel_bounce_omega,
-            pixel_bounce_gamma=pixel_bounce_gamma
+            pixel_bounce_gamma=pixel_bounce_gamma,
         )
 
         self.type = roe_type_charge_injection
-    
+
     def from_normal_roe(roe, n_pixels_in_image):
         """
         Convert a normal ROE sequence, with all its options, to one modelling
@@ -88,7 +84,7 @@ class ROEChargeInjection(ROE):
             pixel_bounce_kA=roe.pixel_bounce_kA,
             pixel_bounce_kv=roe.pixel_bounce_kv,
             pixel_bounce_omega=roe.pixel_bounce_omega,
-            pixel_bounce_gamma=roe.pixel_bounce_gamma
+            pixel_bounce_gamma=roe.pixel_bounce_gamma,
         )
 
 
@@ -101,11 +97,11 @@ class ROETrapPumping(ROE):
         n_pumps=1,
         empty_traps_for_first_transfers=False,
         use_integer_express_matrix=False,
-        pixel_bounce_kA=0.,
-        pixel_bounce_kv=0.,
-        pixel_bounce_omega=1.,
-        pixel_bounce_gamma=1.
-     ):
+        pixel_bounce_kA=0.0,
+        pixel_bounce_kv=0.0,
+        pixel_bounce_omega=1.0,
+        pixel_bounce_gamma=1.0,
+    ):
         ROE.__init__(
             self,
             dwell_times=dwell_times,
@@ -118,7 +114,7 @@ class ROETrapPumping(ROE):
             pixel_bounce_kA=pixel_bounce_kA,
             pixel_bounce_kv=pixel_bounce_kv,
             pixel_bounce_omega=pixel_bounce_omega,
-            pixel_bounce_gamma=pixel_bounce_gamma
+            pixel_bounce_gamma=pixel_bounce_gamma,
         )
         self.n_pumps = n_pumps
 
