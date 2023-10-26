@@ -44,18 +44,7 @@ extensions = [
             *ext_sources,
         ],
         language="c++",
-<<<<<<< HEAD
         include_dirs=[dir_wrapper_include, dir_include, np.get_include()],
-=======
-        libraries=["gsl"],
-        runtime_library_dirs=[dir_gsl_lib],
-        include_dirs=[
-            dir_wrapper_include,
-            dir_include,
-            np.get_include(),
-            dir_gsl_include,
-        ],
->>>>>>> master
         extra_compile_args=["-std=c++17", "-O3"],
         define_macros=[("NPY_NO_DEPRECATED_API", 0)],
     ),
