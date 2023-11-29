@@ -19,7 +19,7 @@ TO PUBLISH TO PYPI:
 #Increment version number in pyproject.toml
 #Create a new source distribution
 python3 setup.py sdist
-#Ipload via e.g. twine (pip3 install twine)
+#Upload via e.g. twine (pip3 install twine)
 twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 
@@ -133,7 +133,7 @@ git clone https://github.com/jkeger/arctic.git
     + You should now get output from `./arctic --demo`.
 3. arCTIc python wrapper
     + Run `sudo make wrapper` (sudo only required on MacOS) to create `arcticpy/wrapper.cypython*.so`
-    + Add `/***current*directory***/arctic/python` to your system variable `$PYTHONPATH` and `/***current*directory***/arctic` to to another system variable `$DYLD_LIBRARY_PATH`
+    + Add `/***current*directory***/arctic/python` to your system variable `$PYTHONPATH` and `/***current*directory***/arctic` to another system variable `$DYLD_LIBRARY_PATH`
     + You should now get output (in python) from `import numpy, arcticpy ; test=arcticpy.add_cti(numpy.zeros((5,5)))`
 
 
@@ -154,12 +154,12 @@ to load and save the fits image with correct units and quadrant rotations, etc):
 import arcticpy as arctic
 import autoarray as aa
 
-image_path = "image_path/image_name"
+data_path = "data_path/image_name"
 
 # Load each quadrant of the image  (see pypi.org/project/autoarray)
 image_A, image_B, image_C, image_D = [
     aa.acs.ImageACS.from_fits(
-        file_path=image_path + ".fits",
+        file_path=data_path + ".fits",
         quadrant_letter=quadrant,
         bias_subtract_via_bias_file=True,
         bias_subtract_via_prescan=True,
@@ -196,7 +196,7 @@ image_out_A, image_out_B, image_out_C, image_out_D = [
 
 # Save the corrected image
 aa.acs.output_quadrants_to_fits(
-    file_path=image_path + "_out.fits",
+    file_path=data_path + "_out.fits",
     quadrant_a=image_out_A,
     quadrant_b=image_out_B,
     quadrant_c=image_out_C,
