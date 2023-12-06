@@ -54,20 +54,21 @@ class PixelBounce:
     def omega0(self):
         return np.sqrt(omega**2 + gamma**2)  # natural frequency of oscillator
 
-    def add_pixel_bounce(
-        self,
-        image,
-        parallel_window_start=0,
-        parallel_window_stop=-1,
-        serial_window_start=0,
-        serial_window_stop=-1,
-        verbosity=1,
+    def bias_from(
+            self,
+            image,
+            parallel_window_start=0,
+            parallel_window_stop=-1,
+            serial_window_start=0,
+            serial_window_stop=-1,
+            verbosity=1,
     ):
         """
-        Add pixel bounce to an image, modelled as Damped Harmonic Oscillations (DHO)
-        in a CCD's reference voltage, driven by sudden changes in the signal. This
-        creates spurious features in the serial (same row) direction away from any
-        gradient in the image.
+        Applies pixel bounce to an image and returns the bias.
+
+        The bias array is what is subtracted from the image to add pixel bounce. This function is separate from
+        `add_pixel_bounce` to allow the bias to be calculated multiple times (e.g. for different pixel bounce
+        classes) and then all added to the same image.
 
         Parameters
         ----------
@@ -88,14 +89,13 @@ class PixelBounce:
 
         Returns
         -------
-        image : [[float]]
-            The output array of pixel values.
+        bias : [[float]]
+            The output bias image array of pixel values.
         """
-
         # Parse inputs needed to process only a subset of the image
         image = np.copy(image).astype(np.double)
         if (self.kA == 0) and (self.kv == 0):
-            return image
+            return np.zeros(image.shape)
         n_y, n_x = image.shape
         if parallel_window_stop == -1:
             parallel_window_stop = n_y
@@ -138,6 +138,55 @@ class PixelBounce:
 
             # DHO difference equation, Cieslinski & Ratkiewicz (2005) eqn (43)
             bias[:, i] = coeffA * biasm1 - coeffB * biasm2
+
+        return bias
+
+    def add_pixel_bounce(
+        self,
+        image,
+        parallel_window_start=0,
+        parallel_window_stop=-1,
+        serial_window_start=0,
+        serial_window_stop=-1,
+        verbosity=1,
+    ):
+        """
+        Add pixel bounce to an image, modelled as Damped Harmonic Oscillations (DHO)
+        in a CCD's reference voltage, driven by sudden changes in the signal. This
+        creates spurious features in the serial (same row) direction away from any
+        gradient in the image.
+
+        Parameters
+        ----------
+        image : [[float]]
+            The input array of pixel values, assumed to be in units of electrons.
+
+            The first dimension is the "row" (y) index, the second is the "column"
+            (x) index. Pixel bounce is only ever added in the x direction (ie during
+            serial readout for images oriented as usual in ArCTIc).
+
+        parallel_window_start/stop : int
+            First and last row of pixels (in the y direction) to process, for speed.
+            Default is to process the entire image.
+
+        serial_window_start/stop : int
+            First and last column of pixels (in the x direction) to process, for speed.
+            Default is to process the entire image.
+
+        Returns
+        -------
+        image : [[float]]
+            The output array of pixel values.
+        """
+
+        bias = self.bias_from(
+            image,
+            parallel_window_start=parallel_window_start,
+            parallel_window_stop=parallel_window_stop,
+            serial_window_start=serial_window_start,
+            serial_window_stop=serial_window_stop,
+            verbosity=verbosity,
+        )
 
         # Spurious bias caused by correlated double sampling
         image[
