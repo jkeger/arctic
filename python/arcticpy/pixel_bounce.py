@@ -288,22 +288,32 @@ Standalone functions to call the above, but mirroring syntax of add_cti() and re
 
 def add_pixel_bounce(
     image,
-    pixel_bounce=None,
+    pixel_bounce_list=None,
     parallel_window_start=0,
     parallel_window_stop=-1,
     serial_window_start=0,
     serial_window_stop=-1,
     verbosity=1,
 ):
-    if pixel_bounce is not None:
-        image = pixel_bounce.add_pixel_bounce(
-            image,
-            parallel_window_start=parallel_window_start,
-            parallel_window_stop=parallel_window_stop,
-            serial_window_start=serial_window_start,
-            serial_window_stop=serial_window_stop,
-            verbosity=verbosity,
-        )
+    if pixel_bounce_list is not None:
+
+        bias_total = np.zeros(image.shape)
+
+        for pixel_bounce in pixel_bounce_list:
+
+            bias = pixel_bounce.bias_from(
+                image,
+                parallel_window_start=parallel_window_start,
+                parallel_window_stop=parallel_window_stop,
+                serial_window_start=serial_window_start,
+                serial_window_stop=serial_window_stop,
+                verbosity=verbosity,
+            )
+
+            bias_total += bias
+
+        image -= bias_total[:, :]
+
     return image
 
 
