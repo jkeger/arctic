@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List, Optional
 
 try:
     from arcticpy import wrapper as w
@@ -14,8 +15,7 @@ from arcticpy.traps import (
     TrapSlowCaptureContinuum,
 )
 
-# from arcticpy.src.pixel_bounce import add_pixel_bounce
-from arcticpy.pixel_bounce import PixelBounce, add_pixel_bounce
+from arcticpy.pixel_bounce import PixelBounce
 
 
 def _extract_trap_parameters(traps):
@@ -144,7 +144,7 @@ def add_cti(
     # Combined
     allow_negative_pixels=1,
     # Pixel bounce
-    pixel_bounce=None,
+    pixel_bounce_list : Optional[List[PixelBounce]] = None,
     # Output
     verbosity=1,
     iteration=0,
@@ -329,15 +329,24 @@ def add_cti(
     # ================
     # Add pixel bounce
     # ================
-    if pixel_bounce is not None:
-        image_trailed = pixel_bounce.add_pixel_bounce(
-            image,
-            parallel_window_start=parallel_window_start,
-            parallel_window_stop=parallel_window_stop,
-            serial_window_start=serial_window_start,
-            serial_window_stop=serial_window_stop,
-            verbosity=verbosity,
-        )
+    if pixel_bounce_list is not None:
+
+        bias_total = np.zeros(image.shape)
+
+        for pixel_bounce in pixel_bounce_list:
+
+            bias = pixel_bounce.bias_from(
+                image_trailed,
+                parallel_window_start=parallel_window_start,
+                parallel_window_stop=parallel_window_stop,
+                serial_window_start=serial_window_start,
+                serial_window_stop=serial_window_stop,
+                verbosity=verbosity,
+            )
+
+            bias_total += bias
+
+        image_trailed -= bias_total[:, :]
 
     # ===================
     # Update image header
@@ -390,7 +399,7 @@ def remove_cti(
     # Combined
     allow_negative_pixels=1,
     # Pixel bounce
-    pixel_bounce=None,
+    pixel_bounce_list : Optional[List[PixelBounce]] = None,
     # Read noise de-amplification
     read_noise=None,
     # Output
@@ -467,7 +476,7 @@ def remove_cti(
             # Combined
             allow_negative_pixels=allow_negative_pixels,
             # Pixel bounce
-            pixel_bounce=pixel_bounce,
+            pixel_bounce_list=pixel_bounce_list,
             # Output
             verbosity=verbosity,
             iteration=iteration,
