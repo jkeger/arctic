@@ -288,37 +288,55 @@ Standalone functions to call the above, but mirroring syntax of add_cti() and re
 
 def add_pixel_bounce(
     image,
-    pixel_bounce=None,
+    pixel_bounce_list=None,
     parallel_window_start=0,
     parallel_window_stop=-1,
     serial_window_start=0,
     serial_window_stop=-1,
     verbosity=1,
 ):
-    if pixel_bounce is not None:
-        image = pixel_bounce.add_pixel_bounce(
-            image,
-            parallel_window_start=parallel_window_start,
-            parallel_window_stop=parallel_window_stop,
-            serial_window_start=serial_window_start,
-            serial_window_stop=serial_window_stop,
-            verbosity=verbosity,
-        )
+    if pixel_bounce_list is not None:
+
+        bias_total = np.zeros(image.shape)
+
+        for pixel_bounce in pixel_bounce_list:
+
+            bias = pixel_bounce.bias_from(
+                image,
+                parallel_window_start=parallel_window_start,
+                parallel_window_stop=parallel_window_stop,
+                serial_window_start=serial_window_start,
+                serial_window_stop=serial_window_stop,
+                verbosity=verbosity,
+            )
+
+            bias_total += bias
+
+        image -= bias_total[:, :]
+
     return image
 
 
 def remove_pixel_bounce(
     image,
     n_iterations,
-    pixel_bounce=None,
+    pixel_bounce_list=None,
     parallel_window_start=0,
     parallel_window_stop=-1,
     serial_window_start=0,
     serial_window_stop=-1,
     verbosity=1,
 ):
-    if pixel_bounce is not None:
-        image = pixel_bounce.remove_pixel_bounce(
+    if pixel_bounce_list is None:
+
+        raise Exception("Must provide a list of pixel bounce objects")
+
+    image = np.copy(image).astype(np.double)
+    image_remove_pixel_bounce = np.copy(image).astype(np.double)
+
+    for iteration in range(1, n_iterations + 1):
+
+        image_add_pixel_bounce = add_pixel_bounce(
             image,
             n_iterations,
             parallel_window_start=parallel_window_start,
@@ -327,4 +345,10 @@ def remove_pixel_bounce(
             serial_window_stop=serial_window_stop,
             verbosity=verbosity,
         )
-    return image
+
+        delta = image - image_add_pixel_bounce
+
+        image_remove_pixel_bounce += delta
+
+    return image_remove_pixel_bounce
+

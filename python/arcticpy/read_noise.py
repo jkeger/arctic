@@ -1,7 +1,11 @@
 import numpy as np
-import arcticpy as ac
 import matplotlib as mpl
 from scipy.optimize import curve_fit
+
+try:
+    from arcticpy import wrapper as w
+except ImportError:
+    import wrapper as w
 
 """
 CTI correction moves trailed electrons back to their proper location, but also
@@ -724,7 +728,7 @@ class ReadNoise:
         Estimate a covariance matrix for an optimising simulation, assuming the sky/noise frames have already been created
         """
         # add CTI effects to skyFrame
-        ctiTrailedFrame = ac.add_cti(skyFrame, **kwargs)
+        ctiTrailedFrame = w.add_cti(skyFrame, **kwargs)
         # add read noise to CTI-trailed image
         readNoiseAddedFrame = ctiTrailedFrame + noiseFrame
         # do S+R routine
@@ -736,7 +740,7 @@ class ReadNoise:
         ##rFrame*=sr_fraction
         ##sFrame-=rFrame
         # clean CTI from S frame
-        ctiCorrectedFrame = ac.remove_cti(sFrame, 1, **kwargs)
+        ctiCorrectedFrame = w.remove_cti(sFrame, 1, **kwargs)
         # re-add R frame to correction
         outputFrame = ctiCorrectedFrame + rFrame
 
