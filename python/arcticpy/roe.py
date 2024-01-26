@@ -1,7 +1,5 @@
 import numpy as np
 
-#from .dictable import Dictable
-
 roe_type_standard = 0
 roe_type_charge_injection = 1
 roe_type_trap_pumping = 2
@@ -32,15 +30,14 @@ class ROE:
         self.empty_traps_for_first_transfers = empty_traps_for_first_transfers
         self.force_release_away_from_readout = force_release_away_from_readout
         self.use_integer_express_matrix = use_integer_express_matrix
-        self.pixel_bounce_kA    = pixel_bounce_kA
-        self.pixel_bounce_kv    = pixel_bounce_kv
+        self.pixel_bounce_kA = pixel_bounce_kA
+        self.pixel_bounce_kv = pixel_bounce_kv
         self.pixel_bounce_omega = pixel_bounce_omega
         self.pixel_bounce_gamma = pixel_bounce_gamma
         self.read_noise = read_noise
         self.n_pumps = -1  # Dummy value
 
         self.type = roe_type_standard
-    
 
 
 class ROEChargeInjection(ROE):
@@ -77,7 +74,7 @@ class ROEChargeInjection(ROE):
         )
 
         self.type = roe_type_charge_injection
-    
+
     def from_normal_roe(roe, n_pixels_in_image):
         """
         Convert a normal ROE sequence, with all its options, to one modelling

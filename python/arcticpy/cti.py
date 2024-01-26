@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List, Optional
 
 try:
     from arcticpy import wrapper as w
@@ -68,7 +69,7 @@ def add_cti(
     parallel_window_stop=-1,
     parallel_time_start=0,
     parallel_time_stop=-1,
-    parallel_prune_n_electrons=1e-10, 
+    parallel_prune_n_electrons=1e-10,
     parallel_prune_frequency=20,
     # Serial
     serial_ccd=None,
@@ -80,12 +81,12 @@ def add_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-10, 
+    serial_prune_n_electrons=1e-10,
     serial_prune_frequency=20,
     # Combined
     allow_negative_pixels=1,
     # Pixel bounce
-    pixel_bounce=None,
+    pixel_bounce_list : Optional[List[PixelBounce]] = None,
     # Output
     vv_test=False,
     verbosity=1,
@@ -289,7 +290,7 @@ def add_cti(
         serial_window_stop,
         serial_time_start,
         serial_time_stop,
-        serial_prune_n_es, 
+        serial_prune_n_es,
         serial_prune_frequency,
         # ========
         # Combined
@@ -299,32 +300,45 @@ def add_cti(
         # Output
         # ========
         verbosity,
-        iteration
+        iteration,
     )
-    
 
     # ================
     # Add pixel bounce
     # ================
-    if pixel_bounce is not None:
-        image_trailed = pixel_bounce.add_pixel_bounce(
-            image_trailed,
-            parallel_window_start=parallel_window_start,
-            parallel_window_stop=parallel_window_stop,
-            serial_window_start=serial_window_start,
-            serial_window_stop=serial_window_stop,
-            verbosity=verbosity
-        )
-    
-    
+    if pixel_bounce_list is not None:
+
+        bias_total = np.zeros(image.shape)
+        
+        for pixel_bounce in pixel_bounce_list:
+            bias = pixel_bounce.bias_from(
+                image_trailed,
+                parallel_window_start=parallel_window_start,
+                parallel_window_stop=parallel_window_stop,
+                serial_window_start=serial_window_start,
+                serial_window_stop=serial_window_stop,
+                verbosity=verbosity,
+            )
+            bias_total += bias
+
+        image_trailed -= bias_total[:, :]
+
     # ===================
     # Update image header
     # ===================
     if header is not None:
-        #TBD       
-        #print(w.cy_version_arctic())
-        header.set("cticor", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
-        header.set("ctipar", "ArCTIc", "CTI correction performed using ArCTIc v"+w.cy_version_arctic())
+        # TBD
+        # print(w.cy_version_arctic())
+        header.set(
+            "cticor",
+            "ArCTIc",
+            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
+        )
+        header.set(
+            "ctipar",
+            "ArCTIc",
+            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
+        )
 
 
     # ========
@@ -367,16 +381,18 @@ def remove_cti(
     serial_window_stop=-1,
     serial_time_start=0,
     serial_time_stop=-1,
-    serial_prune_n_electrons=1e-10, 
+    serial_prune_n_electrons=1e-10,
     serial_prune_frequency=20,
     # Combined
     allow_negative_pixels=1,
     # Pixel bounce
-    pixel_bounce=None,
+    pixel_bounce_list : Optional[List[PixelBounce]] = None,
     # Optional: read noise de-amplification
     remove_read_noise=False,
     # Optional: perform Validation & Verification test
     vv_test=False,
+    # Read noise de-amplification
+    read_noise=None,
     # Output
     verbosity=1,
 ):
@@ -488,12 +504,12 @@ def remove_cti(
             serial_window_stop=serial_window_stop,
             serial_time_start=serial_time_start,
             serial_time_stop=serial_time_stop,
-            serial_prune_n_electrons=serial_prune_n_electrons, 
+            serial_prune_n_electrons=serial_prune_n_electrons,
             serial_prune_frequency=serial_prune_frequency,
             # Combined
             allow_negative_pixels=allow_negative_pixels,
             # Pixel bounce
-            pixel_bounce=pixel_bounce,
+            pixel_bounce_list=pixel_bounce_list,
             # Output
             verbosity=verbosity,
             vv_test=False,
@@ -516,7 +532,7 @@ def remove_cti(
         
         # Hack to get long iteractions to converge faster
         # Warning: this can introduce biases in e.g. dark exposures
-        if iteration == 1 and n_iterations >= 2:
+        if not allow_negative_pixels:
             image_remove_cti[image_remove_cti < 0.0] = 0.0
             
     # =======================
