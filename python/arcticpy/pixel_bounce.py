@@ -234,6 +234,7 @@ class PixelBounce:
     def add_pixel_bounce_slow(self, image, do_Plot=False):
         """
         C++ style version, looping over each row one at a time
+        Results are identical to add_pixel_bounce()
         """
         # Pre-calcualte (once) useful quantities from eqn (43) of
         # Cieslinski & Ratkiewicz (2005) https://arxiv.org/abs/physics/0507182
