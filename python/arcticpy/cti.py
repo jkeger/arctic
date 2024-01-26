@@ -198,7 +198,6 @@ def add_cti(
     # V&V test
     # ========
     # Measure level of trailing into overscan regions of input image
-    #if vv_test:
     vv=VVTestBench(
         parallel_roe=parallel_roe, 
         parallel_ccd=parallel_ccd, 
@@ -323,24 +322,6 @@ def add_cti(
 
         image_trailed -= bias_total[:, :]
 
-    # ===================
-    # Update image header
-    # ===================
-    if header is not None:
-        # TBD
-        # print(w.cy_version_arctic())
-        header.set(
-            "cticor",
-            "ArCTIc",
-            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
-        )
-        header.set(
-            "ctipar",
-            "ArCTIc",
-            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
-        )
-
-
     # ========
     # V&V test
     # ========
@@ -351,6 +332,21 @@ def add_cti(
                               parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
                               parallel_fit_bias = True, 
                               parallel_model_bias = vv_test_before.parallel.best_fit_bias)
+
+    # ===================
+    # Update image header
+    # ===================
+    if header is not None:
+        header.set(
+            "cticor",
+            "ArCTIc",
+            "CTI addition performed using ArCTIc v" + w.cy_version_arctic(),
+        )
+        header.set(
+            "ctipar",
+            "ArCTIc",
+            "CTI addition performed using ArCTIc v" + w.cy_version_arctic(),
+        )
 
     return ndarray_plus(image_trailed, vv_test = vv)
 
@@ -391,8 +387,6 @@ def remove_cti(
     remove_read_noise=False,
     # Optional: perform Validation & Verification test
     vv_test=False,
-    # Read noise de-amplification
-    read_noise=None,
     # Output
     verbosity=1,
 ):
@@ -560,12 +554,22 @@ def remove_cti(
                               parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
                               parallel_fit_bias = True, 
                               parallel_model_bias = vv_test_before.parallel.best_fit_bias)
-        #image_remove_cti = ndarray_plus(image_remove_cti, vv_test = vv)
-
-    output = ndarray_plus(image_remove_cti, vv_test = vv, covariance = covariance)
-    print(len(output.vv_test.results))
-    print(output.covariance)
-
+        
+    # ===================
+    # Update image header
+    # ===================
+    if header is not None:
+        header.set(
+            "cticor",
+            "ArCTIc",
+            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
+        )
+        header.set(
+            "ctipar",
+            "ArCTIc",
+            "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
+        )
+        
     return ndarray_plus(image_remove_cti, vv_test = vv, covariance = covariance)
 
 
