@@ -102,6 +102,9 @@ class VVTestBench:
     def print(self, *args, **kwargs): 
         if self.verbose: print(*args, **kwargs) # don't print if not verbose
     
+    def n_results(self):
+        return len(self.results)
+
     def test(
         self,
         image,

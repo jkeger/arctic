@@ -15,6 +15,7 @@ from arcticpy.traps import (
 )
 from arcticpy.pixel_bounce import PixelBounce, add_pixel_bounce
 from arcticpy.vv_test import VVTestBench
+from arcticpy.read_noise import ReadNoise
 
 
 class ndarray_plus(np.ndarray):
@@ -41,7 +42,7 @@ class ndarray_plus(np.ndarray):
         obj.vv_test = vv_test
         if covariance is None:
             covariance = np.zeros((2,2,5,5))
-            covariance[:,:,2,2]=1.
+            #covariance[:,:,2,2]=1.
         obj.covariance = covariance
         return obj
         
@@ -196,17 +197,18 @@ def add_cti(
     # V&V test
     # ========
     # Measure level of trailing into overscan regions of input image
+    #if vv_test:
+    vv=VVTestBench(
+        parallel_roe=parallel_roe, 
+        parallel_ccd=parallel_ccd, 
+        parallel_traps=parallel_traps, 
+        serial_roe=serial_roe, 
+        serial_ccd=serial_ccd, 
+        serial_traps=serial_traps, 
+        sum_of_exponentials=True,
+        verbose=(verbosity >= 1)
+    )
     if vv_test:
-        vv=VVTestBench(
-            parallel_roe=parallel_roe, 
-            parallel_ccd=parallel_ccd, 
-            parallel_traps=parallel_traps, 
-            serial_roe=serial_roe, 
-            serial_ccd=serial_ccd, 
-            serial_traps=serial_traps, 
-            sum_of_exponentials=True,
-            verbose=(verbosity >= 1)
-        )
         vv_test_before=vv.test(image)
 
     # ========
@@ -335,10 +337,8 @@ def add_cti(
                               parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
                               parallel_fit_bias = True, 
                               parallel_model_bias = vv_test_before.parallel.best_fit_bias)
-        image_trailed = ndarray_plus(image_trailed, vv_test = vv)
-        print(image_trailed.covariance)
 
-    return ndarray_plus(image_trailed)
+    return ndarray_plus(image_trailed, vv_test = vv)
 
 
 def remove_cti(
@@ -374,8 +374,8 @@ def remove_cti(
     # Pixel bounce
     pixel_bounce=None,
     # Optional: read noise de-amplification
-    read_noise=None,
-    # Optional: 
+    remove_read_noise=False,
+    # Optional: perform Validation & Verification test
     vv_test=False,
     # Output
     verbosity=1,
@@ -406,6 +406,11 @@ def remove_cti(
         curves to pixels in overscan regions (if available). The results can 
         be accessed as image.vv_test.results[-1].parallel.best_fit_trap_density
     
+    remove_read_noise : Bool
+        If True, estimate and remove the white readout noise in the image
+        before doing CTI correction, to prevent its being amplified. 
+        Add the noise back afterwards.
+        
     Inputs
     ------
     image : 2D numpy.ndarray of pixel values
@@ -426,26 +431,33 @@ def remove_cti(
     # V&V test
     # ========
     # Measure level of trailing into overscan regions of input image
+    covariance = None
+    vv=VVTestBench(
+        parallel_roe=parallel_roe, 
+        parallel_ccd=parallel_ccd, 
+        parallel_traps=parallel_traps, 
+        serial_roe=serial_roe, 
+        serial_ccd=serial_ccd, 
+        serial_traps=serial_traps, 
+        sum_of_exponentials=True,
+        verbose=(verbosity >= 1)
+    )
     if vv_test:
-        vv=VVTestBench(
-            parallel_roe=parallel_roe, 
-            parallel_ccd=parallel_ccd, 
-            parallel_traps=parallel_traps, 
-            serial_roe=serial_roe, 
-            serial_ccd=serial_ccd, 
-            serial_traps=serial_traps, 
-            sum_of_exponentials=True,
-            verbose=(verbosity >= 1)
-        )
-        vv_test_before=vv.test(image)
+       vv_test_before=vv.test(image)
     
+    # =======================
     # Attempt to estimate and remove read noise, so it it not amplified
-    if read_noise is not None:
+    # =======================
+    if remove_read_noise > 0:
+        sigma_readnoise = 1. * remove_read_noise
+        read_noise = ReadNoise(sigma_readnoise=sigma_readnoise)
+        print(read_noise.sigmaRN)
         image_remove_cti,image_read_noise = read_noise.generate_SR_frames_from_image(image_remove_cti)
-        #image_remove_cti -= image_read_noise
         print("\nMean and rms of modelled read noise:",np.mean(image_read_noise),np.std(image_read_noise))        
 
+    # =======================
     # Estimate the image with removed CTI more accurately each iteration
+    # =======================
     for iteration in range(1, n_iterations + 1):
         if verbosity >= 1:
             print("Iter %d: " % iteration, end="", flush=True)
@@ -490,37 +502,38 @@ def remove_cti(
 
         # Improve the estimate of the image with CTI trails removed
         delta = image - image_add_cti
-        if read_noise is not None:
+        if remove_read_noise > 0:
             delta -= image_read_noise
-            # Doing the following should be right, but biases the
+            # Doing the following ought to be right, but turns out to bias the
             # mean of the output image
             #delta_squared = delta ** 2
             #delta *= delta_squared / ( delta_squared + read_noise.sigmaRN ** 2 )
         image_remove_cti += delta
         
-        # Prevent negative image values
+        # Prevent unphysical, negative image values
         if not allow_negative_pixels:
             image_remove_cti[image_remove_cti < 0.0] = 0.0
         
-        print(iteration)
+        # Hack to get long iteractions to converge faster
+        # Warning: this can introduce biases in e.g. dark exposures
         if iteration == 1 and n_iterations >= 2:
             image_remove_cti[image_remove_cti < 0.0] = 0.0
             
-        # ========
-        # V&V test
-        # ========
-        # Re-measure level of trailing into overscan regions of output image
-        if vv_test:
-            vv_test_mid=vv.test(image_remove_cti,
-                                  parallel_valid_columns = vv_test_before.parallel.valid_columns,
-                                  parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
-                                  parallel_fit_bias = True, 
-                                  parallel_model_bias = vv_test_before.parallel.best_fit_bias)
-
+    # =======================
     # Add back the read noise, if it had been removed
-    if read_noise is not None:
+    # =======================
+    if remove_read_noise > 0:
         image_remove_cti += image_read_noise
-   
+        #
+        # TO DO: Estimate residual covariance due to read noise
+        #        This will eventually be calculated via a call like
+        #
+        #        covariance = read_noise.measure_simulated_covariance_corners()
+        #
+        # But that's not yet finished. For now...
+        covariance = np.zeros((2,2,5,5))
+        covariance[:,:,2,2]=read_noise.sigmaRN
+           
     # ========
     # V&V test
     # ========
@@ -531,9 +544,13 @@ def remove_cti(
                               parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
                               parallel_fit_bias = True, 
                               parallel_model_bias = vv_test_before.parallel.best_fit_bias)
-        image_remove_cti = ndarray_plus(image_remove_cti, vv_test = vv)
+        #image_remove_cti = ndarray_plus(image_remove_cti, vv_test = vv)
 
-    return ndarray_plus(image_remove_cti)
+    output = ndarray_plus(image_remove_cti, vv_test = vv, covariance = covariance)
+    print(len(output.vv_test.results))
+    print(output.covariance)
+
+    return ndarray_plus(image_remove_cti, vv_test = vv, covariance = covariance)
 
 
 
@@ -605,7 +622,8 @@ def CTI_model_for_HST_ACS(date):
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
-        prescan_length=24
+        prescan_length=24,
+        read_noise=4.0
     )
 
     # Single-phase CCD

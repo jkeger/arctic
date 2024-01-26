@@ -12,7 +12,7 @@ class ROE:
         self,
         dwell_times=[1.0],
         prescan_offset=0,
-        prescan_length=0, # Currently nothing is done with this in arctc; just the V&V test
+        prescan_length=0, # Currently nothing is done with this in arctic; just the V&V test
         overscan_start=-1,
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=False,
@@ -21,7 +21,8 @@ class ROE:
         pixel_bounce_kA=0.,
         pixel_bounce_kv=0.,
         pixel_bounce_omega=1.,
-        pixel_bounce_gamma=1.
+        pixel_bounce_gamma=1.,
+        read_noise=0.
     ):
         self.dwell_times = np.array(dwell_times, dtype=np.double)
         self.prescan_offset = prescan_offset
@@ -35,6 +36,7 @@ class ROE:
         self.pixel_bounce_kv    = pixel_bounce_kv
         self.pixel_bounce_omega = pixel_bounce_omega
         self.pixel_bounce_gamma = pixel_bounce_gamma
+        self.read_noise = read_noise
         self.n_pumps = -1  # Dummy value
 
         self.type = roe_type_standard
@@ -54,8 +56,8 @@ class ROEChargeInjection(ROE):
         pixel_bounce_kA=0.,
         pixel_bounce_kv=0.,
         pixel_bounce_omega=1.,
-        pixel_bounce_gamma=1.
-        
+        pixel_bounce_gamma=1.,
+        read_noise=0.
     ):
         ROE.__init__(
             self,
@@ -70,7 +72,8 @@ class ROEChargeInjection(ROE):
             pixel_bounce_kA=pixel_bounce_kA,
             pixel_bounce_kv=pixel_bounce_kv,
             pixel_bounce_omega=pixel_bounce_omega,
-            pixel_bounce_gamma=pixel_bounce_gamma
+            pixel_bounce_gamma=pixel_bounce_gamma,
+            read_noise=read_noise
         )
 
         self.type = roe_type_charge_injection
@@ -93,7 +96,8 @@ class ROEChargeInjection(ROE):
             pixel_bounce_kA=roe.pixel_bounce_kA,
             pixel_bounce_kv=roe.pixel_bounce_kv,
             pixel_bounce_omega=roe.pixel_bounce_omega,
-            pixel_bounce_gamma=roe.pixel_bounce_gamma
+            pixel_bounce_gamma=roe.pixel_bounce_gamma,
+            read_noise=read_noise
         )
 
 
@@ -110,7 +114,8 @@ class ROETrapPumping(ROE):
         pixel_bounce_kA=0.,
         pixel_bounce_kv=0.,
         pixel_bounce_omega=1.,
-        pixel_bounce_gamma=1.
+        pixel_bounce_gamma=1.,
+        read_noise=0.
      ):
         ROE.__init__(
             self,
@@ -125,7 +130,8 @@ class ROETrapPumping(ROE):
             pixel_bounce_kA=pixel_bounce_kA,
             pixel_bounce_kv=pixel_bounce_kv,
             pixel_bounce_omega=pixel_bounce_omega,
-            pixel_bounce_gamma=pixel_bounce_gamma
+            pixel_bounce_gamma=pixel_bounce_gamma,
+            read_noise=read_noise
         )
         self.n_pumps = n_pumps
 
