@@ -4,7 +4,7 @@ test_arctic
 libarctic.so
 *.cpython*.so
 lib_test
-arcticpy/src/wrapper.cpp
+python/arcticpy/wrapper.cpp
 __pycache__/
 build/
 gsl/
@@ -33,5 +33,3 @@ Untitle*.ipynb
 */*/*/.DS_Store
 
 .idea/
-
-wrapper.cpp
