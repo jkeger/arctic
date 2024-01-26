@@ -23,3 +23,11 @@ callgrind.out.*
 hst_acs_10_col.txt
 dev/
 
+jn_sp*.py
+tst_*.py
+Untitle*.ipynb
+
+.DS_Store
+*/.DS_Store
+*/*/.DS_Store
+*/*/*/.DS_Store
