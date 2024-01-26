@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d5e281bd-45ac-4001-b79c-00bd3b992ab6" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/python/arcticpy/wrapper.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/python/arcticpy/wrapper.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tst_cil.py" beforeDir="false" afterPath="$PROJECT_DIR$/tst_cil.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tst_dark.py" beforeDir="false" afterPath="$PROJECT_DIR$/tst_dark.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tst_negative_image.py" beforeDir="false" afterPath="$PROJECT_DIR$/tst_negative_image.py" afterDir="false" />
-    </list>
+    <list default="true" id="d5e281bd-45ac-4001-b79c-00bd3b992ab6" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -59,6 +54,7 @@
       <option name="presentableId" value="Default" />
       <updated>1691319446394</updated>
       <workItem from="1691319448532" duration="1025000" />
+      <workItem from="1692785256704" duration="36000" />
     </task>
     <servers />
   </component>

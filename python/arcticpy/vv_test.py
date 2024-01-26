@@ -97,6 +97,7 @@ class VVTestBench:
         self.ncols_min_required       = ncols_min_required
         self.sigma_clipping_threshold = sigma_clipping_threshold
         self.sigma_clipping_niter     = sigma_clipping_niter
+        self.results = []
 
     def print(self, *args, **kwargs): 
         if self.verbose: print(*args, **kwargs) # don't print if not verbose
@@ -187,8 +188,12 @@ class VVTestBench:
                     fit_bias = serial_fit_bias,
                     iterate_bias = serial_iterate_bias
                 )
-                
-        return VVResult(vv_parallel,vv_serial)
+        
+        # Save to history of results within the testbench object, as well as returning
+        result = VVResult(vv_parallel,vv_serial)
+        self.results.append(result)
+        
+        return result
 
     def _test1d(
         self,
@@ -270,7 +275,7 @@ class VVTestBench:
         if model_trap_density <= 0: raise Exception("No traps in CTI model!")
         if model_pre_cti[y_roe.overscan_start-1] <= y_ccd.well_notch_depths[0]:
             raise Exception("CTI model will not result in any trailing!")
-        print("Generating model of EPER (bias: ",model_bias,", trap density: ",model_trap_density,")")
+        self.print("Generating model of EPER (bias: ",model_bias,", trap density: ",model_trap_density,")")
         if self.sum_of_exponentials:
             # Simple, approximate analytic model of trail
             self.print("Generating sum-of-exponentials model of EPER trail")

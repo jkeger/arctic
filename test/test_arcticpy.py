@@ -854,8 +854,8 @@ class TestCTIModelForHSTACS:
         # Before the temperature change
         date_1 = date_T_change - 246
         date_2 = date_T_change - 123
-        roe_1, ccd_1, traps_1 = cti.CTI_model_for_HST_ACS(date_1)
-        roe_2, ccd_2, traps_2 = cti.CTI_model_for_HST_ACS(date_2)
+        roe_1, ccd_1, traps_1, serialr, serialc, serialt = cti.CTI_model_for_HST_ACS(date_1)
+        roe_2, ccd_2, traps_2, serialr, serialc, serialt = cti.CTI_model_for_HST_ACS(date_2)
 
         # Trap density grows with time
         total_density_1 = np.sum([trap.density for trap in traps_1])
@@ -865,8 +865,8 @@ class TestCTIModelForHSTACS:
         # After the SM4 repair
         date_3 = date_sm4_repair + 123
         date_4 = date_sm4_repair + 246
-        roe_3, ccd_3, traps_3 = cti.CTI_model_for_HST_ACS(date_3)
-        roe_4, ccd_4, traps_4 = cti.CTI_model_for_HST_ACS(date_4)
+        roe_3, ccd_3, traps_3, serialr, serialc, serialt = cti.CTI_model_for_HST_ACS(date_3)
+        roe_4, ccd_4, traps_4, serialr, serialc, serialt = cti.CTI_model_for_HST_ACS(date_4)
 
         # Trap density grows with time
         total_density_3 = np.sum([trap.density for trap in traps_3])
