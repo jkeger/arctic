@@ -521,13 +521,11 @@ def remove_cti(
         image_remove_cti += delta
         
         # Prevent unphysical, negative image values
-        if not allow_negative_pixels:
-            image_remove_cti[image_remove_cti < 0.0] = 0.0
-        
         # Hack to get long iteractions to converge faster
         # Warning: this can introduce biases in e.g. dark exposures
         if not allow_negative_pixels:
-            image_remove_cti[image_remove_cti < 0.0] = 0.0
+            if iteration == 1:
+                image_remove_cti[image_remove_cti < 0.0] = 0.0
             
     # =======================
     # Add back the read noise, if it had been removed
