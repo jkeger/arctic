@@ -10,18 +10,21 @@ class ROE:
         self,
         dwell_times=[1.0],
         prescan_offset=0,
+        prescan_length=0, # Currently nothing is done with this in arctic; just the V&V test
         overscan_start=-1,
         empty_traps_between_columns=True,
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
-        pixel_bounce_kA=0.0,
-        pixel_bounce_kv=0.0,
-        pixel_bounce_omega=1.0,
-        pixel_bounce_gamma=1.0,
+        pixel_bounce_kA=0.,
+        pixel_bounce_kv=0.,
+        pixel_bounce_omega=1.,
+        pixel_bounce_gamma=1.,
+        read_noise=0.
     ):
         self.dwell_times = np.array(dwell_times, dtype=np.double)
         self.prescan_offset = prescan_offset
+        self.prescan_length = prescan_length
         self.overscan_start = overscan_start
         self.empty_traps_between_columns = empty_traps_between_columns
         self.empty_traps_for_first_transfers = empty_traps_for_first_transfers
@@ -31,6 +34,7 @@ class ROE:
         self.pixel_bounce_kv = pixel_bounce_kv
         self.pixel_bounce_omega = pixel_bounce_omega
         self.pixel_bounce_gamma = pixel_bounce_gamma
+        self.read_noise = read_noise
         self.n_pumps = -1  # Dummy value
 
         self.type = roe_type_standard
@@ -41,19 +45,22 @@ class ROEChargeInjection(ROE):
         self,
         dwell_times=[1.0],
         prescan_offset=0,
+        prescan_length=0,
         overscan_start=-1,
         empty_traps_between_columns=True,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
-        pixel_bounce_kA=0.0,
-        pixel_bounce_kv=0.0,
-        pixel_bounce_omega=1.0,
-        pixel_bounce_gamma=1.0,
+        pixel_bounce_kA=0.,
+        pixel_bounce_kv=0.,
+        pixel_bounce_omega=1.,
+        pixel_bounce_gamma=1.,
+        read_noise=0.
     ):
         ROE.__init__(
             self,
             dwell_times=dwell_times,
             prescan_offset=prescan_offset,
+            prescan_length=prescan_length,
             overscan_start=overscan_start,
             empty_traps_between_columns=empty_traps_between_columns,
             empty_traps_for_first_transfers=False,
@@ -63,6 +70,7 @@ class ROEChargeInjection(ROE):
             pixel_bounce_kv=pixel_bounce_kv,
             pixel_bounce_omega=pixel_bounce_omega,
             pixel_bounce_gamma=pixel_bounce_gamma,
+            read_noise=read_noise
         )
 
         self.type = roe_type_charge_injection
@@ -77,6 +85,7 @@ class ROEChargeInjection(ROE):
         return ROEChargeInjection(
             dwell_times=roe.dwell_times,
             prescan_offset=roe.prescan_offset + n_pixels_in_image,
+            prescan_length=prescan_length,
             overscan_start=roe.overscan_start,
             empty_traps_between_columns=roe.empty_traps_between_columns,
             force_release_away_from_readout=roe.force_release_away_from_readout,
@@ -85,6 +94,7 @@ class ROEChargeInjection(ROE):
             pixel_bounce_kv=roe.pixel_bounce_kv,
             pixel_bounce_omega=roe.pixel_bounce_omega,
             pixel_bounce_gamma=roe.pixel_bounce_gamma,
+            read_noise=read_noise
         )
 
 
@@ -93,19 +103,22 @@ class ROETrapPumping(ROE):
         self,
         dwell_times=[0.5, 0.5],
         prescan_offset=0,
+        prescan_length=0,
         overscan_start=-1,
         n_pumps=1,
         empty_traps_for_first_transfers=False,
         use_integer_express_matrix=False,
-        pixel_bounce_kA=0.0,
-        pixel_bounce_kv=0.0,
-        pixel_bounce_omega=1.0,
-        pixel_bounce_gamma=1.0,
-    ):
+        pixel_bounce_kA=0.,
+        pixel_bounce_kv=0.,
+        pixel_bounce_omega=1.,
+        pixel_bounce_gamma=1.,
+        read_noise=0.
+     ):
         ROE.__init__(
             self,
             dwell_times=dwell_times,
             prescan_offset=prescan_offset,
+            prescan_length=prescan_length,
             overscan_start=overscan_start,
             empty_traps_between_columns=True,
             empty_traps_for_first_transfers=empty_traps_for_first_transfers,
@@ -115,6 +128,7 @@ class ROETrapPumping(ROE):
             pixel_bounce_kv=pixel_bounce_kv,
             pixel_bounce_omega=pixel_bounce_omega,
             pixel_bounce_gamma=pixel_bounce_gamma,
+            read_noise=read_noise
         )
         self.n_pumps = n_pumps
 

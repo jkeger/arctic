@@ -1,8 +1,19 @@
+cimport cython
 
 cimport numpy as np
 import numpy as np
 from libcpp.string cimport string
 
+cdef extern from "read_noise.hpp":
+    void determine_read_noise_model(const double* imageIn, const double* imageOut, const int rows, const int cols, const double readNoiseAmp, const double readNoiseAmpFraction, const int smoothCol, double* output);
+
+def cy_determine_read_noise_model(np.ndarray[np.float64_t, ndim=2] arr1, np.ndarray[np.float64_t, ndim=2] arr2, readNoiseAmp, readNoiseAmpFraction, smoothCol):
+    cdef int rows = arr1.shape[0]
+    cdef int cols = arr1.shape[1]
+    cdef np.ndarray[np.float64_t, ndim=2] out = np.zeros((rows, cols), dtype=np.float64)
+    determine_read_noise_model(&arr1[0,0], &arr2[0,0], rows, cols, readNoiseAmp, readNoiseAmpFraction, smoothCol, &out[0,0])
+    return out
+    
 cdef extern from "util.hpp":
     cdef string version_arctic()
     void print_version()
