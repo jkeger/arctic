@@ -509,6 +509,10 @@ class ReadNoise:
         Method for estimating readnoise on image (in S+R fashion)
         assumes parallel+serial CTI trailing by default
         """
+
+        # the following line returns the result from the C implementation instead (comment out to switch back to native python code)
+        return w.cy_determine_read_noise_model(imageIn, imageOut, self.sigmaRN, self.ampScale, self.smoothCol)
+        
         readNoiseAmp = self.sigmaRN
 
         dval0 = imageIn - imageOut
