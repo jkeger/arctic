@@ -35,8 +35,7 @@ class TrapInstantCapture(AbstractTrap):
         g_w = 0.4132
 
         return (
-            4.0
-            * self.density
+            self.density
             * (
                 a
                 + d_a * (np.arctan((np.log10(self.release_timescale) - d_p) / d_w))

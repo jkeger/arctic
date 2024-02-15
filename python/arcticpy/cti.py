@@ -310,7 +310,7 @@ def add_cti(
         bias_total = np.zeros(image.shape)
         
         for pixel_bounce in pixel_bounce_list:
-            bias = pixel_bounce.bias_from(
+            bias = pixel_bounce.perturb_bias(
                 image_trailed,
                 parallel_window_start=parallel_window_start,
                 parallel_window_stop=parallel_window_stop,
