@@ -102,26 +102,7 @@ Instructions
 
 There are two ways to install arCTIc and its python wrapper:
 
-### pypi/pip [recommended] ###
-
-The easiest way is to use 	the ```pip``` module of your python installation
-```bash
-<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
-pip install -i https://test.pypi.org/simple/ arcticpy
-
-```
-(or possibly (this is what Jascha suggests))
-```bash
-<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
-python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple/ arcticpy
-
-```
-
-This automatically downloads the source files and builds/installs the executable, library and module. If you do not have superuser privileges, you
-have to add the ```--user``` argument to install it into your local (home) directory instead. Furthermore, on some macOS system, you may have to
-explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
-
-### source ###
+### source [recommended] ###
 
 You can also download/clone the source code manually and compile it using the provided ```makefile```. For doing so, you have to perform the following steps:
 1. Clone or download & unpack source code i.e.
@@ -138,6 +119,24 @@ git clone https://github.com/jkeger/arctic.git
 
 
     **MacOS:** requires `sudo make wrapper`, or equivalently `cd arcticpy; python3 setup.py build_ext --inplace`.
+
+### pypi/pip ###
+
+An older version of arctic can be obtained via the ```pip``` module of your python installation
+```bash
+<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
+pip install -i https://test.pypi.org/simple/ arcticpy
+
+```
+(or possibly (this is what Jascha suggests))
+```bash
+<!--python3 -m pip install arcticpy # Finds the wrong (cython?) version!!! -->
+python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple/ arcticpy
+
+```
+The version is not as frequently updated, but this process automatically downloads the source files and builds/installs the executable, library and module. 
+If you do not have superuser privileges, you must add the ```--user``` argument to install it into your local (home) directory instead. 
+Furthermore, on some macOS system, you may have to explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
 
 \
 Usage
