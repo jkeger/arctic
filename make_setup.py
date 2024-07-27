@@ -28,8 +28,8 @@ if os.path.exists("/usr/local/include/gsl"):
     dir_gsl_fallback = "/usr/local/"  # brew install llvm libomp gsl
 if os.path.exists("/opt/local/include/gsl"):
     dir_gsl_fallback = "/opt/local/"  # sudo port install libomp gsl
-if os.path.exists("/cosma/local/gsl/2.5/lib"):
-    dir_gsl_fallback = "/cosma/local/gsl/2.5/lib/"  # use on cosma
+if os.path.exists("/cosma/local/gsl/2.8"):
+    dir_gsl_fallback = "/cosma/local/gsl/2.8/"  # use on cosma
 dir_gsl = os.environ.get("DIR_GSL", dir_gsl_fallback)
 dir_include_gsl = dir_gsl + "include/"
 dir_lib_gsl = dir_gsl + "lib/"
