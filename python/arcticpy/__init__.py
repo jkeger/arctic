@@ -8,7 +8,7 @@ from arcticpy.traps import (
     TrapInstantCaptureContinuum,
     TrapSlowCaptureContinuum,
 )
-from arcticpy.read_noise import ReadNoise
+from arcticpy.read_noise import ReadNoise, CovarianceMatrix
 from arcticpy.vv_test import VVTestBench, VVResult
 try:
     from arcticpy.wrapper import (
