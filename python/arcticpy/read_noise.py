@@ -88,6 +88,7 @@ class ReadNoise:
         adjacency=0.3,
         noise_model_scaling=1.0,  # originally 0.75
         amplitude_scale=0.2,  # originally 0.33
+        n_pixels_for_covar=(100,100),
         n_iter=200,
         sr_fraction=None,
         serial=True,
@@ -98,6 +99,7 @@ class ReadNoise:
         self.adjacency = adjacency
         self.ampScale = amplitude_scale
         self.outScale = noise_model_scaling
+        self.n_pixels_for_covar = n_pixels_for_covar
         self.n_iter = n_iter
         self.smoothCol = serial
         self.sigmaSky = None
@@ -428,11 +430,31 @@ class ReadNoise:
 
     ###############
     ###############
-    def calculate_covariance_corners_from_image(
+    def covariance_matrix_in_corners_of_image(
         self,
         image,
-    ):
-        raise NotImplementedError
+        matrix_size=5
+    ):  
+        """ 
+        Calculate the pixel-to-pixel covariance matrix in the four corners of an image
+        """
+        
+        # Identify the four corners of an image
+        #
+        # THIS NEEDS RATIONALISING
+        #
+        bottom = [0,-self.n_pixels_for_covar[1]-1,0,-self.n_pixels_for_covar[1]-1]
+        top    = [self.n_pixels_for_covar[1],-1,self.n_pixels_for_covar[1],-1]
+        left   = [-self.n_pixels_for_covar[0]-1,-self.n_pixels_for_covar[0]-1,0,0]
+        right  = [-1,-1,self.n_pixels_for_covar[0],self.n_pixels_for_covar[0]]
+        
+        # Calculate the pixel-to-pixel covariance matrix in each corner
+        covariance_matrix_list=[]
+        for i in range(len(left)):
+            subimage = image[bottom[i]:top[i],left[i]:right[i]]
+            covariance_matrix_list.append(CovarianceMatrix().from_image(subimage,matrix_size=matrix_size))
+            
+        return covariance_matrix_list
 
     ###############
     ###############
@@ -809,37 +831,7 @@ class ReadNoise:
         # raise NotImplementedError
         return result_mean
 
-    ###############
-    ###############
-    def covariance_matrix_from_image(self, image, matrix_size=5, fprSize=5):
-        matRange = (
-            matrix_size // 2
-        )  # set positions of correlation pixels and set limits to remove "roll-over" region
 
-        covariance_matrix = np.zeros((matrix_size, matrix_size))
-        # calcluate mean stats on image
-        image2 = image[fprSize:, fprSize:]  # remove FPR decrement
-        x = image2[
-            matRange:-matRange, matRange:-matRange
-        ].flatten()  # remove possible roll-over region
-        xbar = np.mean(x)
-
-        # roll image to get cross correlation
-        for i in range(-matRange, matRange + 1, 1):
-            for j in range(-matRange, matRange + 1, 1):
-                y = np.roll(image2, (-j, -i), axis=(0, 1))[2:-2, 2:-2].flatten()
-                ybar = np.mean(y)
-
-                # calculate covariance
-                covar = (
-                    np.sum((x - xbar) * (y - ybar)) / x.size
-                )  # /(np.std(x-xbar)*np.std(y-ybar))/(x.size) #removing noise-level normalization
-                # covar = np.sum((x-xbar)*(y-ybar))/(np.std(x-xbar)*np.std(y-ybar))/(x.size)
-                # populate matrix cells
-                covariance_matrix[i + matRange, j + matRange] = covar
-        # covariance_matrix[matRange,matRange] = 0 #switch this normalization to plotting
-
-        return covariance_matrix
 
     ###############
 
@@ -1015,3 +1007,118 @@ class ReadNoise:
                 self.optVals["benchmark_resid"] = residual_benchmark_matrix
 
     ###############
+
+
+
+
+class CovarianceMatrix(np.ndarray):
+    """
+    An nxn array whose data is a numpy 2D array, but which has a few extra methods.
+    It can be computed from an image via
+      covmatrix=arcticpy.CovarianceMatrix().from_image(image,matrix_size=(3,5))
+    a useful figure of merit about how much covariance there is is
+      covmatrix.z
+    """
+    def __new__(
+        cls,
+        matrix_size=5,
+        values: np.ndarray=None,
+        *args,
+        **kwargs
+    ):
+        if type(matrix_size) is int: matrix_size=(matrix_size,matrix_size)
+        if values is None:
+            values = np.zeros(matrix_size)
+            values[matrix_size[0]//2,matrix_size[1]//2]=1 
+
+        # Create the ndarray instance
+        obj = values.view(cls)
+        #obj = np.asarray(values).view(cls)
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None: return
+    
+    def from_image(self, image, matrix_size=5, border=[5,5,0,0]):
+        """
+        Calculate the pixel-to-pixel covariance of an image 
+        """        
+        # Initialise output variable
+        self = CovarianceMatrix(matrix_size=matrix_size)
+        middle = self.middle
+        roll_border = tuple(max(a,1) for a in middle)
+
+        # Optionally remove a border around the image, e.g. to avoid FPR decrement
+        # (this actually removes one extra row at the top and column on the right)
+        subimage = image[border[0]:-border[2]-1, 
+                         border[1]:-border[3]-1]
+
+        # Remove the outside edge of an image that could be rolled over in the next copy, 
+        # so the two copies stay the same size
+        x = subimage[roll_border[0]:-roll_border[1], roll_border[0]:-roll_border[1]].flatten()
+        xbar = np.mean(x)
+
+        # Loop over all pixel offsets
+        for i in range(-middle[0], middle[0] + 1, 1):
+            for j in range(-middle[1], middle[1] + 1, 1):
+
+                # Shift the pixels in a second copy of the image
+                y = np.roll(subimage, (-j, -i), axis=(0, 1))[roll_border[0]:-roll_border[1], roll_border[0]:-roll_border[1]].flatten()
+                ybar = np.mean(y)
+                
+                # Calcluate covariance between shifted pixels
+                self[middle[0] + i, middle[1] + j] = (
+                    np.sum((x - xbar) * (y - ybar)) / x.size
+                )  # /(np.std(x-xbar)*np.std(y-ybar))/(x.size) #removing noise-level normalization
+                # covar = np.sum((x-xbar)*(y-ybar))/(np.std(x-xbar)*np.std(y-ybar))/(x.size)
+                
+        return self
+
+    @property
+    def middle(self): # Index of the matrix element corresponding to variance (autocorrelation)
+        return tuple(a//2 for a in self.shape)
+    
+    @property
+    def autocorrelation(self): # The value of variance (autocorrelation)
+        return self[self.middle]
+
+    @property
+    def column(self): # A possible figure of merit: the sum of covariance along a column
+        return self[:,self.middle[1]].sum() - self.autocorrelation
+
+    @property
+    def columnabs(self): # A possible figure of merit: the sum of |covariance| along a column
+        return np.abs(self[:,self.middle[1]]).sum() - self.autocorrelation
+
+    @property
+    def row(self): # A possible figure of merit: the sum of covariance along a row
+        return self[self.middle[0],:].sum() - self.autocorrelation
+
+    @property
+    def rowabs(self): # A possible figure of merit: the sum of |covariance| along a row
+        return np.abs(self[self.middle[0],:]).sum() - self.autocorrelation
+
+    @property
+    def box(self): # A possible figure of merit: the sum of all covariance
+        return self.sum() - self.autocorrelation
+
+    @property
+    def boxabs(self): # A possible figure of merit: the sum of all |covariance|
+        return np.abs(self).sum() - self.autocorrelation
+    
+    @property
+    def ring(self): # The sum of all covariance up to n pixels from autocorrelation
+        n=1
+        middle = self.middle
+        subarray = self[max(middle[0]-n,0):min(middle[0]+n,self.shape[0]),
+                        max(middle[1]-n,0):min(middle[1]+n,self.shape[1])]
+        return subarray.sum() - self.autocorrelation
+    
+    @property
+    def ringabs(self): # The sum of all |covariance| up to n pixels from autocorrelation
+        n=1
+        middle = self.middle
+        subarray = self[max(middle[0]-n,0):min(middle[0]+n,self.shape[0]),
+                        max(middle[1]-n,0):min(middle[1]+n,self.shape[1])]
+        return npabs(subarray).sum() - self.autocorrelation
+
