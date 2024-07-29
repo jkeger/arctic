@@ -56,23 +56,23 @@ LIB_TARGET := libarctic.so
 LIB_TEST_TARGET := lib_test
 
 # Directories 
-# brew install llvm libomp gsl
-DIR_HOMEBREW := /usr/local
-# sudo port install libomp gsl
-DIR_MACPORTS := /opt/local
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 DIR_SRC := $(DIR_ROOT)/src
 DIR_OBJ := $(DIR_ROOT)/build
 DIR_INC := $(DIR_ROOT)/include
 DIR_TEST := $(DIR_ROOT)/test
-#DIR_GSL ?= /cosma/local/gsl/2.5/lib
-#DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4/lib
+# Use the following on cosma
+#DIR_GSL ?= /cosma/local/gsl/2.8
+#DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4
+# Use the following on a standalone machine
+DIR_HOMEBREW := /usr/local # brew install llvm libomp gsl
+DIR_MACPORTS := /opt/local # sudo port install libomp gsl
 #DIR_GSL ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_HOMEBREW)
 #DIR_OMP ?= $(DIR_MACPORTS)/libomp
 DIR_OMP ?= $(DIR_MACPORTS)
 DIR_GSL ?= $(DIR_MACPORTS)
-# Fallback self-installing GSL
+# Use the following if the above doesn't work - fall back to self-installing GSL
 #DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
 DIR_WRAPPER_SRC := $(DIR_ROOT)/python/arcticpy
@@ -98,10 +98,10 @@ LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
 CXXFLAGS += -Xpreprocessor -fopenmp
-# Use this on a mac
-LIBS += -L $(DIR_OMP)/lib -lomp
-# Use the following on cosma (can also use with macports)
-#LIBS += -L $(DIR_OMP)/lib -lgomp
+# Use the following on a homebrew mac
+#LIBS += -L $(DIR_OMP)/lib -lomp
+# Use the following on linux, cosma, or a mac with macports
+LIBS += -L $(DIR_OMP)/lib -lgomp
 
 
 # ========
