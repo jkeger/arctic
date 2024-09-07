@@ -146,18 +146,16 @@ Python
 ------
 ArCTIc will typically be used via the `arcticpy` python wrapper module, which uses Cython to interface with the precompiled C++ dynamic library.
 
-For example, to correct CTI in a Hubble Space Telescope ACS image
-(using the [autoarray](https://pypi.org/project/autoarray/) package
-to load and save the fits image with correct units and quadrant rotations, etc):
+Several libraries have been written to wrap around or simplify the use of ArCTIc on fits images, such as [Pyxel](https://esa.gitlab.io/pyxel) and [pyAutoCTI](https://github.com/Jammy2211/PyAutoCTI). For example, to correct CTI in a Hubble Space Telescope ACS image, the following reads in CCD data, flips quadrants so their readout register is at position (0,0), then calls ArCTIc:
 ```python
 import arcticpy as arctic
-import autoarray as aa
+import autocti
 
 data_path = "data_path/image_name"
 
-# Load each quadrant of the image  (see pypi.org/project/autoarray)
+# Load each quadrant of the image  (see https://pyautocti.readthedocs.io)
 image_A, image_B, image_C, image_D = [
-    aa.acs.ImageACS.from_fits(
+    autocti.acs.ImageACS.from_fits(
         file_path=data_path + ".fits",
         quadrant_letter=quadrant,
         bias_subtract_via_bias_file=True,
@@ -194,7 +192,7 @@ image_out_A, image_out_B, image_out_C, image_out_D = [
 ]
 
 # Save the corrected image
-aa.acs.output_quadrants_to_fits(
+autocti.acs.output_quadrants_to_fits(
     file_path=data_path + "_out.fits",
     quadrant_a=image_out_A,
     quadrant_b=image_out_B,
