@@ -39,7 +39,7 @@ TEST_CASE("Test CCDPhase", "[ccd]") {
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(110.0) == 0.01);
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1010.0) == 0.1);
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e4) < 1.0);
-        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e4+10) == 1.0);
+        REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e4 + 10) == 1.0);
         REQUIRE(ccd_phase_3.cloud_fractional_volume_from_electrons(1e5) == 1.0);
     }
 }

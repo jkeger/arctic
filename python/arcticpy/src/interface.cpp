@@ -48,15 +48,11 @@ void add_cti(
     // Parallel
     // ========
     // ROE
-    double* parallel_dwell_times_in, 
-    int parallel_n_steps,
-    int parallel_prescan_offset,
-    int parallel_overscan_start,
-    bool parallel_empty_traps_between_columns,
+    double* parallel_dwell_times_in, int parallel_n_steps, int parallel_prescan_offset,
+    int parallel_overscan_start, bool parallel_empty_traps_between_columns,
     bool parallel_empty_traps_for_first_transfers,
     bool parallel_force_release_away_from_readout,
-    bool parallel_use_integer_express_matrix, 
-    int parallel_n_pumps,
+    bool parallel_use_integer_express_matrix, int parallel_n_pumps,
     int parallel_roe_type,
     // CCD
     double* parallel_fraction_of_traps_per_phase_in, int parallel_n_phases,
@@ -68,24 +64,18 @@ void add_cti(
     int parallel_n_traps_ic, int parallel_n_traps_sc, int parallel_n_traps_ic_co,
     int parallel_n_traps_sc_co,
     // Misc
-    int parallel_express, int parallel_offset, 
-    int parallel_window_start, int parallel_window_stop,
-    int parallel_time_start, int parallel_time_stop,
+    int parallel_express, int parallel_offset, int parallel_window_start,
+    int parallel_window_stop, int parallel_time_start, int parallel_time_stop,
     double* parallel_prune_n_electrons, int parallel_prune_frequency,
     // ========
     // Serial
     // ========
     // ROE
-    double* serial_dwell_times_in, 
-    int serial_n_steps,
-    int serial_prescan_offset,
-    int serial_overscan_start,
-    bool serial_empty_traps_between_columns,
+    double* serial_dwell_times_in, int serial_n_steps, int serial_prescan_offset,
+    int serial_overscan_start, bool serial_empty_traps_between_columns,
     bool serial_empty_traps_for_first_transfers,
-    bool serial_force_release_away_from_readout, 
-    bool serial_use_integer_express_matrix,
-    int serial_n_pumps, 
-    int serial_roe_type,
+    bool serial_force_release_away_from_readout, bool serial_use_integer_express_matrix,
+    int serial_n_pumps, int serial_roe_type,
     // CCD
     double* serial_fraction_of_traps_per_phase_in, int serial_n_phases,
     double* serial_full_well_depths, double* serial_well_notch_depths,
@@ -96,14 +86,13 @@ void add_cti(
     int serial_n_traps_ic, int serial_n_traps_sc, int serial_n_traps_ic_co,
     int serial_n_traps_sc_co,
     // Misc
-    int serial_express, int serial_offset, 
-    int serial_window_start, int serial_window_stop, 
-    int serial_time_start, int serial_time_stop,
+    int serial_express, int serial_offset, int serial_window_start,
+    int serial_window_stop, int serial_time_start, int serial_time_stop,
     double* serial_prune_n_electrons, int serial_prune_frequency,
     // ========
     // Combined
     // ========
-    int allow_negative_pixels, 
+    int allow_negative_pixels,
     // Output
     int verbosity, int iteration) {
 
@@ -131,25 +120,20 @@ void add_cti(
     ROE* p_parallel_roe = NULL;
     if (parallel_roe_type == 0) {
         p_parallel_roe = new ROE(
-            parallel_dwell_times, 
-            parallel_prescan_offset,
-            parallel_overscan_start,
+            parallel_dwell_times, parallel_prescan_offset, parallel_overscan_start,
             parallel_empty_traps_between_columns,
             parallel_empty_traps_for_first_transfers,
             parallel_force_release_away_from_readout,
             parallel_use_integer_express_matrix);
     } else if (parallel_roe_type == 1) {
         p_parallel_roe = new ROEChargeInjection(
-            parallel_dwell_times, 
-            parallel_prescan_offset,
-            parallel_overscan_start,
+            parallel_dwell_times, parallel_prescan_offset, parallel_overscan_start,
             parallel_empty_traps_between_columns,
             parallel_force_release_away_from_readout,
             parallel_use_integer_express_matrix);
     } else {
         p_parallel_roe = new ROETrapPumping(
-            parallel_dwell_times, 
-            parallel_n_pumps,
+            parallel_dwell_times, parallel_n_pumps,
             parallel_empty_traps_for_first_transfers,
             parallel_use_integer_express_matrix);
     }
@@ -163,7 +147,8 @@ void add_cti(
         parallel_phases[i_phase].full_well_depth = parallel_full_well_depths[i_phase];
         parallel_phases[i_phase].well_notch_depth = parallel_well_notch_depths[i_phase];
         parallel_phases[i_phase].well_fill_power = parallel_well_fill_powers[i_phase];
-        parallel_phases[i_phase].first_electron_fill = parallel_first_electron_fills[i_phase];
+        parallel_phases[i_phase].first_electron_fill =
+            parallel_first_electron_fills[i_phase];
     }
     CCD parallel_ccd(parallel_phases, parallel_fraction_of_traps_per_phase);
 
@@ -194,9 +179,11 @@ void add_cti(
     n_traps_parallel += parallel_n_traps_sc;
     for (int i_trap = n_traps_parallel;
          i_trap < n_traps_parallel + parallel_n_traps_ic_co; i_trap++) {
-        parallel_traps_continuum[i_trap - n_traps_parallel] = TrapInstantCaptureContinuum(
-            parallel_trap_densities[i_trap], parallel_trap_release_timescales[i_trap],
-            parallel_trap_third_params[i_trap]);
+        parallel_traps_continuum[i_trap - n_traps_parallel] =
+            TrapInstantCaptureContinuum(
+                parallel_trap_densities[i_trap],
+                parallel_trap_release_timescales[i_trap],
+                parallel_trap_third_params[i_trap]);
     }
     n_traps_parallel += parallel_n_traps_ic_co;
     for (int i_trap = n_traps_parallel;
@@ -218,26 +205,17 @@ void add_cti(
     ROE* p_serial_roe = NULL;
     if (serial_roe_type == 0) {
         p_serial_roe = new ROE(
-            serial_dwell_times, 
-            serial_prescan_offset,
-            serial_overscan_start,
-            serial_empty_traps_between_columns,
-            serial_empty_traps_for_first_transfers,
-            serial_force_release_away_from_readout, 
-            serial_use_integer_express_matrix);
+            serial_dwell_times, serial_prescan_offset, serial_overscan_start,
+            serial_empty_traps_between_columns, serial_empty_traps_for_first_transfers,
+            serial_force_release_away_from_readout, serial_use_integer_express_matrix);
     } else if (serial_roe_type == 1) {
         p_serial_roe = new ROEChargeInjection(
-            serial_dwell_times, 
-            serial_prescan_offset,
-            serial_overscan_start,
-            serial_empty_traps_between_columns,
-            serial_force_release_away_from_readout, 
+            serial_dwell_times, serial_prescan_offset, serial_overscan_start,
+            serial_empty_traps_between_columns, serial_force_release_away_from_readout,
             serial_use_integer_express_matrix);
     } else {
         p_serial_roe = new ROETrapPumping(
-            serial_dwell_times, 
-            serial_n_pumps, 
-            serial_empty_traps_for_first_transfers,
+            serial_dwell_times, serial_n_pumps, serial_empty_traps_for_first_transfers,
             serial_use_integer_express_matrix);
     }
 
@@ -250,7 +228,8 @@ void add_cti(
         serial_phases[i_phase].full_well_depth = serial_full_well_depths[i_phase];
         serial_phases[i_phase].well_notch_depth = serial_well_notch_depths[i_phase];
         serial_phases[i_phase].well_fill_power = serial_well_fill_powers[i_phase];
-        serial_phases[i_phase].first_electron_fill = serial_first_electron_fills[i_phase];
+        serial_phases[i_phase].first_electron_fill =
+            serial_first_electron_fills[i_phase];
     }
     CCD serial_ccd(serial_phases, serial_fraction_of_traps_per_phase);
 
@@ -294,17 +273,17 @@ void add_cti(
     }
     n_traps_serial += serial_n_traps_sc_co;
 
-    // Misc 
-    //std::valarray<double> parallel_dwell_times(0.0, parallel_n_steps);
-    //for (int i_step = 0; i_step < parallel_n_steps; i_step++) {
+    // Misc
+    // std::valarray<double> parallel_dwell_times(0.0, parallel_n_steps);
+    // for (int i_step = 0; i_step < parallel_n_steps; i_step++) {
     //    parallel_dwell_times[i_step] = parallel_dwell_times_in[i_step];
     //}
-    //double parallel_prune_n_electrons = parallel_prune_n_electrons_in[0];
-    //parallel_prune_n_electronss[0] = parallel_prune_n_electrons;
-    //double serial_prune_n_electrons = serial_prune_n_electrons_in[0];
-    //serial_prune_n_electronss[0] = serial_prune_n_electrons;
+    // double parallel_prune_n_electrons = parallel_prune_n_electrons_in[0];
+    // parallel_prune_n_electronss[0] = parallel_prune_n_electrons;
+    // double serial_prune_n_electrons = serial_prune_n_electrons_in[0];
+    // serial_prune_n_electronss[0] = serial_prune_n_electrons;
     double prune_zero = 0;
-    
+
     // ========
     // Add CTI
     // ========
@@ -314,17 +293,15 @@ void add_cti(
         image_out = add_cti(
             image_in,
             // Parallel
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
-            0, 0, parallel_window_start, parallel_window_stop, 0, 0, prune_zero, 0,
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0,
+            parallel_window_start, parallel_window_stop, 0, 0, prune_zero, 0,
             // Serial
             p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
-            &serial_traps_continuum, &serial_traps_sc_co, 
-            serial_express, serial_offset,
-            serial_window_start, serial_window_stop, 
-            serial_time_start, serial_time_stop,
-            serial_prune_n_electrons[0], serial_prune_frequency,
+            &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
+            serial_window_start, serial_window_stop, serial_time_start,
+            serial_time_stop, serial_prune_n_electrons[0], serial_prune_frequency,
             // Combined
-            allow_negative_pixels, 
+            allow_negative_pixels,
             // Output
             verbosity, iteration);
     }
@@ -334,16 +311,15 @@ void add_cti(
             image_in,
             // Parallel
             p_parallel_roe, &parallel_ccd, &parallel_traps_ic, &parallel_traps_sc,
-            &parallel_traps_continuum, &parallel_traps_sc_co, 
-            parallel_express, parallel_offset, 
-            parallel_window_start, parallel_window_stop,
-            parallel_time_start, parallel_time_stop,
-            parallel_prune_n_electrons[0], parallel_prune_frequency,
+            &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
+            parallel_offset, parallel_window_start, parallel_window_stop,
+            parallel_time_start, parallel_time_stop, parallel_prune_n_electrons[0],
+            parallel_prune_frequency,
             // Serial
-            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 
-            0, 0, serial_window_start, serial_window_stop, 0, 0, prune_zero, 0, 
+            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0,
+            serial_window_start, serial_window_stop, 0, 0, prune_zero, 0,
             // Combined
-            allow_negative_pixels, 
+            allow_negative_pixels,
             // Output
             verbosity, iteration);
     }
@@ -352,21 +328,18 @@ void add_cti(
         image_out = add_cti(
             image_in,
             // Parallel
-            p_parallel_roe, &parallel_ccd, 
-            &parallel_traps_ic, &parallel_traps_sc, &parallel_traps_continuum, &parallel_traps_sc_co, 
-            parallel_express, parallel_offset, 
-            parallel_window_start, parallel_window_stop,
-            parallel_time_start, parallel_time_stop,
-            parallel_prune_n_electrons[0], parallel_prune_frequency,
+            p_parallel_roe, &parallel_ccd, &parallel_traps_ic, &parallel_traps_sc,
+            &parallel_traps_continuum, &parallel_traps_sc_co, parallel_express,
+            parallel_offset, parallel_window_start, parallel_window_stop,
+            parallel_time_start, parallel_time_stop, parallel_prune_n_electrons[0],
+            parallel_prune_frequency,
             // Serial
-            p_serial_roe, &serial_ccd, 
-            &serial_traps_ic, &serial_traps_sc, &serial_traps_continuum, &serial_traps_sc_co, 
-            serial_express, serial_offset,
-            serial_window_start, serial_window_stop,
-            serial_time_start, serial_time_stop,
-            serial_prune_n_electrons[0], serial_prune_frequency,
+            p_serial_roe, &serial_ccd, &serial_traps_ic, &serial_traps_sc,
+            &serial_traps_continuum, &serial_traps_sc_co, serial_express, serial_offset,
+            serial_window_start, serial_window_stop, serial_time_start,
+            serial_time_stop, serial_prune_n_electrons[0], serial_prune_frequency,
             // Combined
-            allow_negative_pixels, 
+            allow_negative_pixels,
             // Output
             verbosity, iteration);
     }

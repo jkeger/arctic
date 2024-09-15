@@ -47,12 +47,9 @@ int main(int argc, char** argv) {
 
     // Add parallel and serial CTI
     std::valarray<std::valarray<double> > image_post_cti = add_cti(
-        image_pre_cti, 
-        &roe, &ccd, &traps, nullptr, nullptr, nullptr, 
-        express, offset, start, stop, 
-        time_start, time_stop, prune_n_electrons, prune_frequency,
-        &roe, &ccd, &traps, nullptr, nullptr, nullptr, 
-        express, offset, start, stop, 
+        image_pre_cti, &roe, &ccd, &traps, nullptr, nullptr, nullptr, express, offset,
+        start, stop, time_start, time_stop, prune_n_electrons, prune_frequency, &roe,
+        &ccd, &traps, nullptr, nullptr, nullptr, express, offset, start, stop,
         time_start, time_stop, prune_n_electrons, prune_frequency);
     printf("Image with CTI added: \n");
     print_array_2D(image_post_cti);

@@ -27,11 +27,12 @@ class ndarray_plus(np.ndarray):
     has reduced trailing, or an estimate of the covariance between adjacent pixels
     that was induced by the correction.
     """
+
     def __new__(
-        cls, 
+        cls,
         values: np.ndarray,
-        covariance: np.ndarray=None,
-        vv_test: bool=None,
+        covariance: np.ndarray = None,
+        vv_test: bool = None,
         *args,
         **kwargs
     ):
@@ -39,23 +40,25 @@ class ndarray_plus(np.ndarray):
         if vv_test is None:
             if hasattr(obj, "vv_test"):
                 vv_test = obj.vv_test
-            else: vv_test = VVTestBench()
+            else:
+                vv_test = VVTestBench()
         obj.vv_test = vv_test
         if covariance is None:
-            covariance = np.zeros((2,2,5,5))
-            #covariance[:,:,2,2]=1.
+            covariance = np.zeros((2, 2, 5, 5))
+            # covariance[:,:,2,2]=1.
         obj.covariance = covariance
         return obj
-        
+
     def __array_finalize__(self, obj):
         if hasattr(obj, "covariance"):
             self.covariance = obj.covariance
-    
+
         if hasattr(obj, "vv_test"):
             self.vv_test = obj.vv_test
         else:
             self.vv_test = None
-  
+
+
 def add_cti(
     image,
     header=None,
@@ -86,7 +89,7 @@ def add_cti(
     # Combined
     allow_negative_pixels=1,
     # Pixel bounce
-    pixel_bounce_list : Optional[List[PixelBounce]] = None,
+    pixel_bounce_list: Optional[List[PixelBounce]] = None,
     # Output
     vv_test=False,
     verbosity=1,
@@ -119,16 +122,16 @@ def add_cti(
 
     vv_test : Bool
         If True, run a "Verification & Validation" test by fitting exponential
-        curves to pixels in overscan regions (if available). The results can 
+        curves to pixels in overscan regions (if available). The results can
         be accessed as image.vv_test.results[-1].parallel.best_fit_trap_density
-    
+
     Inputs
     ------
     image : 2D numpy.ndarray of pixel values
-    
+
     Outputs
     -------
-    image : 
+    image :
         is not just a numpy.ndarray, but has additional properties vv_test and
         covariance
     """
@@ -190,26 +193,25 @@ def add_cti(
             serial_n_traps_sc_co,
         ) = _set_dummy_parameters()
     serial_prune_n_es = np.array([serial_prune_n_electrons], dtype=np.double)
-    
-    image = np.copy(image).astype(np.double)
 
+    image = np.copy(image).astype(np.double)
 
     # ========
     # V&V test
     # ========
     # Measure level of trailing into overscan regions of input image
-    vv=VVTestBench(
-        parallel_roe=parallel_roe, 
-        parallel_ccd=parallel_ccd, 
-        parallel_traps=parallel_traps, 
-        serial_roe=serial_roe, 
-        serial_ccd=serial_ccd, 
-        serial_traps=serial_traps, 
+    vv = VVTestBench(
+        parallel_roe=parallel_roe,
+        parallel_ccd=parallel_ccd,
+        parallel_traps=parallel_traps,
+        serial_roe=serial_roe,
+        serial_ccd=serial_ccd,
+        serial_traps=serial_traps,
         sum_of_exponentials=True,
-        verbose=(verbosity >= 1)
+        verbose=(verbosity >= 1),
     )
     if vv_test:
-        vv_test_before=vv.test(image)
+        vv_test_before = vv.test(image)
 
     # ========
     # Add CTI
@@ -308,7 +310,7 @@ def add_cti(
     if pixel_bounce_list is not None:
 
         bias_total = np.zeros(image.shape)
-        
+
         for pixel_bounce in pixel_bounce_list:
             bias = pixel_bounce.bias_from(
                 image_trailed,
@@ -327,11 +329,13 @@ def add_cti(
     # ========
     # Re-measure level of trailing into overscan regions of output image
     if vv_test:
-        vv_test_after=vv.test(image_trailed,
-                              parallel_valid_columns = vv_test_before.parallel.valid_columns,
-                              parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
-                              parallel_fit_bias = True, 
-                              parallel_model_bias = vv_test_before.parallel.best_fit_bias)
+        vv_test_after = vv.test(
+            image_trailed,
+            parallel_valid_columns=vv_test_before.parallel.valid_columns,
+            parallel_pixels_pre_cti=vv_test_before.parallel.pixels_pre_cti,
+            parallel_fit_bias=True,
+            parallel_model_bias=vv_test_before.parallel.best_fit_bias,
+        )
 
     # ===================
     # Update image header
@@ -348,7 +352,7 @@ def add_cti(
             "CTI addition performed using ArCTIc v" + w.cy_version_arctic(),
         )
 
-    return ndarray_plus(image_trailed, vv_test = vv)
+    return ndarray_plus(image_trailed, vv_test=vv)
 
 
 def remove_cti(
@@ -382,7 +386,7 @@ def remove_cti(
     # Combined
     allow_negative_pixels=1,
     # Pixel bounce
-    pixel_bounce_list : Optional[List[PixelBounce]] = None,
+    pixel_bounce_list: Optional[List[PixelBounce]] = None,
     # Optional: read noise de-amplification
     remove_read_noise=False,
     # Optional: perform Validation & Verification test
@@ -413,21 +417,21 @@ def remove_cti(
 
     vv_test : Bool
         If True, run a "Verification & Validation" test by fitting exponential
-        curves to pixels in overscan regions (if available). The results can 
+        curves to pixels in overscan regions (if available). The results can
         be accessed as image.vv_test.results[-1].parallel.best_fit_trap_density
-    
+
     remove_read_noise : Bool
         If True, estimate and remove the white readout noise in the image
-        before doing CTI correction, to prevent its being amplified. 
+        before doing CTI correction, to prevent its being amplified.
         Add the noise back afterwards.
-        
+
     Inputs
     ------
     image : 2D numpy.ndarray of pixel values
-    
+
     Outputs
     -------
-    image : 
+    image :
         is not just a numpy.ndarray, but has additional properties vv_test and
         covariance
     """
@@ -442,28 +446,34 @@ def remove_cti(
     # ========
     # Measure level of trailing into overscan regions of input image
     covariance = None
-    vv=VVTestBench(
-        parallel_roe=parallel_roe, 
-        parallel_ccd=parallel_ccd, 
-        parallel_traps=parallel_traps, 
-        serial_roe=serial_roe, 
-        serial_ccd=serial_ccd, 
-        serial_traps=serial_traps, 
+    vv = VVTestBench(
+        parallel_roe=parallel_roe,
+        parallel_ccd=parallel_ccd,
+        parallel_traps=parallel_traps,
+        serial_roe=serial_roe,
+        serial_ccd=serial_ccd,
+        serial_traps=serial_traps,
         sum_of_exponentials=True,
-        verbose=(verbosity >= 1)
+        verbose=(verbosity >= 1),
     )
     if vv_test:
-       vv_test_before=vv.test(image)
-    
+        vv_test_before = vv.test(image)
+
     # =======================
     # Attempt to estimate and remove read noise, so it it not amplified
     # =======================
     if remove_read_noise > 0:
-        sigma_readnoise = 1. * remove_read_noise
+        sigma_readnoise = 1.0 * remove_read_noise
         read_noise = ReadNoise(sigma_readnoise=sigma_readnoise)
         print(read_noise.sigmaRN)
-        image_remove_cti,image_read_noise = read_noise.generate_SR_frames_from_image(image_remove_cti)
-        print("\nMean and rms of modelled read noise:",np.mean(image_read_noise),np.std(image_read_noise))        
+        image_remove_cti, image_read_noise = read_noise.generate_SR_frames_from_image(
+            image_remove_cti
+        )
+        print(
+            "\nMean and rms of modelled read noise:",
+            np.mean(image_read_noise),
+            np.std(image_read_noise),
+        )
 
     # =======================
     # Estimate the image with removed CTI more accurately each iteration
@@ -507,7 +517,7 @@ def remove_cti(
             # Output
             verbosity=verbosity,
             vv_test=False,
-            iteration=iteration
+            iteration=iteration,
         )
 
         # Improve the estimate of the image with CTI trails removed
@@ -516,17 +526,17 @@ def remove_cti(
             delta -= image_read_noise
             # Doing the following ought to be right, but turns out to bias the
             # mean of the output image
-            #delta_squared = delta ** 2
-            #delta *= delta_squared / ( delta_squared + read_noise.sigmaRN ** 2 )
+            # delta_squared = delta ** 2
+            # delta *= delta_squared / ( delta_squared + read_noise.sigmaRN ** 2 )
         image_remove_cti += delta
-        
+
         # Prevent unphysical, negative image values
         # Hack to get long iteractions to converge faster
         # Warning: this can introduce biases in e.g. dark exposures
         if not allow_negative_pixels:
             if iteration == 1:
                 image_remove_cti[image_remove_cti < 0.0] = 0.0
-            
+
     # =======================
     # Add back the read noise, if it had been removed
     # =======================
@@ -539,20 +549,22 @@ def remove_cti(
         #        covariance = read_noise.measure_simulated_covariance_corners()
         #
         # But that's not yet finished. For now...
-        covariance = np.zeros((2,2,5,5))
-        covariance[:,:,2,2]=read_noise.sigmaRN
-           
+        covariance = np.zeros((2, 2, 5, 5))
+        covariance[:, :, 2, 2] = read_noise.sigmaRN
+
     # ========
     # V&V test
     # ========
     # Re-measure level of trailing into overscan regions of output image
     if vv_test:
-        vv_test_after=vv.test(image_remove_cti,
-                              parallel_valid_columns = vv_test_before.parallel.valid_columns,
-                              parallel_pixels_pre_cti = vv_test_before.parallel.pixels_pre_cti,
-                              parallel_fit_bias = True, 
-                              parallel_model_bias = vv_test_before.parallel.best_fit_bias)
-        
+        vv_test_after = vv.test(
+            image_remove_cti,
+            parallel_valid_columns=vv_test_before.parallel.valid_columns,
+            parallel_pixels_pre_cti=vv_test_before.parallel.pixels_pre_cti,
+            parallel_fit_bias=True,
+            parallel_model_bias=vv_test_before.parallel.best_fit_bias,
+        )
+
     # ===================
     # Update image header
     # ===================
@@ -567,9 +579,8 @@ def remove_cti(
             "ArCTIc",
             "CTI correction performed using ArCTIc v" + w.cy_version_arctic(),
         )
-        
-    return ndarray_plus(image_remove_cti, vv_test = vv, covariance = covariance)
 
+    return ndarray_plus(image_remove_cti, vv_test=vv, covariance=covariance)
 
 
 def CTI_model_for_HST_ACS(date):
@@ -632,7 +643,7 @@ def CTI_model_for_HST_ACS(date):
         empty_traps_for_first_transfers=False,
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
-        overscan_start=2048
+        overscan_start=2048,
     )
     serial_roe = ROE(
         dwell_times=[1.0],
@@ -641,11 +652,13 @@ def CTI_model_for_HST_ACS(date):
         force_release_away_from_readout=True,
         use_integer_express_matrix=False,
         prescan_length=24,
-        read_noise=4.0
+        read_noise=4.0,
     )
 
     # Single-phase CCD
-    parallel_ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
+    parallel_ccd = CCD(
+        full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478
+    )
     serial_ccd = CCD(full_well_depth=84700, well_notch_depth=0.0, well_fill_power=0.478)
 
     # Instant-capture traps
@@ -657,9 +670,18 @@ def CTI_model_for_HST_ACS(date):
     ]
     serial_traps = None
 
-    return parallel_roe, parallel_ccd, parallel_traps, serial_roe, serial_ccd, serial_traps
+    return (
+        parallel_roe,
+        parallel_ccd,
+        parallel_traps,
+        serial_roe,
+        serial_ccd,
+        serial_traps,
+    )
+
 
 ################################################ INTERNAL FUNCTIONS
+
 
 def _extract_trap_parameters(traps):
     """Extract trap parameters for add/remove_cti() to pass to the wrapper.
@@ -755,4 +777,3 @@ def _set_dummy_parameters():
         n_traps_ic_co,
         n_traps_sc_co,
     )
-

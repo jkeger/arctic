@@ -19,12 +19,13 @@ class CCDPhase:
         # Mirrors the ("volume-driven") model used by ArCTIc in ccd.cpp
         # Provided here for convenience
         well_range = self.full_well_depth - self.well_notch_depth
-        volume = ( self.first_electron_fill 
-            + (1 - self.first_electron_fill) 
-            * np.clip((n_e - self.well_notch_depth) / well_range ,
-            0, 1) ** self.well_fill_power
+        volume = (
+            self.first_electron_fill
+            + (1 - self.first_electron_fill)
+            * np.clip((n_e - self.well_notch_depth) / well_range, 0, 1)
+            ** self.well_fill_power
         )
-        return volume  
+        return volume
 
 
 class CCD(object):

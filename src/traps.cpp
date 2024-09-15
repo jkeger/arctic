@@ -7,8 +7,8 @@
 #include <gsl/gsl_roots.h>
 #include <math.h>
 
-#include <valarray>
 #include <limits>
+#include <valarray>
 
 #include "util.hpp"
 
@@ -91,10 +91,10 @@ double TrapInstantCapture::fill_fraction_from_time_elapsed(double time_elapsed) 
 
     Simple idea but hard to put into words...
 
-    Assume a linear increase with volume (v) in the fraction of traps between
-    fractional_volume_none_exposed (a) and fractional_volume_full_exposed (a),
-    i.e. f(v) = (v - a) / (b - a), capped between zero and one. Here integrate
-    f(v) from fractional_volume_low (v_l) to high (v_h), then divide by the
+    Assume a linear increase with volume (V) in the fraction of traps between
+    fractional_volume_none_exposed (a) and fractional_volume_full_exposed (b),
+    i.e. f(V) = (V - a) / (b - a), capped between zero and one. Here integrate
+    f(V) from fractional_volume_low (V_l) to high (V_h), then divide by the
     total fractional volume to get the right "units", as it were.
 
     Parameters
@@ -119,20 +119,20 @@ double TrapInstantCapture::fraction_traps_exposed_per_fractional_volume(
         return 0.0;
 
     double fraction;
-    // Integrate f(v) from v_l to v_h
+    // Integrate f(V) from V_l to V_h
     if (fractional_volume_none_exposed == fractional_volume_full_exposed) {
-        // Step function. v_h - b
+        // Step function. V_h - b
         fraction = fractional_volume_high - fractional_volume_full_exposed;
     } else {
-        // v_l = max(v_l, a), v_h = min(v_h, b)
-        // int_v_l^v_h f dv = (1/2 v_h^2 - a v_h - 1/2 v_l^2 + a v_l) / (b - a)
-        double v_low = std::max(fractional_volume_low, fractional_volume_none_exposed);
-        double v_high =
+        // V_l = max(V_l, a), V_h = min(V_h, b)
+        // int_V_l^V_h f dv = (1/2 V_h^2 - a V_h - 1/2 V_l^2 + a V_l) / (b - a)
+        double V_low = std::max(fractional_volume_low, fractional_volume_none_exposed);
+        double V_high =
             std::min(fractional_volume_high, fractional_volume_full_exposed);
-        fraction = (0.5 * v_high * v_high - fractional_volume_none_exposed * v_high -
-                    0.5 * v_low * v_low + fractional_volume_none_exposed * v_low) /
+        fraction = (0.5 * V_high * V_high - fractional_volume_none_exposed * V_high -
+                    0.5 * V_low * V_low + fractional_volume_none_exposed * V_low) /
                    (fractional_volume_full_exposed - fractional_volume_none_exposed);
-        // + (v_h - b)
+        // + (V_h - b)
         if (fractional_volume_high > fractional_volume_full_exposed)
             fraction += fractional_volume_high - fractional_volume_full_exposed;
     }
@@ -186,7 +186,7 @@ TrapSlowCapture::TrapSlowCapture(
     For a trap species with a continuum (log-normal distribution) of release
     timescales, and instant capture.
 
-    i.e. Density as function of release timecsale is set by:
+    i.e. Density as a function of release timecsale is set by:
     n(tau) = exp[-(log(tau) - log(mu))^2 / (2*sigma^2)] / (tau * sigma * sqrt(2*pi))
 
     Parameters

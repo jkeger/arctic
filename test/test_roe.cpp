@@ -268,8 +268,8 @@ TEST_CASE("Test express matrix", "[roe]") {
     }
 
     SECTION("Overscan in express matrix") {
-        
-        //Prescan and overscan, normal readout
+
+        // Prescan and overscan, normal readout
         int overscan_start = 11;
         ROE roe(dwell_times, 0, overscan_start, true, false, true, true);
 
@@ -293,8 +293,8 @@ TEST_CASE("Test express matrix", "[roe]") {
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 3);
-        
-        //Just overscan, no prescan
+
+        // Just overscan, no prescan
         offset = 0;
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
@@ -315,8 +315,7 @@ TEST_CASE("Test express matrix", "[roe]") {
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 3);
 
-        
-        //Prescan and overscan, charge injection readout
+        // Prescan and overscan, charge injection readout
         ROEChargeInjection roeci(dwell_times, 0, overscan_start, true, true, true);
 
         express = 1;
@@ -334,14 +333,14 @@ TEST_CASE("Test express matrix", "[roe]") {
             // clang-format off
             4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             // clang-format on
         };
         test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roeci.n_express_passes == 3);
-        
-        //Just overscan, no prescan
+
+        // Just overscan, no prescan
         offset = 0;
         express = 1;
         roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
@@ -355,15 +354,13 @@ TEST_CASE("Test express matrix", "[roe]") {
             // clang-format off
             4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
             // clang-format on
         };
         test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
         REQUIRE(test == answer);
-        REQUIRE(roeci.n_express_passes == 3);        
-    
+        REQUIRE(roeci.n_express_passes == 3);
     }
-
 
     SECTION("Non-integer express matrix, not empty for first transfers") {
         ROE roe(dwell_times, 0, -1, true, true, true, false);
@@ -418,18 +415,18 @@ TEST_CASE("Test express matrix", "[roe]") {
             0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             // clang-format on
-            //1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            // 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         };
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
@@ -500,24 +497,23 @@ TEST_CASE("Test express matrix", "[roe]") {
             0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             // clang-format on
-            //1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-            //0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            // 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+            // 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         };
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
         REQUIRE(roe.n_express_passes == 12);
     }
-
 
     SECTION("Check always sums to n_transfers") {
         std::valarray<int> rows = {5, 7, 17};
@@ -756,8 +752,9 @@ TEST_CASE("Test clock sequence", "[roe]") {
         */
         std::valarray<double> dwell_times(1.0 / 2.0, 2);
         ROE roe(
-            dwell_times, 0, -1, empty_traps_between_columns, empty_traps_for_first_transfers,
-            force_release_away_from_readout, use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            empty_traps_for_first_transfers, force_release_away_from_readout,
+            use_integer_express_matrix);
         roe.set_clock_sequence();
 
         REQUIRE(roe.n_steps == 2);
@@ -822,8 +819,9 @@ TEST_CASE("Test clock sequence", "[roe]") {
 
         std::valarray<double> dwell_times(1.0 / 3.0, 3);
         ROE roe(
-            dwell_times, 0, -1, empty_traps_between_columns, empty_traps_for_first_transfers,
-            force_release_away_from_readout, use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            empty_traps_for_first_transfers, force_release_away_from_readout,
+            use_integer_express_matrix);
         roe.set_clock_sequence();
 
         REQUIRE(roe.n_steps == 3);
@@ -901,8 +899,9 @@ TEST_CASE("Test clock sequence", "[roe]") {
 
         std::valarray<double> dwell_times(1.0 / 4.0, 4);
         ROE roe(
-            dwell_times, 0, -1, empty_traps_between_columns, empty_traps_for_first_transfers,
-            force_release_away_from_readout, use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            empty_traps_for_first_transfers, force_release_away_from_readout,
+            use_integer_express_matrix);
         roe.set_clock_sequence();
 
         REQUIRE(roe.n_steps == 4);
@@ -996,8 +995,8 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
 
     SECTION("Integer express matrix") {
         ROEChargeInjection roe(
-            dwell_times, 0, -1, empty_traps_between_columns, force_release_away_from_readout,
-            use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            force_release_away_from_readout, use_integer_express_matrix);
         REQUIRE(roe.type == roe_type_charge_injection);
 
         express = 1;
@@ -1061,8 +1060,8 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
 
     SECTION("Integer express matrix, with offset") {
         ROEChargeInjection roe(
-            dwell_times, 0, -1, empty_traps_between_columns, force_release_away_from_readout,
-            use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            force_release_away_from_readout, use_integer_express_matrix);
         offset = 5;
 
         express = 1;
@@ -1138,8 +1137,8 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
         double x;
         use_integer_express_matrix = false;
         ROEChargeInjection roe(
-            dwell_times, 0, -1, empty_traps_between_columns, force_release_away_from_readout,
-            use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            force_release_away_from_readout, use_integer_express_matrix);
 
         offset = 0;
         express = 5;
@@ -1238,8 +1237,8 @@ TEST_CASE("Test charge injection ROE", "[roe]") {
 
     SECTION("Store trap states matrix") {
         ROEChargeInjection roe(
-            dwell_times, 0, -1, empty_traps_between_columns, force_release_away_from_readout,
-            use_integer_express_matrix);
+            dwell_times, 0, -1, empty_traps_between_columns,
+            force_release_away_from_readout, use_integer_express_matrix);
 
         express = 1;
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
@@ -2081,8 +2080,6 @@ TEST_CASE("Test trap pumping clock sequence", "[roe]") {
     }
 }
 
-
-
 TEST_CASE("Test express matrix with prescan and overscan", "[roe]") {
     std::vector<double> test, answer;
     int n_rows = 12;
@@ -2092,40 +2089,42 @@ TEST_CASE("Test express matrix with prescan and overscan", "[roe]") {
 
     SECTION("Equivalent input options for (window or prescan) offset") {
 
-        // Charge injection redout 
+        // Charge injection redout
         ROE roe_zero(dwell_times, 0, -1, true, true, true, true);
         roe_zero.set_express_matrix_from_rows_and_express(n_rows, express, 0);
-        
+
         ROE roe_prescan(dwell_times, offset, -1, true, true, true, true);
         roe_prescan.set_express_matrix_from_rows_and_express(n_rows, express, 0);
-        
+
         ROE roe(dwell_times, 0, -1, true, true, true, true);
         roe.set_express_matrix_from_rows_and_express(n_rows, express, offset);
-        
-        answer.assign(std::begin(roe_prescan.express_matrix), std::end(roe_prescan.express_matrix));
+
+        answer.assign(
+            std::begin(roe_prescan.express_matrix),
+            std::end(roe_prescan.express_matrix));
         test.assign(std::begin(roe.express_matrix), std::end(roe.express_matrix));
         REQUIRE(test == answer);
-        
-        //Overscan increases number of transfers
+
+        // Overscan increases number of transfers
         REQUIRE(roe.express_matrix.sum() == roe_zero.express_matrix.sum() + 36);
 
-
-        // Charge injection redout 
+        // Charge injection redout
         ROEChargeInjection roeci_zero(dwell_times, 0, -1, true, true, true);
         roeci_zero.set_express_matrix_from_rows_and_express(n_rows, express, 0);
-        
+
         ROEChargeInjection roeci_prescan(dwell_times, offset, -1, true, true, true);
         roeci_prescan.set_express_matrix_from_rows_and_express(n_rows, express, 0);
-        
+
         ROEChargeInjection roeci(dwell_times, 0, -1, true, true, true);
         roeci.set_express_matrix_from_rows_and_express(n_rows, express, offset);
 
-        answer.assign(std::begin(roeci_prescan.express_matrix), std::end(roeci_prescan.express_matrix));
+        answer.assign(
+            std::begin(roeci_prescan.express_matrix),
+            std::end(roeci_prescan.express_matrix));
         test.assign(std::begin(roeci.express_matrix), std::end(roeci.express_matrix));
         REQUIRE(test == answer);
-        
-        //Overscan increases number of transfers
-        REQUIRE(roeci.express_matrix.sum() == roeci_zero.express_matrix.sum() + 36);        
 
+        // Overscan increases number of transfers
+        REQUIRE(roeci.express_matrix.sum() == roeci_zero.express_matrix.sum() + 36);
     }
 }

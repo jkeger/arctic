@@ -4,53 +4,13 @@ ArCTIc
 AlgoRithm for Charge Transfer Inefficiency (CTI) correction
 -----------------------------------------------------------
 
-<!--
-Dev notes
-=========
-
-TO RUN UNIT TESTS:
-==================
-pytest test/test_arcticpy.py
-./test_arctic
-
-TO PUBLISH TO PYPI:
-===================
-#Delete old version in dist/
-#Increment version number in pyproject.toml
-#Create a new source distribution
-python3 setup.py sdist
-#Upload via e.g. twine (pip3 install twine)
-twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-
-TO DO:
-======
-+ Non-uniform volume (e.g. surface) traps are currently only implemented for
-    instant-capture traps, but should be relatively simple to duplicate for the
-    other base types.
-+ The trap and trap_manager classes currently have a fair amount of duplicate or
-    near-duplicate code, some of which could be abstracted to generic functions
-    and/or tweaking the class inheritance structure now that we know what's
-    needed. e.g. TrapManagerSlowCaptureContinuum's
-    n_electrons_released_and_captured() is basically the same as
-    TrapManagerSlowCapture's, aside from the time conversions etc within the
-    same loops. Or TrapSlowCaptureContinuum's fill_fraction to/from time_elapsed
-    functions including the tabulated versions are basically the same as
-    TrapInstantCaptureContinuum's.
-+ It would be good to quantify the speed effects of, well, everything, but
-    especially things like the scaling with express or the number of traps, and
-    the different ROE options like empty_traps_for_first_transfers that require
-    extra steps to be modelled.
--->
-
-
 Add or remove image trails due to charge transfer inefficiency in CCD detectors
 by modelling the trapping, releasing, and moving of charge along pixels.
 
 https://github.com/jkeger/arctic
 
 Jacob Kegerreis: jacob.kegerreis@durham.ac.uk  
-Richard Massey: r.j.massey@durham.ac.uk 
+Richard Massey: r.j.massey@durham.ac.uk  
 James Nightingale  
 
 This file contains general documentation and some examples. See also the
@@ -87,7 +47,7 @@ Installation
 Requirements
 ------------
 
-You have to make sure that the following libraries are installed on your system: llvm, omp, gsl. 
+You have to make sure that the following libraries are installed on your system: llvm, omp, gsl.
 + On Linux, you can install them using your distro's package manager e.g. for Ubuntu:
 ```bash
 apt install llvm14 gsl libomp5
@@ -100,7 +60,7 @@ brew install llvm libomp gsl
 Instructions
 ------------
 
-There are two ways to install arCTIc and its python wrapper:
+There are two ways to install ArCTIc and its python wrapper:
 
 ### source [recommended] ###
 
@@ -134,9 +94,9 @@ pip install -i https://test.pypi.org/simple/ arcticpy
 python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-url https://pypi.org/simple/ arcticpy
 
 ```
-The version is not as frequently updated, but this process automatically downloads the source files and builds/installs the executable, library and module. 
-If you do not have superuser privileges, you must add the ```--user``` argument to install it into your local (home) directory instead. 
-Furthermore, on some macOS system, you may have to explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
+The version is not as frequently updated, but this process automatically downloads the source files and builds/installs the executable, library and module.
+If you do not have superuser privileges, you must add the ```--user``` argument to install it into your local (home) directory instead.
+Furthermore, on some macOS systems, you may have to explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
 
 \
 Usage
@@ -206,14 +166,14 @@ autocti.acs.output_quadrants_to_fits(
 )
 ```
 
-ArCTIc also incorporates a model of "pixel bounce", an effect of voltage 
+ArCTIc also incorporates a model of "pixel bounce", an effect of voltage
 lag during correlated double sampling, due to finite capacitance between
-the sample and reference (ground) voltages. Pixel bounce can create trails 
-similar to serial CTI. It is implemented by defining something like 
+the sample and reference (ground) voltages. Pixel bounce can create trails
+similar to serial CTI. It is implemented by defining something like
 `pixel_bounce = cti.PixelBounce( kA=-0.1, kv=0, omega=10, gamma=0.9 )`
-then passing `pixel_bounce=pixel_bounce` as an extra/alternative variable 
-to `add_cti()` or `remove_cti()` (there are also duplicate 
-`add_pixel_bounce()` functions that add only pixel bounce, and not CTI. 
+then passing `pixel_bounce=pixel_bounce` as an extra/alternative variable
+to `add_cti()` or `remove_cti()` (there are also duplicate
+`add_pixel_bounce()` functions that add only pixel bounce, and not CTI.
 Pixel bounce exists only in the python wrapper, not the C++ core.
 
 
@@ -221,7 +181,7 @@ More examples adding or removing CTI trails from a test image
 are in the `run_demo()` function of `test/test_arcticpy.py`.
 
 Run `python3 test/test_arcticpy.py` with `-d` or `-b` for
-demo or benchmark functions. 
+demo or benchmark functions.
 
 
 \
@@ -248,14 +208,14 @@ ArCTIc can also be run directly as `./arctic` with the following command-line op
 \
 The C++ code can also be used as a library for other C++ programs.
 See the `run_demo()` function in `src/main.cpp` for
-examples adding and removing CTI trails from a test image, 
+examples adding and removing CTI trails from a test image,
 and the `lib_test` example described below.
 
 
 \
 Unit Tests
 ==========
-Tests are included for most individual parts of the code, organised with 
+Tests are included for most individual parts of the code, organised with
 [Catch2](https://github.com/catchorg/Catch2).
 
 As well as making sure the code is working correctly, most tests are intended to
@@ -289,7 +249,7 @@ A quick summary of the code files and their contents:
     + `get_gsl.sh`          The script called by the makefile to install GSL.
 + `arctic`, `test_arctic`   The program and unit-test executables.
 + `libarctic.so`            The shared object library.
-+ `src/`                    Source code files.
++ `src/`                    Source code files.q
     + `main.cpp`  
         Main program. See above and its documentation for the command-line
         options, and see `run_demo()` for an example of running user-editable
@@ -332,8 +292,8 @@ A quick summary of the code files and their contents:
             needed as arguments for the primary CTI functions. These mirror the
             inputs for the corresponding same-name C++ classes documented below.
         + `pixel_bounce.py`  
-            Definition of the PixelBounce class, plus user-facing functions 
-            `add_pixel_bounce()` nd `remove_pixel_bounce()`.
+            Definition of the `PixelBounce` class, plus the user-facing
+            functions `add_pixel_bounce()` and `remove_pixel_bounce()`.
         + `wrapper.pyx`  
             The Cython wrapper that passes python inputs to the C++ interface.
         + `interface.cpp`, `interface.hpp`  
@@ -351,19 +311,19 @@ Documentation
 The code docstrings contain the full documentation for each class and function.
 
 Most of the python wrapper code precisely mirrors the core C++ classes and
-functions. The full docstrings are not duplicated in that case so please refer
-to the C++ docstrings for the complete details.
+functions. The full docstrings are not duplicated in those cases, so please
+refer to the C++ docstrings for the complete details.
 
-This section provides an overview of the key contents and features. It is aimed
-at general users plus a few extra details for anyone wanting to navigate or work
-on the code itself.
+This section of the readme provides an overview of the key contents and
+features. It is aimed at general users plus a few extra details for anyone
+wanting to navigate or work on the code itself.
 
 The primary functions to add and remove CTI take as arguments custom objects
 that describe the trap species, CCD properties, and ROE details (see below).
 A core aspect of the code is that it includes several polymorphic versions of
 each of these classes. These provide a variety of ways to model CTI, such as
-different types of trap species, multiple phases in each pixel, or alternative
-readout sequences for trap pumping, etc.
+different types of trap species, multiple phases within each pixel, or
+alternative readout sequences for trap pumping, etc.
 
 
 \
@@ -388,61 +348,83 @@ The `remove_cti()` function takes all the same parameters as `add_cti()` plus
 the number of iterations for the forward modelling.
 
 More iterations provide higher accuracy at the cost of longer runtime. In
-practice, 2 or 3 iterations are usually sufficient.
+practice, 2--5 iterations are usually sufficient.
 
 ### Image
 The input image should be a 2D array of charge values, where the first dimension
 runs over the rows of pixels and the second inner dimension runs over the
 separate columns, as in this example of an image before and after calling
-`add_cti()` (with arbitrary trap parameters):
+`add_cti()` (with arbitrary test trap parameters):
 
 ```C++
-// Initial image with one bright pixel in the first three columns:
-{{   0.0,     0.0,     0.0,     0.0  },
- { 200.0,     0.0,     0.0,     0.0  },
- {   0.0,   200.0,     0.0,     0.0  },
- {   0.0,     0.0,   200.0,     0.0  },
- {   0.0,     0.0,     0.0,     0.0  },
- {   0.0,     0.0,     0.0,     0.0  }}
+// Initial image, with one bright pixel in the first three columns:
+{{   0.000,     0.000,     0.000,     0.000 },
+ { 200.000,     0.000,     0.000,     0.000 },
+ {   0.000,   200.000,     0.000,     0.000 },
+ {   0.000,     0.000,   200.000,     0.000 },
+ {   0.000,     0.000,     0.000,     0.000 },
+ {   0.000,     0.000,     0.000,     0.000 }}
+// Image with parallel CTI trails:
+{{   0.000,     0.000,     0.000,     0.000 },
+ { 196.020,     0.000,     0.000,     0.000 },
+ {   1.975,   194.060,     0.000,     0.000 },
+ {   0.995,     2.940,   192.119,     0.000 },
+ {   0.501,     1.485,     3.891,     0.000 },
+ {   0.252,     0.750,     1.970,     0.000 }}
 // Image with parallel and serial CTI trails:
-{{   0.00,    0.00,    0.00,    0.00 },
- { 194.06,    0.98,    0.49,    0.25 },
- {   1.96,  190.22,    1.92,    0.97 },
- {   0.99,    2.89,  186.47,    2.82 },
- {   0.50,    1.46,    3.80,    0.06 },
- {   0.25,    0.74,    1.92,    0.03 }}
-// Image after correction for trailing:
-{{   0.00,    0.00,    0.00,    0.00 },
- { 200.00, 1.30e-4, 3.15e-5,    0.00 }
- {2.05e-4, 199.999, 8.88e-4, 2.56e-4 }
- {1.93e-5, 1.20e-2, 199.994, 3.11e-3 }
- {   0.00, 2.53e-4, 3.95e-3,    0.00 }
- {   0.00,    0.00, 1.03e-3,    0.00 }}
+{{   0.000,     0.000,     0.000,     0.000 },
+ { 194.060,     0.975,     0.490,     0.246 },
+ {   1.955,   190.218,     1.916,     0.965 },
+ {   0.985,     2.892,   186.471,     2.825 },
+ {   0.496,     1.460,     3.805,     0.057 },
+ {   0.250,     0.737,     1.926,     0.029 }}
 ```
 
 As this illustrates, by default, charge is transferred "up" from row N to row 0
-along each independent column, such that the charge in the first element/pixel 0
-undergoes 1 transfer, and the final row N is furthest from the readout register
-so undergoes N+1 transfers. The CTI trails appear behind bright pixels as the
-traps capture electrons from their original pixels and release them at a later
-time.
+along each independent column -- such that the charge in the first element/pixel
+0 undergoes 1 transfer, and the final row N is furthest from the readout
+register so undergoes N+1 transfers -- and transferred "along" from column M to
+column 0 similarly. The CTI trails appear behind bright pixels as the traps
+capture electrons from their original pixels and release them at a later time.
 
 Parallel clocking is the transfer along each independent column, while serial
 clocking is across the columns and is performed after parallel clocking, if the
-arguments for each are not omitted.
+corresponding arguments for each are provided.
 
-Note that technically instead of actually moving the charges past the traps in
+Note that technically, instead of actually moving the charges past the traps in
 each pixel, as happens in the real hardware, the code tracks the occupancies of
 the traps (see Watermarks below) and updates them by scanning over each pixel.
 This simplifies the code structure and keeps the image array conveniently
 static.
+
+The trails can then be removed with `remove_cti()` to attempt to restore the
+original image. In this example where the trap models perfectly match those that
+caused the trailing (unlike, for example, a real CCD with unknown traps), the
+CTI trails can be removed to arbitrary precision:
+
+```C++
+// Image after correction of CTI trailing (first iteration):
+{{   0.0000,     0.0000,     0.0000,     0.0000},
+ { 199.8236,     0.0627,     0.0268,     0.0099},
+ {   0.1161,   199.4833,     0.1779,     0.0759},
+ {   0.0442,     0.2592,   198.9736,     0.3409},
+ {   0.0127,     0.1032,     0.4503,    -0.1013},
+ {   0.0004,     0.0346,     0.1829,    -0.0526}}
+// Image after correction of CTI trailing (five iterations):
+{{   0.00000,    0.00000,    0.00000,    0.00000 },
+ { 200.00000,    0.00000,    0.00000,    0.00000 },
+ {   0.00000,  200.00000,    0.00000,    0.00000 },
+ {   0.00000,    0.00000,  199.99997,    0.00002 },
+ {   0.00000,    0.00000,    0.00003,   -0.00001 },
+ {   0.00000,    0.00000,    0.00000,    0.00000 }}
+```
 
 ### Speedup 1: Express
 As described in more detail in Massey et al. (2014) section 2.1.5, the effects
 of each individual pixel-to-pixel transfer can be very similar, so multiple
 transfers can be computed at once for efficiency.
 
-This allows much faster computation with a mild decrease in accuracy. 
+This allows much faster computation with a mild decrease in accuracy.
 
 For example, the electrons in the pixel closest to the readout have only one
 transfer, those in the 2nd pixel undergo 2, those in the 3rd have 3, and so on.
@@ -454,28 +436,28 @@ without assumptions.
 
 The default `express = 0` is a convenient input for automatic `express = N`.
 
-Note that the total charge in an image is guaranteed to be conserved only with
-`express = 0` (and also `empty_traps_for_first_transfers = True` if the trail 
+Note that the total charge in an image is only guaranteed to be conserved with
+`express = 0` (and also `empty_traps_for_first_transfers = True` if the trail
 length is comparable to the image size).
 
 ### Speedup 2: Watermark pruning
-With large, noiseless images in particular (and especially with slow capture 
+With large, noiseless images in particular (and especially with slow capture
 traps), it is possible to accumulate a large
 number of watermarks containing negligible numbers of electrons. These increase
-runtime without affecting output. Packets of fewer than 
-`[parallel/serial]_prune_n_electrons` can be moved into neighbouring 
+runtime without affecting output. Packets of fewer than
+`[parallel/serial]_prune_n_electrons` can be moved into neighbouring
 watermarks every `[parallel/serial]_prune_frequency` readout steps.
-Default values are `1e-181 and `20`, but significant speedups are possible by
+Default values are `1e-181` and `20`, but significant speedups are possible by
 tuning these for different images and different species of charge trap.
 
 ### Offsets and windows
 It is possible to (more quickly) process part of an image in two ways. In either
-use, because of edge effects, the region of interest should be expanded to 
+use, because of edge effects, the region of interest should be expanded to
 include several pixels closer to readout (when adding CTI) or in all directions
 (when correcting CTI).
 
-Either pass the full image, using the `window_start` and `_stop` arguments to 
-indicate the first and last pixel numbers to be processed; or pass a subset of 
+Either pass the full image, using the `window_start` and `_stop` arguments to
+indicate the first and last pixel numbers to be processed; or pass a subset of
 the image and use `offset` to indicate the number of missing, preceding pixels.
 
 ### Partial readout
@@ -525,12 +507,12 @@ clocking sequences.
 ### Pre-scan and over-scan
 Use `prescan_offset` to specify the number of physical prescan pixels that are
 present in the hardware but always absent from stored data arrays. This works
-in exactly the same way (and adds to) any `window_offset`.
+in exactly the same way as (and adds to) any `window_offset`.
 
 Use `overscan_start` to specify the first pixel in a supplied data array that
 is virtual overscan. This effectively defines the number of physical pixels in
-the CCD as `overscan_start-1`. Unfortunately, this needs to be specified here 
-rather than in the CCD structure.
+the CCD as `overscan_start-1`. While potentially a bit awkward, this needs to be
+specified here rather than in the CCD structure.
 
 ### Express matrix  
 The `ROE` class also contains the `set_express_matrix_from_pixels_and_express()`
@@ -540,8 +522,8 @@ transfers are computed.
 ### Multiple phases
 Like the CCD, the `ROE` object can model single or multiple steps in the clock
 sequence for each transfer. The number of steps in a clocking sequence is
-usually same as the number of phases, but not necessarily, as in the case for
-trap pumping.
+usually same as the number of phases, but not necessarily, e.g. as in the case
+for trap pumping.
 
 The number of phases must be the same for the CCD and ROE objects.
 
@@ -578,8 +560,8 @@ timescales, and non-instant capture.
 Trap managers
 -------------
 This is not relevant for typical users, but is key to the internal structure of
-the code and the "watermark" approach to tracking the trap occupancies (see
-below).
+the code and the "watermark" approach (see below) to tracking the trap
+occupancies.
 
 The different trap manager child classes also implement the different algorithms
 required for the corresponding types of trap species described above, primarily
@@ -610,14 +592,14 @@ density of that trap species (the number of traps per pixel).
 In the standard case, *capture* of electrons creates a *new watermark* level
 at the "height" of the charge cloud and can overwrite lower ones as the traps
 are filled up, while *release* lowers the fraction of filled traps in each
-watermark level, without changing the volumes. Note that the stored volumes give
-the size of that level, not the cumulative total.
+watermark level, without changing the volumes. Note that the stored volume
+values give the size of that level, not the cumulative total.
 
 The details can vary for different trap managers.
 
 The unit tests in `test/test_trap_managers.cpp`, especially those for release
-and capture, contain simple-number examples to demonstrate how it all works for
-developers.
+and capture, contain simple-number, reader-friendly examples to demonstrate how
+this works in practice.
 
 
 \
@@ -635,12 +617,13 @@ The wrapper is organised internally as follows:
 This multi-level structure is a bit more extensive then strictly necessary, but
 this keeps each level much cleaner and with a single purpose.
 
-The user-facing python functions take numpy arrays and custom input-parameter
-objects as user-friendly arguments. These mirror exactly the custom C++ objects
-used as arguments by the core C++ program described above. To convert cleanly
-between the two, the individual arrays and numbers are extracted from the python
-objects and are passed via the Cython wrapper to the C++ wrapper, which then
-builds the C++ objects as arguments for the core library functions.
+The user-facing python functions take numpy arrays and custom-class input-
+parameter objects as user-friendly arguments. These mirror exactly the custom
+C++ objects used as arguments by the core C++ program described above. To
+convert cleanly between the two, the individual arrays and numbers are extracted
+from the python objects and are passed via the Cython wrapper to the C++
+wrapper, which then builds the C++ objects as arguments for the core library
+functions.
 
 
 
@@ -648,9 +631,9 @@ builds the C++ objects as arguments for the core library functions.
 Version history
 ===============
 
-+ **v7 (2022, C++/python)** Translation of v6, now back to full speed. Includes all features seen in Euclid CCDs before launch.
++ **v7 (2022, [C++/python](https://github.com/jkeger/arctic))** Translation of v6 to C++ base with python wrapper, now back to full speed. Includes all features seen in Euclid CCDs before launch.
 
-+ **v6 (2020, [cython/python](https://github.com/jkeger/arcticpy))** Jacob Kegerreis implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps, charge injection, or trap pumping. Much slower than v5.
++ **v6 (2020, [python](https://github.com/jkeger/arcticpy))** Jacob Kegerreis implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps, charge injection, or trap pumping. Slower python-only version.
 
 + **v5 (2015, [C++](https://github.com/ocordes/arctic/))** Adaptive 'neo2' gridding of traps by splitting the continuous field only at each electron fill levels, and recombining grid cells when traps refill at new high watermark [(Massey et al. 2015)](https://arxiv.org/abs/1506.07831)
 
@@ -663,4 +646,3 @@ Version history
 + **v1 (2008, Java)** Chris Stoughton extends Fortran77 code by [Bristow (2003)](https://arxiv.org/abs/astro-ph/0310714), introducing 3D pixel structure, multiple trap species, and reducing runtime by moving traps not charge. Discrete traps are distributed at random, which adds noise, and are monitored during every transfer, which is slow. Predicted effect for SNAP telescope [(Rhodes et al. 2010)](https://arxiv.org/abs/1002.1479).
 
 Older algorithms for CTI correction either approximated trailing as convolution with a flux-dependent kernel (e.g. [Rhodes et al. 2000](https://arxiv.org/abs/astro-ph/9905090)) or were additive/multiplicative factors applied to object flux/position/shape/etc at a catalogue level (e.g. [Riess et al. 2000](https://ui.adsabs.harvard.edu/link_gateway/2000wfpc.rept....4R/PUB_PDF), [2003](https://ui.adsabs.harvard.edu/link_gateway/2003acs..rept....9R/PUB_PDF), [Rhodes et al. 2007](https://arxiv.org/abs/astro-ph/0702140)).
-

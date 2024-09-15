@@ -5,10 +5,7 @@
 
 #include "util.hpp"
 
-
-int sgn(double v) {
-  return (v < 0) ? -1 : ((v > 0) ? 1 : 0);
-}
+int sgn(double v) { return (v < 0.0) ? -1.0 : ((v > 0.0) ? 1.0 : 0.0); }
 
 // ========
 // CCDPhase::
@@ -26,25 +23,23 @@ int sgn(double v) {
         pixel/phase. For multiphase clocking, if only one value is supplied,
         that is (by default) replicated to all phases. However, different
         physical widths of phases can be set by specifying the full well
-        depth as a list containing different values. If the potential in
-        more than one phase is held high during any stage in the clocking
-        cycle, their full well depths are added together. This value is
-        indpependent of the fraction of traps allocated to each phase.
+        depth as a list ##but not here!## containing different values. If the potential
+   in more than one phase is held high during any stage in the clocking cycle, their
+   full well depths are added together. This value is independent of the fraction of
+   traps allocated to each phase.
 
     well_notch_depth : double
         The number of electrons that fit inside a 'notch' at the bottom of a
         potential well, occupying negligible volume and therefore being
         immune to trapping. These electrons still count towards the full
-        well depth. The notch depth can, in  principle, vary between phases.
+        well depth. The notch depth can, in principle, vary between phases.
 
     well_fill_power : double
         The exponent in a power-law model of the volume occupied by a cloud
         of electrons. This can, in principle, vary between phases.
 */
 CCDPhase::CCDPhase(
-    double full_well_depth, 
-    double well_notch_depth, 
-    double well_fill_power, 
+    double full_well_depth, double well_notch_depth, double well_fill_power,
     double first_electron_fill)
     : full_well_depth(full_well_depth),
       well_notch_depth(well_notch_depth),
@@ -65,19 +60,21 @@ CCDPhase::CCDPhase(
         The volume of the charge cloud as a fraction of the pixel (or phase).
 */
 double CCDPhase::cloud_fractional_volume_from_electrons(double n_electrons) {
-    
-    
-    //double frac = (n_electrons - well_notch_depth) / full_well_depth;
-    //if (n_electrons == 0.0)
+
+    // double frac = (n_electrons - well_notch_depth) / full_well_depth;
+    // if (n_electrons == 0.0)
     if (n_electrons <= 0.0)
-        return first_electron_fill ; //0.0;
+        return first_electron_fill;  // 0.0;
     else
-        //return sgn(frac) * pow( abs(frac), well_fill_power );
-        //return pow( clamp(frac, 0.0, 1.0), well_fill_power);
-        return first_electron_fill + (1 - first_electron_fill) * pow( 
-            clamp( (n_electrons - well_notch_depth) / 
-                   (full_well_depth - well_notch_depth), 0.0, 1.0), 
-            well_fill_power);
+        // return sgn(frac) * pow( abs(frac), well_fill_power );
+        // return pow( clamp(frac, 0.0, 1.0), well_fill_power);
+        return first_electron_fill +
+               (1 - first_electron_fill) *
+                   pow(clamp(
+                           (n_electrons - well_notch_depth) /
+                               (full_well_depth - well_notch_depth),
+                           0.0, 1.0),
+                       well_fill_power);
 }
 
 // ========
@@ -126,4 +123,3 @@ CCD::CCD(CCDPhase phase) {
     n_phases = 1;
     fraction_of_traps_per_phase = {1.0};
 }
-

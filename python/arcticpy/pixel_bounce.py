@@ -55,20 +55,20 @@ class PixelBounce:
         return np.sqrt(omega**2 + gamma**2)  # natural frequency of oscillator
 
     def perturb_bias(
-            self,
-            image,
-            parallel_window_start=0,
-            parallel_window_stop=-1,
-            serial_window_start=0,
-            serial_window_stop=-1,
-            verbosity=1,
+        self,
+        image,
+        parallel_window_start=0,
+        parallel_window_stop=-1,
+        serial_window_start=0,
+        serial_window_stop=-1,
+        verbosity=1,
     ):
         """
         Applies pixel bounce to the effective bias level against which an image is
         compared during readout.
 
-        This function is separate from `add_pixel_bounce` to allow the bias to be 
-        calculated multiple times (e.g. for multiple pixel bounce classes) and then 
+        This function is separate from `add_pixel_bounce` to allow the bias to be
+        calculated multiple times (e.g. for multiple pixel bounce classes) and then
         all added to the same image, so their order has no effect.
 
         Parameters
@@ -98,11 +98,13 @@ class PixelBounce:
         bias = np.zeros(image.shape)
         if (self.kA == 0) and (self.kv == 0):
             return bias
-        
+
         # Parse inputs needed to process only a subset of the image
         n_y, n_x = image.shape
-        if parallel_window_stop == -1: parallel_window_stop = n_y
-        if serial_window_stop == -1: serial_window_stop = n_x
+        if parallel_window_stop == -1:
+            parallel_window_stop = n_y
+        if serial_window_stop == -1:
+            serial_window_stop = n_x
 
         # Pre-calcualte useful quantities from eqn (43) of
         # Cieslinski & Ratkiewicz (2005) https://arxiv.org/abs/physics/0507182
@@ -113,9 +115,9 @@ class PixelBounce:
         # Read out (a column of) pixels along a row, starting at second pixel (this
         # assumes the first pixel in each row cannot be affected by pixel bounce, as
         # the electronics have been reset and stabilised during prescan).
-        biasm1 = np.zeros(parallel_window_stop-parallel_window_start)
+        biasm1 = np.zeros(parallel_window_stop - parallel_window_start)
         for i in range(serial_window_start + 1, serial_window_stop):
-            
+
             # Store previous values of bias, so difference equation can
             # compute rates of change
             biasm2 = biasm1.copy()
@@ -123,8 +125,8 @@ class PixelBounce:
 
             # What electronic impulse is being experienced?
             delta = (
-                image[parallel_window_start:parallel_window_stop, i] -
-                image[parallel_window_start:parallel_window_stop, i - 1]
+                image[parallel_window_start:parallel_window_stop, i]
+                - image[parallel_window_start:parallel_window_stop, i - 1]
             )
 
             # Impose this (linearly) on the difference equation,
@@ -134,8 +136,9 @@ class PixelBounce:
             biasm2 += (self.kA - 2 * self.kv) * delta
 
             # DHO difference equation, Cieslinski & Ratkiewicz (2005) eqn (43)
-            bias[parallel_window_start:parallel_window_stop, i] = \
+            bias[parallel_window_start:parallel_window_stop, i] = (
                 coeffA * biasm1 - coeffB * biasm2
+            )
 
         return bias
 
@@ -280,6 +283,7 @@ class PixelBounce:
 Standalone functions to call the above, but mirroring syntax of add_cti() and remove_cti()
 """
 
+
 def add_pixel_bounce(
     image,
     pixel_bounce_list=None,
@@ -313,7 +317,6 @@ def add_pixel_bounce(
     return image_bounced
 
 
-
 def remove_pixel_bounce(
     image,
     n_iterations,
@@ -333,7 +336,8 @@ def remove_pixel_bounce(
     # Iteratively add pixel bounce to a model of the corrected image
     for iteration in range(1, n_iterations + 1):
 
-        if verbosity >= 1: print("Iter %d: " % iteration, end="", flush=True)
+        if verbosity >= 1:
+            print("Iter %d: " % iteration, end="", flush=True)
         image_add_pixel_bounce = add_pixel_bounce(
             image_remove_pixel_bounce,
             pixel_bounce_list=pixel_bounce_list,
@@ -343,7 +347,7 @@ def remove_pixel_bounce(
             serial_window_stop=serial_window_stop,
             verbosity=verbosity,
         )
-        
+
         # Improve the estimate of the image with pixel bounce removed
         image_remove_pixel_bounce += image - image_add_pixel_bounce
 

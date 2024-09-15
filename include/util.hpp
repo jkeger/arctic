@@ -2,18 +2,12 @@
 #ifndef ARCTIC_UTIL_HPP
 #define ARCTIC_UTIL_HPP
 
-#include <string>
 #include <stdio.h>
 #include <string.h>
 
+#include <string>
 #include <valarray>
 #include <vector>
-
-// ==============
-// Version number
-// ==============
-//extern std::string versionn;
-std::string version_arctic();
 
 // ========
 // Printing
@@ -54,13 +48,16 @@ void set_verbosity(int v);
         exit(1);                                                                       \
     })
 
+std::string version_arctic();
+
 void print_version();
 
 void print_array(std::valarray<double>& array);
 
-void print_array_2D(std::valarray<double>& image, int n_col);
+void print_array_2D(std::valarray<double>& image, int n_col, const char* fmt = "%g");
 
-void print_array_2D(std::valarray<std::valarray<double> >& array);
+void print_array_2D(
+    std::valarray<std::valarray<double> >& array, const char* fmt = "%g");
 
 // ========
 // Arrays

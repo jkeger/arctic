@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 
+#include <iostream>
 #include <valarray>
 #include <vector>
 
@@ -11,7 +12,6 @@
 #include "trap_managers.hpp"
 #include "traps.hpp"
 #include "util.hpp"
-#include <iostream>
 
 TEST_CASE("Test clock charge in one direction, compare with old arctic", "[cti]") {
     set_verbosity(0);
@@ -253,9 +253,9 @@ TEST_CASE("Test add CTI", "[cti]") {
         // Add serial
         image_add = add_cti(
             image_add, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, express,
-            offset, start, stop, time_start, time_stop, 0, 0, 
-            &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
-            &traps_sc_co, express, offset, start, stop, time_start, time_stop, 0, 0);
+            offset, start, stop, time_start, time_stop, 0, 0, &roe, &ccd, &traps_ic,
+            &traps_sc, &traps_ic_co, &traps_sc_co, express, offset, start, stop,
+            time_start, time_stop, 0, 0);
         image_clock = transpose(image_clock);
         image_clock = clock_charge_in_one_direction(
             image_clock, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
@@ -266,9 +266,9 @@ TEST_CASE("Test add CTI", "[cti]") {
         // Both at once
         image_add = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-            express, offset, start, stop, time_start, time_stop, 0, 0, 
-            &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-            express, offset, start, stop, time_start, time_stop, 0, 0);
+            express, offset, start, stop, time_start, time_stop, 0, 0, &roe, &ccd,
+            &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, express, offset, start,
+            stop, time_start, time_stop, 0, 0);
         REQUIRE_THAT(flatten(image_add), Catch::Approx(flatten(image_clock)));
     }
 
@@ -480,29 +480,27 @@ TEST_CASE("Test remove CTI", "[cti]") {
         // Add CTI
         image_add_cti = add_cti(
             image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
-            express, offset, start, stop, 0, -1, 0, 0,  
-            &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-            express, offset, start, stop, 0, -1, 0, 0);
+            express, offset, start, stop, 0, -1, 0, 0, &roe, &ccd, &traps_ic, &traps_sc,
+            &traps_ic_co, &traps_sc_co, express, offset, start, stop, 0, -1, 0, 0);
 
         // Remove CTI
         // NB: the remove function is never used by python wrapper
         // The unit test is here for completeness only
         for (int n_iterations = 2; n_iterations <= 6; n_iterations++) {
             image_remove_cti = remove_cti(
-                image_add_cti, n_iterations, 
-                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, start, stop, 0, -1, 0, 0, 
-                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, start, stop, 0, -1, 0, 0);
+                image_add_cti, n_iterations, &roe, &ccd, &traps_ic, &traps_sc,
+                &traps_ic_co, &traps_sc_co, express, offset, start, stop, 0, -1, 0, 0,
+                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, express,
+                offset, start, stop, 0, -1, 0, 0);
 
-            //for (int i = 0; i <= 5; i++) {
+            // for (int i = 0; i <= 5; i++) {
             //    for (int j = 0; j <= 3; j++) {
             //        print_v(0,"%g ",image_remove_cti[i][j]);
             //    }
             //    print_v(0,"\n");
             //}
-            //print_v(0,"\n");
-            
+            // print_v(0,"\n");
+
             // Expect better results with more iterations
             double tolerance = pow(10.0, 4 - n_iterations);
             REQUIRE_THAT(
@@ -605,8 +603,8 @@ TEST_CASE("Test offset and windows", "[cti]") {
                         flatten(image_post_cti), Catch::Approx(flatten(image_pre_cti)));
                 } else {
                     // Same result within the window region
-                    test =
-                        (std::valarray<std::valarray<double> >)image_post_cti[std::slice(
+                    test = (std::valarray<std::valarray<double> >)
+                        image_post_cti[std::slice(
                             window_start, window_stop - window_start, 1)];
                     answer = (std::valarray<std::valarray<double> >)
                         image_post_cti_full[std::slice(
@@ -639,25 +637,23 @@ TEST_CASE("Test offset and windows", "[cti]") {
         int parallel_stop = 5;
         int serial_start = 1;
         int serial_stop = 3;
-        
+
         // Unaffected by express
         for (int i_express = 0; i_express < 3; i_express++) {
             express = express_tests[i_express];
 
             // Full image
             image_post_cti_full = add_cti(
-                image_pre_cti, 
-                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, 0, -1, 0, -1, 0, 0,
-                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, 0, -1, 0, -1, 0, 0);
+                image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
+                &traps_sc_co, express, offset, 0, -1, 0, -1, 0, 0, &roe, &ccd,
+                &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, express, offset, 0,
+                -1, 0, -1, 0, 0);
 
             // Window
             image_post_cti = add_cti(
-                image_pre_cti, 
-                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
-                express, offset, parallel_start, parallel_stop, 0, -1, 0, 0,
-                &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, 
+                image_pre_cti, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co,
+                &traps_sc_co, express, offset, parallel_start, parallel_stop, 0, -1, 0,
+                0, &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co,
                 express, offset, serial_start, serial_stop, 0, -1, 0, 0);
 
             for (int i_row = 0; i_row < image_pre_cti.size(); i_row++) {
@@ -747,7 +743,7 @@ TEST_CASE("Test charge injection ROE, add CTI", "[cti]") {
         // each other since the later pixels undergo more transfers
 
         // More charge captured from later bright pixels from more transfers
-        // Early bright pixels prefill traps, so 
+        // Early bright pixels prefill traps, so
         REQUIRE(image_post_cti_std[0][0] > image_post_cti_std[4][0]);
         REQUIRE(image_post_cti_std[4][0] > image_post_cti_std[8][0]);
         // More charge released into later trails from more transfers

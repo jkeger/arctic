@@ -9,21 +9,6 @@
 #include <valarray>
 #include <vector>
 
-/*
-    Print the compiled version, set in the makefile.
-*/
-//extern std::string versionn() {
-//    return "hello1";
-//}
-
-std::string version_arctic() {
-#ifdef VERSION
-    return VERSION;
-#else
-    return "N/A";
-#endif
-}
-
 // ========
 // Printing
 // ========
@@ -38,19 +23,20 @@ int verbosity = 1;
 void set_verbosity(int v) { verbosity = v; }
 
 /*
+    Return the compiled version, set in the makefile.
+*/
+std::string version_arctic() {
+#ifdef VERSION
+    return VERSION;
+#else
+    return "N/A";
+#endif
+}
+
+/*
     Print the compiled version, set in the makefile.
 */
 void print_version() {
-//    std::string str = "\nArCTIc \n------ \n blah";
-//    char *cstr = new char[str.length() + 1];
-//    strcpy(cstr, str.c_str());
-//    char *version_string = str.c_str();
-//    printf(const char* c_str.(str));
-//    char* version_string = "\nArCTIc \n------ \n blah"; 
-//    // + version_arctic();
-//    print_v(1, "\nArCTIc \n------ \nblah");
-//    print_v(1, cstr);
-//    //print_v(1, "\nArCTIc \n------ \n"+version_arctic());
 #ifdef VERSION
     print_v(1, "\nArCTIc v%s \n------ \n", VERSION);
 #else
@@ -77,7 +63,7 @@ void print_array(std::valarray<double>& array) {
 /*
     Neatly print a 1D array as 2D with n_col columns (2nd dimension).
 */
-void print_array_2D(std::valarray<double>& array, int n_col) {
+void print_array_2D(std::valarray<double>& array, int n_col, const char* fmt) {
     int n_tot = array.size();
     int n_row = n_tot / n_col;
 
@@ -88,7 +74,7 @@ void print_array_2D(std::valarray<double>& array, int n_col) {
         else
             printf(" [");
         for (int i_col = 0; i_col < n_col; ++i_col) {
-            printf("%g", array[i_row * n_col + i_col]);
+            printf(fmt, array[i_row * n_col + i_col]);
             if (i_col != n_col - 1)
                 printf(", ");
             else if (i_row != n_row - 1)
@@ -104,7 +90,7 @@ void print_array_2D(std::valarray<double>& array, int n_col) {
 /*
     Neatly print an actual 2D array.
 */
-void print_array_2D(std::valarray<std::valarray<double> >& array) {
+void print_array_2D(std::valarray<std::valarray<double> >& array, const char* fmt) {
     int n_row = array.size();
     int n_col;
 
@@ -118,7 +104,7 @@ void print_array_2D(std::valarray<std::valarray<double> >& array) {
             printf(" [");
 
         for (int i_col = 0; i_col < n_col; ++i_col) {
-            printf("%g", array[i_row][i_col]);
+            printf(fmt, array[i_row][i_col]);
             if (i_col != n_col - 1)
                 printf(", ");
             else if (i_row != n_row - 1)

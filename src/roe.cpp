@@ -4,9 +4,9 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <iostream>
 #include <valarray>
 
-#include <iostream>
 #include "util.hpp"
 
 // ========
@@ -77,17 +77,17 @@ ROEStepPhase::ROEStepPhase(
     dwell_times : std::valarray<double> (opt.)
         The time between steps in the clocking sequence, in the same units
         as the trap capture/release timescales. Default {1.0}.
-        
+
     prescan_offset : int (opt.)
         The number of pixels not present in the input array, through which
         the charge had to pass in order to reach the readout amplifier.
         Default [0]
 
-    overscan_start : int (opt.)
-        The number of pixels after which the input array that correspond to a 
-        virtual overscan, rather than physical pixels. Charge does not get  
-        trailed when it passes through these pixels (but it does through the   
-        rest of the CCD). This means that the input array can be larger than 
+    overscan_start : int (opt.) ## why "_start"? Check doc string "after..."
+        The number of pixels after the input array that correspond to a
+        virtual overscan, rather than physical pixels. Charge does not get
+        trailed when it passes through these pixels (but it does through the
+        rest of the CCD). This means that the input array can be larger than
         the CCD. Default [-1] means "no overscan".
 
     empty_traps_between_columns : bool (opt.)
@@ -99,9 +99,9 @@ ROEStepPhase::ROEStepPhase(
                overscan pixels are included in the image array). Default true.
 
     empty_traps_for_first_transfers : bool (opt.)
-        If true, then tweak the express algorithm to treat every first 
+        If true, then tweak the express algorithm to treat every first
         pixel-to-pixel transfer separately to the rest. This is a bit slower,
-        but helps to conserve charge is the image size is small enough to be 
+        but helps to conserve charge is the image size is small enough to be
         comparable to trail lengths.
         Default false.
 
@@ -138,13 +138,9 @@ ROEStepPhase::ROEStepPhase(
         different for a non-standard type of clock sequence, e.g. trap pumping.
 */
 ROE::ROE(
-    std::valarray<double>& dwell_times, 
-    int prescan_offset,
-    int overscan_start,
-    bool empty_traps_between_columns,
-    bool empty_traps_for_first_transfers, 
-    bool force_release_away_from_readout,
-    bool use_integer_express_matrix)
+    std::valarray<double>& dwell_times, int prescan_offset, int overscan_start,
+    bool empty_traps_between_columns, bool empty_traps_for_first_transfers,
+    bool force_release_away_from_readout, bool use_integer_express_matrix)
     : dwell_times(dwell_times),
       prescan_offset(prescan_offset),
       overscan_start(overscan_start),
@@ -154,9 +150,11 @@ ROE::ROE(
       use_integer_express_matrix(use_integer_express_matrix) {
 
     type = roe_type_standard;
-    if ( prescan_offset < 0 ) throw std::invalid_argument( "prescan_offset must be zero or positive" );
-    if ( overscan_start != -1) {
-        if ( overscan_start <= 0 ) throw std::invalid_argument( "overscan_start must be positive" );
+    if (prescan_offset < 0)
+        throw std::invalid_argument("prescan_offset must be zero or positive");
+    if (overscan_start != -1) {
+        if (overscan_start <= 0)
+            throw std::invalid_argument("overscan_start must be positive");
     }
     n_steps = dwell_times.size();
     n_phases = n_steps;
@@ -229,21 +227,22 @@ void ROE::set_express_matrix_from_rows_and_express(
 
     // Set defaults
     int offset = window_offset + prescan_offset;
-    int n_transfers = n_rows + offset; // transfers taken by farthest included pixel 
-    int overscan_in_image = 0; // number of pixels in the supplied image that are overscan
+    int n_transfers = n_rows + offset;  // transfers taken by farthest included pixel
+    int overscan_in_image =
+        0;  // number of pixels in the supplied image that are overscan
     if (overscan_start >= 0)
         overscan_in_image = std::max(n_rows + window_offset + 1 - overscan_start, 0);
     if (express == 0)
-        express = n_transfers; // default express to all transfers, and check no larger
+        express = n_transfers;  // default express to all transfers, and check no larger
     else
         express = std::min(express, n_transfers);
 
     /*print_v(
-        0,"offset: %d %d %d, n_transfers: %d, overscan: %d %d \n", 
-        offset, window_offset, prescan_offset, n_transfers, overscan_in_image, overscan_start
-    );*/ 
-    
- 
+        0,"offset: %d %d %d, n_transfers: %d, overscan: %d %d \n",
+        offset, window_offset, prescan_offset, n_transfers, overscan_in_image,
+    overscan_start
+    );*/
+
     // Set default express to all transfers, and check no larger
 
     // Temporarily ignore the first pixel-to-pixel transfer, if it is to be
@@ -261,10 +260,10 @@ void ROE::set_express_matrix_from_rows_and_express(
     // (plus 1 because it starts at 1 not 0)
     for (int express_index = 0; express_index < express; express_index++)
         tmp_express_matrix[std::slice(express_index * n_transfers, n_transfers, 1)] =
-            arange(1, n_transfers + 1);   
-    
+            arange(1, n_transfers + 1);
+
     // Compute the multiplier factors
-    double max_multiplier = (double) n_transfers / express;
+    double max_multiplier = (double)n_transfers / express;
     if (use_integer_express_matrix) max_multiplier = ceil(max_multiplier);
     // Offset each row to account for the pixels that have already been read out
     for (int express_index = 0; express_index < express; express_index++) {
@@ -276,7 +275,7 @@ void ROE::set_express_matrix_from_rows_and_express(
     // Truncate all values to between 0 and max_multiplier
     tmp_express_matrix[tmp_express_matrix < 0.0] = 0.0;
     tmp_express_matrix[tmp_express_matrix > max_multiplier] = max_multiplier;
-    
+
     // Add an extra (first) transfer for every pixel, the effect of which
     // will only ever be counted once, because it is physically different
     // from the other transfers (it sees only empty traps)
@@ -286,11 +285,10 @@ void ROE::set_express_matrix_from_rows_and_express(
         for (int i = 0; i < express; i++) {
             tmp_express_matrix[std::slice(
                 (express - i - 1) * n_transfers, n_transfers, 1)] =
-                express_matrix_full[std::slice(
-                i * n_transfers, n_transfers, 1)];
+                express_matrix_full[std::slice(i * n_transfers, n_transfers, 1)];
         }
         n_express_passes = express;
-        
+
     } else if ((empty_traps_for_first_transfers) && (express < n_transfers)) {
         // Create a new matrix for the full number of transfers
         // (this will eventually overwrite tmp_express_matrix, but that is first used)
@@ -324,11 +322,11 @@ void ROE::set_express_matrix_from_rows_and_express(
         n_express_passes = express;
     }
     express_matrix = tmp_express_matrix;
-    
+
     // Remove the offset (which is not represented in the image pixels)
     // std::cout << offset ;
     if (offset > 0) {
-        //print_array_2D(tmp_express_matrix, n_transfers);
+        // print_array_2D(tmp_express_matrix, n_transfers);
         std::valarray<double> express_matrix_trim(0.0, n_express_passes * n_rows);
 
         // Copy the post-offset slices of each row
@@ -337,13 +335,13 @@ void ROE::set_express_matrix_from_rows_and_express(
                 express_matrix[std::slice(
                     express_index * n_transfers + offset, n_rows, 1)];
         }
-        //print_array_2D(express_matrix_trim, n_rows);
+        // print_array_2D(express_matrix_trim, n_rows);
         express_matrix = express_matrix_trim;
     }
 
     // Truncate number of transfers in regions of the image that represent overscan
-    //print_array_2D(express_matrix, n_rows);  
-    //std::cout << "overscan " << overscan_start << " f " << overscan_in_image << "\n";
+    // print_array_2D(express_matrix, n_rows);
+    // std::cout << "overscan " << overscan_start << " f " << overscan_in_image << "\n";
     if (overscan_in_image > 0) {
         int n_express_rows = express_matrix.size() / n_rows;
         for (int i_row = 0; (i_row < overscan_in_image); i_row++) {
@@ -352,16 +350,17 @@ void ROE::set_express_matrix_from_rows_and_express(
             int i_express = 0;
             while (removed < to_remove) {
                 int index = (n_express_rows - i_express) * n_rows - i_row - 1;
-                if ( index < 0 ) throw std::invalid_argument( "Accessing pixel that does not exist" );
-                //std::cout << i_express << i_row << " " << to_remove << removed << " index " << index << "\n";
+                if (index < 0)
+                    throw std::invalid_argument("Accessing pixel that does not exist");
+                // std::cout << i_express << i_row << " " << to_remove << removed << "
+                // index " << index << "\n";
                 removed += express_matrix[index];
                 express_matrix[index] = fmax(removed - to_remove, 0);
                 i_express++;
             }
-            
         }
     }
-    //print_array_2D(express_matrix, n_rows);
+    // print_array_2D(express_matrix, n_rows);
 }
 
 /*
@@ -415,11 +414,11 @@ void ROE::set_store_trap_states_matrix() {
         electronics in each phase of the pixel at each step in the clocking
         sequence.
 
-    The first diagram below illustrates the steps in the standard sequence
-    (where the number of steps equals the number of phases) for three phases,
-    where a single phase each step has its potential held high to hold the
-    charge cloud. The cloud is shifted from phase 0 to phase N towards the
-    previous pixel and the readout register.
+    The first diagram below illustrates the steps in the standard (number of
+    steps equals number of phases) sequence for three phases, where a single
+    phase each step has its potential held high to hold the charge cloud. The
+    cloud is shifted from phase 0 to phase N towards the previous pixel and the
+    readout register.
 
     See ROETrapPumping::ROETrapPumping()'s docstring for the behaviour produced
     by this function when the number of steps is double the number of phases,
@@ -618,14 +617,11 @@ void ROE::set_clock_sequence() {
     will see the untouched traps.
 */
 ROEChargeInjection::ROEChargeInjection(
-    std::valarray<double>& dwell_times, 
-    int prescan_offset,
-    int overscan_start,
-    bool empty_traps_between_columns,
-    bool force_release_away_from_readout, 
+    std::valarray<double>& dwell_times, int prescan_offset, int overscan_start,
+    bool empty_traps_between_columns, bool force_release_away_from_readout,
     bool use_integer_express_matrix)
-    : ROE(dwell_times, prescan_offset, overscan_start, empty_traps_between_columns, false,
-          force_release_away_from_readout, use_integer_express_matrix) {
+    : ROE(dwell_times, prescan_offset, overscan_start, empty_traps_between_columns,
+          false, force_release_away_from_readout, use_integer_express_matrix) {
 
     type = roe_type_charge_injection;
 }
@@ -638,25 +634,26 @@ ROEChargeInjection::ROEChargeInjection(
 */
 void ROEChargeInjection::set_express_matrix_from_rows_and_express(
     int n_rows, int express, int window_offset) {
-    
-/*    
-    // Can almost do with (just) the following
-    if (overscan_start <= 0)
-        overscan_start = n_rows + window_offset + 1;
-    int overscan_start_temp = overscan_start;
-    prescan_offset += (overscan_start - 1); // Add all pixels into the "prescan"
-    overscan_start = 1; // Start overscan immediately after the prescan
-    ROE::set_express_matrix_from_rows_and_express(n_rows, express, window_offset);
-    overscan_start = overscan_start_temp;
-    prescan_offset -= (overscan_start - 1); 
-*/    
+
+    /*
+        // Can almost do with (just) the following
+        if (overscan_start <= 0)
+            overscan_start = n_rows + window_offset + 1;
+        int overscan_start_temp = overscan_start;
+        prescan_offset += (overscan_start - 1); // Add all pixels into the "prescan"
+        overscan_start = 1; // Start overscan immediately after the prescan
+        ROE::set_express_matrix_from_rows_and_express(n_rows, express, window_offset);
+        overscan_start = overscan_start_temp;
+        prescan_offset -= (overscan_start - 1);
+    */
 
     // Set defaults
-    //int offset = window_offset + prescan_offset;
-    int n_transfers = prescan_offset + window_offset + n_rows; // transfers taken by farthest included pixel 
+    // int offset = window_offset + prescan_offset;
+    int n_transfers = prescan_offset + window_offset +
+                      n_rows;  // transfers taken by farthest included pixel
     if (overscan_start >= 0) n_transfers = prescan_offset + overscan_start - 1;
     if (express == 0)
-        express = n_transfers; // default express to all transfers, and check no larger
+        express = n_transfers;  // default express to all transfers, and check no larger
     else
         express = std::min(express, n_transfers);
     n_express_passes = express;
@@ -665,7 +662,8 @@ void ROEChargeInjection::set_express_matrix_from_rows_and_express(
     double max_multiplier = (double)n_transfers / express;
     if (use_integer_express_matrix) max_multiplier = ceil(max_multiplier);
 
-    // Initialise an array that will become the express matrix (can't create the array itself)
+    // Initialise an array that will become the express matrix (can't create the array
+    // itself)
     std::valarray<double> tmp_express_matrix(max_multiplier, express * n_rows);
 
     // Adjust integer multipliers to correct the total number of transfers
@@ -684,12 +682,11 @@ void ROEChargeInjection::set_express_matrix_from_rows_and_express(
             if (current_n_transfers <= n_transfers) break;
             reduced_multiplier =
                 std::max(0.0, max_multiplier + n_transfers - current_n_transfers);
-            tmp_express_matrix[std::slice(
-                express_index * n_rows, n_rows, 1)] = reduced_multiplier;
+            tmp_express_matrix[std::slice(express_index * n_rows, n_rows, 1)] =
+                reduced_multiplier;
         }
     }
     express_matrix = tmp_express_matrix;
-
 }
 
 /*

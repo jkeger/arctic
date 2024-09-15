@@ -88,7 +88,7 @@ class ReadNoise:
         adjacency=0.3,
         noise_model_scaling=1.0,  # originally 0.75
         amplitude_scale=0.2,  # originally 0.33
-        n_pixels_for_covar=(100,100),
+        n_pixels_for_covar=(100, 100),
         n_iter=200,
         sr_fraction=None,
         serial=True,
@@ -430,30 +430,33 @@ class ReadNoise:
 
     ###############
     ###############
-    def covariance_matrix_in_corners_of_image(
-        self,
-        image,
-        matrix_size=5
-    ):  
-        """ 
+    def covariance_matrix_in_corners_of_image(self, image, matrix_size=5):
+        """
         Calculate the pixel-to-pixel covariance matrix in the four corners of an image
         """
-        
+
         # Identify the four corners of an image
         #
         # THIS NEEDS RATIONALISING
         #
-        bottom = [0,-self.n_pixels_for_covar[1]-1,0,-self.n_pixels_for_covar[1]-1]
-        top    = [self.n_pixels_for_covar[1],-1,self.n_pixels_for_covar[1],-1]
-        left   = [-self.n_pixels_for_covar[0]-1,-self.n_pixels_for_covar[0]-1,0,0]
-        right  = [-1,-1,self.n_pixels_for_covar[0],self.n_pixels_for_covar[0]]
-        
+        bottom = [
+            0,
+            -self.n_pixels_for_covar[1] - 1,
+            0,
+            -self.n_pixels_for_covar[1] - 1,
+        ]
+        top = [self.n_pixels_for_covar[1], -1, self.n_pixels_for_covar[1], -1]
+        left = [-self.n_pixels_for_covar[0] - 1, -self.n_pixels_for_covar[0] - 1, 0, 0]
+        right = [-1, -1, self.n_pixels_for_covar[0], self.n_pixels_for_covar[0]]
+
         # Calculate the pixel-to-pixel covariance matrix in each corner
-        covariance_matrix_list=[]
+        covariance_matrix_list = []
         for i in range(len(left)):
-            subimage = image[bottom[i]:top[i],left[i]:right[i]]
-            covariance_matrix_list.append(CovarianceMatrix().from_image(subimage,matrix_size=matrix_size))
-            
+            subimage = image[bottom[i] : top[i], left[i] : right[i]]
+            covariance_matrix_list.append(
+                CovarianceMatrix().from_image(subimage, matrix_size=matrix_size)
+            )
+
         return covariance_matrix_list
 
     ###############
@@ -533,8 +536,10 @@ class ReadNoise:
         """
 
         # the following line returns the result from the C implementation instead (comment out to switch back to native python code)
-        return w.cy_determine_read_noise_model(imageIn, imageOut, self.sigmaRN, self.ampScale, self.smoothCol)
-        
+        return w.cy_determine_read_noise_model(
+            imageIn, imageOut, self.sigmaRN, self.ampScale, self.smoothCol
+        )
+
         readNoiseAmp = self.sigmaRN
 
         dval0 = imageIn - imageOut
@@ -831,8 +836,6 @@ class ReadNoise:
         # raise NotImplementedError
         return result_mean
 
-
-
     ###############
 
     ###############
@@ -1009,8 +1012,6 @@ class ReadNoise:
     ###############
 
 
-
-
 class CovarianceMatrix(np.ndarray):
     """
     An nxn array whose data is a numpy 2D array, but which has a few extra methods.
@@ -1019,43 +1020,41 @@ class CovarianceMatrix(np.ndarray):
     a useful figure of merit about how much covariance there is is
       covmatrix.z
     """
-    def __new__(
-        cls,
-        matrix_size=5,
-        values: np.ndarray=None,
-        *args,
-        **kwargs
-    ):
-        if type(matrix_size) is int: matrix_size=(matrix_size,matrix_size)
+
+    def __new__(cls, matrix_size=5, values: np.ndarray = None, *args, **kwargs):
+        if type(matrix_size) is int:
+            matrix_size = (matrix_size, matrix_size)
         if values is None:
             values = np.zeros(matrix_size)
-            values[matrix_size[0]//2,matrix_size[1]//2]=1 
+            values[matrix_size[0] // 2, matrix_size[1] // 2] = 1
 
         # Create the ndarray instance
         obj = values.view(cls)
-        #obj = np.asarray(values).view(cls)
+        # obj = np.asarray(values).view(cls)
         return obj
 
     def __array_finalize__(self, obj):
-        if obj is None: return
-    
-    def from_image(self, image, matrix_size=5, border=[5,5,0,0]):
+        if obj is None:
+            return
+
+    def from_image(self, image, matrix_size=5, border=[5, 5, 0, 0]):
         """
-        Calculate the pixel-to-pixel covariance of an image 
-        """        
+        Calculate the pixel-to-pixel covariance of an image
+        """
         # Initialise output variable
         self = CovarianceMatrix(matrix_size=matrix_size)
         middle = self.middle
-        roll_border = tuple(max(a,1) for a in middle)
+        roll_border = tuple(max(a, 1) for a in middle)
 
         # Optionally remove a border around the image, e.g. to avoid FPR decrement
         # (this actually removes one extra row at the top and column on the right)
-        subimage = image[border[0]:-border[2]-1, 
-                         border[1]:-border[3]-1]
+        subimage = image[border[0] : -border[2] - 1, border[1] : -border[3] - 1]
 
-        # Remove the outside edge of an image that could be rolled over in the next copy, 
+        # Remove the outside edge of an image that could be rolled over in the next copy,
         # so the two copies stay the same size
-        x = subimage[roll_border[0]:-roll_border[1], roll_border[0]:-roll_border[1]].flatten()
+        x = subimage[
+            roll_border[0] : -roll_border[1], roll_border[0] : -roll_border[1]
+        ].flatten()
         xbar = np.mean(x)
 
         # Loop over all pixel offsets
@@ -1063,62 +1062,75 @@ class CovarianceMatrix(np.ndarray):
             for j in range(-middle[1], middle[1] + 1, 1):
 
                 # Shift the pixels in a second copy of the image
-                y = np.roll(subimage, (-j, -i), axis=(0, 1))[roll_border[0]:-roll_border[1], roll_border[0]:-roll_border[1]].flatten()
+                y = np.roll(subimage, (-j, -i), axis=(0, 1))[
+                    roll_border[0] : -roll_border[1], roll_border[0] : -roll_border[1]
+                ].flatten()
                 ybar = np.mean(y)
-                
+
                 # Calcluate covariance between shifted pixels
                 self[middle[0] + i, middle[1] + j] = (
                     np.sum((x - xbar) * (y - ybar)) / x.size
                 )  # /(np.std(x-xbar)*np.std(y-ybar))/(x.size) #removing noise-level normalization
                 # covar = np.sum((x-xbar)*(y-ybar))/(np.std(x-xbar)*np.std(y-ybar))/(x.size)
-                
+
         return self
 
     @property
-    def middle(self): # Index of the matrix element corresponding to variance (autocorrelation)
-        return tuple(a//2 for a in self.shape)
-    
+    def middle(
+        self,
+    ):  # Index of the matrix element corresponding to variance (autocorrelation)
+        return tuple(a // 2 for a in self.shape)
+
     @property
-    def autocorrelation(self): # The value of variance (autocorrelation)
+    def autocorrelation(self):  # The value of variance (autocorrelation)
         return self[self.middle]
 
     @property
-    def column(self): # A possible figure of merit: the sum of covariance along a column
-        return self[:,self.middle[1]].sum() - self.autocorrelation
+    def column(
+        self,
+    ):  # A possible figure of merit: the sum of covariance along a column
+        return self[:, self.middle[1]].sum() - self.autocorrelation
 
     @property
-    def columnabs(self): # A possible figure of merit: the sum of |covariance| along a column
-        return np.abs(self[:,self.middle[1]]).sum() - self.autocorrelation
+    def columnabs(
+        self,
+    ):  # A possible figure of merit: the sum of |covariance| along a column
+        return np.abs(self[:, self.middle[1]]).sum() - self.autocorrelation
 
     @property
-    def row(self): # A possible figure of merit: the sum of covariance along a row
-        return self[self.middle[0],:].sum() - self.autocorrelation
+    def row(self):  # A possible figure of merit: the sum of covariance along a row
+        return self[self.middle[0], :].sum() - self.autocorrelation
 
     @property
-    def rowabs(self): # A possible figure of merit: the sum of |covariance| along a row
-        return np.abs(self[self.middle[0],:]).sum() - self.autocorrelation
+    def rowabs(self):  # A possible figure of merit: the sum of |covariance| along a row
+        return np.abs(self[self.middle[0], :]).sum() - self.autocorrelation
 
     @property
-    def box(self): # A possible figure of merit: the sum of all covariance
+    def box(self):  # A possible figure of merit: the sum of all covariance
         return self.sum() - self.autocorrelation
 
     @property
-    def boxabs(self): # A possible figure of merit: the sum of all |covariance|
+    def boxabs(self):  # A possible figure of merit: the sum of all |covariance|
         return np.abs(self).sum() - self.autocorrelation
-    
-    @property
-    def ring(self): # The sum of all covariance up to n pixels from autocorrelation
-        n=1
-        middle = self.middle
-        subarray = self[max(middle[0]-n,0):min(middle[0]+n,self.shape[0]),
-                        max(middle[1]-n,0):min(middle[1]+n,self.shape[1])]
-        return subarray.sum() - self.autocorrelation
-    
-    @property
-    def ringabs(self): # The sum of all |covariance| up to n pixels from autocorrelation
-        n=1
-        middle = self.middle
-        subarray = self[max(middle[0]-n,0):min(middle[0]+n,self.shape[0]),
-                        max(middle[1]-n,0):min(middle[1]+n,self.shape[1])]
-        return npabs(subarray).sum() - self.autocorrelation
 
+    @property
+    def ring(self):  # The sum of all covariance up to n pixels from autocorrelation
+        n = 1
+        middle = self.middle
+        subarray = self[
+            max(middle[0] - n, 0) : min(middle[0] + n, self.shape[0]),
+            max(middle[1] - n, 0) : min(middle[1] + n, self.shape[1]),
+        ]
+        return subarray.sum() - self.autocorrelation
+
+    @property
+    def ringabs(
+        self,
+    ):  # The sum of all |covariance| up to n pixels from autocorrelation
+        n = 1
+        middle = self.middle
+        subarray = self[
+            max(middle[0] - n, 0) : min(middle[0] + n, self.shape[0]),
+            max(middle[1] - n, 0) : min(middle[1] + n, self.shape[1]),
+        ]
+        return npabs(subarray).sum() - self.autocorrelation
