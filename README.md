@@ -207,7 +207,7 @@ ArCTIc can also be run directly as `./arctic` with the following command-line op
 The C++ code can also be used as a library for other C++ programs.
 See the `run_demo()` function in `src/main.cpp` for
 examples adding and removing CTI trails from a test image,
-and the `lib_test` example described below.
+and the `test_lib` example described below.
 
 
 \
@@ -229,8 +229,8 @@ Add arguments to select which tests to run by their names, e.g:
 + `~*'not these'*`  All tests except those that contain 'not these'.
 + `-# [#filename]`  All tests in filename.cpp.
 
-Compiling with `make lib_test` will create a simple example of using the shared
-object library (`libarctic.so`), which is run with `./lib_test`.
+Compiling with `make test_lib` will create a simple example of using the shared
+object library (`libarctic.so`), which is run with `./test_lib`.
 
 A few python tests of the primary functions are included for the arcticpy
 wrapper. Compile the wrapper with `make wrapper` (or `make all`) in the top
@@ -247,7 +247,7 @@ A quick summary of the code files and their contents:
 + `get_gsl.sh`              The script called by the makefile to install GSL.
 + `arctic`, `test_arctic`   The main program and unit-test executables.
 + `libarctic.so`            The shared object library.
-+ `lib_test`                The library test executable.
++ `test_lib`                The library test executable.
 + `test_arcticpy.py`        The python tests and demo script.
 + `src/`                    Source code files.
     + `main.cpp`  

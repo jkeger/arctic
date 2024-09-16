@@ -12,7 +12,7 @@
 /*
     Test using the arctic shared library to add CTI to a test image.
 
-    Compile from the top directory with `make lib_test`.
+    Compile from the top directory with `make test_lib`.
 */
 int main(int argc, char** argv) {
 

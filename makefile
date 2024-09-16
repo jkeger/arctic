@@ -15,7 +15,7 @@
 # 	lib, libarctic.so
 # 		The dynamic library shared object.
 #
-# 	lib_test
+# 	test_lib
 # 		A simple test for using the shared library. See test/test_lib.cpp.
 #
 # 	core
@@ -52,7 +52,7 @@ VERSION := "7.0.6"
 TARGET := arctic
 TEST_TARGET := test_arctic
 LIB_TARGET := libarctic.so
-LIB_TEST_TARGET := lib_test
+TEST_LIB_TARGET := test_lib
 
 # Directories
 DIR_ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
@@ -82,8 +82,8 @@ $(info $(DIR_SRC) $(DIR_OBJ))
 SOURCES := $(shell find $(DIR_SRC) -type f -name *.cpp)
 OBJECTS := $(patsubst $(DIR_SRC)%, $(DIR_OBJ)%, $(SOURCES:.cpp=.o))
 DEPENDS := $(patsubst %.o, %.d, $(OBJECTS))
-LIB_TEST_SOURCES := $(DIR_TEST)/test_lib.cpp
-TEST_SOURCES := $(filter-out $(LIB_TEST_SOURCES), \
+TEST_LIB_SOURCES := $(DIR_TEST)/test_lib.cpp
+TEST_SOURCES := $(filter-out $(TEST_LIB_SOURCES), \
 	$(shell find $(DIR_TEST) -type f -name *.cpp))
 TEST_OBJECTS := $(patsubst $(DIR_TEST)%, $(DIR_OBJ)%, $(TEST_SOURCES:.cpp=.o)) \
 	$(filter-out $(DIR_OBJ)/main.o, $(OBJECTS))
@@ -111,13 +111,13 @@ LIBS += -L $(DIR_OMP)/lib -lgomp
 default: $(TARGET) $(LIB_TARGET)
 
 # Ignore any files with these names
-.PHONY: all default test lib lib_test wrapper clean gsl clean-gsl
+.PHONY: all default test lib test_lib wrapper clean gsl clean-gsl
 
 # Everything
 all: gsl core wrapper
 
 # Main program, unit tests, library, library test, and wrapper
-core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
+core: $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(TEST_LIB_TARGET)
 
 # Main program
 $(TARGET): $(OBJECTS)
@@ -148,8 +148,8 @@ $(LIB_TARGET): $(OBJECTS)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LIBS)
 
 # Test using the library
-$(LIB_TEST_TARGET): $(LIB_TARGET)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(LIB_TEST_SOURCES) -o $@ $(LIBS)
+$(TEST_LIB_TARGET): $(LIB_TARGET)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LIBARCTIC) $(TEST_LIB_SOURCES) -o $@ $(LIBS)
 
 # Cython wrapper
 wrapper: $(LIB_TARGET)
@@ -159,7 +159,7 @@ wrapper: $(LIB_TARGET)
 
 clean:
 	@rm -fv $(OBJECTS) $(DEPENDS) $(TEST_OBJECTS) $(TEST_DEPENDS) $(DIR_OBJ)/test_lib.[od]
-	@rm -fv $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(LIB_TEST_TARGET)
+	@rm -fv $(TARGET) $(TEST_TARGET) $(LIB_TARGET) $(TEST_LIB_TARGET)
 	@rm -fv $(DIR_WRAPPER)/*.cpython*.so $(DIR_WRAPPER_SRC)/wrapper.cpp
 	@rm -rfv $(DIR_ROOT)/build/temp.*/ $(DIR_WRAPPER)/__pycache__/ \
 		$(DIR_TEST)/__pycache__/
