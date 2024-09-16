@@ -43,7 +43,6 @@ Contents
 Installation
 ============
 
-
 Requirements
 ------------
 
@@ -97,6 +96,7 @@ python3 -m pip install --index-url https://test.pypi.org/simple --extra-index-ur
 The version is not as frequently updated, but this process automatically downloads the source files and builds/installs the executable, library and module.
 If you do not have superuser privileges, you must add the ```--user``` argument to install it into your local (home) directory instead.
 Furthermore, on some macOS systems, you may have to explicitly set the architecture by adding e.g. ARCHFLAGS="-arch x86_64" in front of the command.
+
 
 \
 Usage
@@ -176,12 +176,10 @@ to `add_cti()` or `remove_cti()` (there are also duplicate
 `add_pixel_bounce()` functions that add only pixel bounce, and not CTI.
 Pixel bounce exists only in the python wrapper, not the C++ core.
 
+More examples of adding or removing CTI trails from a test image are in the
+`run_demo()` function of `test_arcticpy.py`.
 
-More examples adding or removing CTI trails from a test image
-are in the `run_demo()` function of `test/test_arcticpy.py`.
-
-Run `python3 test/test_arcticpy.py` with `-d` or `-b` for
-demo or benchmark functions.
+Run `python3 test_arcticpy.py` with `-d` or `-b` for demo or benchmark functions.
 
 
 \
@@ -236,7 +234,7 @@ object library (`libarctic.so`), which is run with `./lib_test`.
 
 A few python tests of the primary functions are included for the arcticpy
 wrapper. Compile the wrapper with `make wrapper` (or `make all`) in the top
-directory, then run with `pytest test/test_arcticpy.py`.
+directory, then run with `pytest test_arcticpy.py`.
 
 
 
@@ -246,10 +244,12 @@ Files
 A quick summary of the code files and their contents:
 
 + `makefile`                The makefile for compiling the code. See its header.
-    + `get_gsl.sh`          The script called by the makefile to install GSL.
-+ `arctic`, `test_arctic`   The program and unit-test executables.
++ `get_gsl.sh`              The script called by the makefile to install GSL.
++ `arctic`, `test_arctic`   The main program and unit-test executables.
 + `libarctic.so`            The shared object library.
-+ `src/`                    Source code files.q
++ `lib_test`                The library test executable.
++ `test_arcticpy.py`        The python tests and demo script.
++ `src/`                    Source code files.
     + `main.cpp`  
         Main program. See above and its documentation for the command-line
         options, and see `run_demo()` for an example of running user-editable
@@ -404,12 +404,12 @@ CTI trails can be removed to arbitrary precision:
 
 ```C++
 // Image after correction of CTI trailing (first iteration):
-{{   0.0000,     0.0000,     0.0000,     0.0000},
- { 199.8236,     0.0627,     0.0268,     0.0099},
- {   0.1161,   199.4833,     0.1779,     0.0759},
- {   0.0442,     0.2592,   198.9736,     0.3409},
- {   0.0127,     0.1032,     0.4503,    -0.1013},
- {   0.0004,     0.0346,     0.1829,    -0.0526}}
+{{   0.0000,     0.0000,     0.0000,     0.0000 },
+ { 199.8236,     0.0627,     0.0268,     0.0099 },
+ {   0.1161,   199.4833,     0.1779,     0.0759 },
+ {   0.0442,     0.2592,   198.9736,     0.3409 },
+ {   0.0127,     0.1032,     0.4503,    -0.1013 },
+ {   0.0004,     0.0346,     0.1829,    -0.0526 }}
 // Image after correction of CTI trailing (five iterations):
 {{   0.00000,    0.00000,    0.00000,    0.00000 },
  { 200.00000,    0.00000,    0.00000,    0.00000 },
@@ -606,8 +606,8 @@ this works in practice.
 Python wrapper
 --------------
 After compiling the Cython, the `arcticpy` python module can be imported and
-used as normal. `test/test_arcticpy.py` contains some tests and a basic example,
-and see the full example at the top of this file.
+used as normal. `test_arcticpy.py` contains some tests and a basic example, and
+see the full example at the top of this file.
 
 The majority of the python functions and classes (`arcticpy/src/*.py`) directly
 mirror the core C++, so in those cases the full docstrings are not duplicated.

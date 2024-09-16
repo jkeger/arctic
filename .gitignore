@@ -18,20 +18,7 @@ gsl/
 *.bck
 
 *test*.*
+benchmark_2k2k_image.txt
+
 gmon.out
 callgrind.out.*
-hst_acs_10_col.txt
-dev/
-
-transfer_*.sh
-
-jn_sp*.py
-tst_*.py
-Untitle*.ipynb
-
-.DS_Store
-*/.DS_Store
-*/*/.DS_Store
-*/*/*/.DS_Store
-
-.idea/
