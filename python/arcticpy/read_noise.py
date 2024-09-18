@@ -1,17 +1,13 @@
 import numpy as np
 import matplotlib as mpl
 from scipy.optimize import curve_fit
-
-try:
-    from arcticpy import wrapper as w
-except ImportError:
-    import wrapper as w
+import wrapper as w
 
 """
 CTI correction moves trailed electrons back to their proper location, but also
-moves read noise - which was not trailed in the first place. The net effect is to
-amplify read noise, and hide the difference in the (anti)correlation between
-adjacent pixels. 
+moves read noise - which was not trailed in the first place. The net effect is
+to amplify read noise, and hide the difference in the (anti)correlation between
+adjacent pixels.
 
 This class provides a set of routines to predict this effect, and counteract it.
 
@@ -19,14 +15,14 @@ This class provides a set of routines to predict this effect, and counteract it.
 SAMPLE USAGE CASE
 #################
 
-If you have an image as a 2D numpy array and an arctic model (with parameters such as parallel_roe, 
+If you have an image as a 2D numpy array and an arctic model (with parameters such as parallel_roe,
 parallel_ccd, parallel_traps, etc...) run the following:
 
-1.) readnoise = arctic.ReadNoise(4.5) 
+1.) readnoise = arctic.ReadNoise(4.5)
   The argument sets the level of readnoise (in units of electrons)
 
 2.) [optional] readnoise.set_arctic_parameters(**kwargs)
-  Input each arctic parameter as a keyword argument. 
+  Input each arctic parameter as a keyword argument.
   These will then be passed to subsequent function calls automatically
   (Note: these choices can always be overridden in functions, if desired)
 
@@ -60,20 +56,20 @@ skyImage, readNoiseImage = readnoise.generate_SR_frames_from_image(image, sr_fra
 
 image_corrected = arctic.cti_correct(skyImage,
                   parallel_roe, parallel_ccd, parallel_traps)
-                  
-image_corrected += readNoiseImage         
+
+image_corrected += readNoiseImage
 
 
 #to be updated
 
 readnoise.covariance
 
-covariance = readnoise.etimate_residual_covariance_from_image(image, 
-                  matrix_size=5, fprSize=5, 
+covariance = readnoise.etimate_residual_covariance_from_image(image,
+                  matrix_size=5, fprSize=5,
                   parallel_roe, parallel_ccd, parallel_traps)
 
-covariance = readnoise.etimate_residual_covariance(sky_level, sky_sigma, 
-                  matrix_size=5, fprSize=5, 
+covariance = readnoise.etimate_residual_covariance(sky_level, sky_sigma,
+                  matrix_size=5, fprSize=5,
                   parallel_roe, parallel_ccd, parallel_traps)
 
 
@@ -159,7 +155,7 @@ class ReadNoise:
     ###############
     def set_arctic_parameters(self, **kwargs):
         """
-        Function for pre-setting arCTIc parameters (such as CCD, trap density, and ROE)
+        Function for pre-setting ArCTIc parameters (such as CCD, trap density, and ROE)
         This is a convenience function to eliminate multiple, bulky keyword argument calls in other functions
         If desired, the user can still specify or overwrite these values (on the fly) in the other functions
         by explicitly calling the keyword arguments there.
@@ -167,7 +163,7 @@ class ReadNoise:
         Parameters
         ----------
         **kwargs : variables
-            Keyword arguments specifying arCTIc parameters
+            Keyword arguments specifying ArCTIc parameters
         """
         self.arcKwargs = kwargs
 
@@ -304,7 +300,7 @@ class ReadNoise:
                 row : take all cells along the central row
                 column : take all cells along the central column
 
-        **kwargs : parameters that characterise CTI features in arCTIc (trap density, CCD, read out electronics (ROE) descriptions)
+        **kwargs : parameters that characterise CTI features in ArCTIc (trap density, CCD, read out electronics (ROE) descriptions)
         """
 
         # Parse inputs
@@ -410,7 +406,7 @@ class ReadNoise:
                 row : take all cells along the central row
                 column : take all cells along the central column
 
-        **kwargs : parameters that characterise CTI features in arCTIc (trap density, CCD, read out electronics (ROE) descriptions)
+        **kwargs : parameters that characterise CTI features in ArCTIc (trap density, CCD, read out electronics (ROE) descriptions)
 
         """
 

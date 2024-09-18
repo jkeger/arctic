@@ -5,6 +5,13 @@
 #include "catch2/catch.hpp"
 #include "util.hpp"
 
+TEST_CASE("Test square", "[util]") {
+    REQUIRE(sq(0.0) == 0.0);
+    REQUIRE(sq(1.0) == 1.0);
+    REQUIRE(sq(2.0) == 4.0);
+    REQUIRE(sq(-3.0) == 9.0);
+}
+
 TEST_CASE("Test clamp", "[util]") {
     double value = 123.456;
     REQUIRE(clamp(value, 100.0, 200.0) == 123.456);
@@ -108,9 +115,9 @@ TEST_CASE("Demo 2D-style 1D valarray slicing", "[util]") {
     image[std::slice(2, n_row, n_col)] = arange(3, 3 + n_row);
     answer = {
         // clang-format off
-        0, 1, 3, 
-        0, 1, 4, 
-        0, 1, 5, 
+        0, 1, 3,
+        0, 1, 4,
+        0, 1, 5,
         0, 1, 6,
         // clang-format on
     };
@@ -125,9 +132,9 @@ TEST_CASE("Demo 2D-style 1D valarray slicing", "[util]") {
     image[std::slice(3 * n_col, n_col, 1)] = tmp_row + 2.;
     answer = {
         // clang-format off
-        0, 1, 3, 
-        9, 9, 9, 
-        0, 1, 5, 
+        0, 1, 3,
+        9, 9, 9,
+        0, 1, 5,
         2, 3, 8,
         // clang-format on
     };
@@ -138,9 +145,9 @@ TEST_CASE("Demo 2D-style 1D valarray slicing", "[util]") {
     image[image == 0.] = 4.;
     answer = {
         // clang-format off
-        4, 1, 3, 
-        9, 9, 9, 
-        4, 1, 5, 
+        4, 1, 3,
+        9, 9, 9,
+        4, 1, 5,
         2, 3, 8,
         // clang-format on
     };

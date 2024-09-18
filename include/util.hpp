@@ -80,6 +80,8 @@ void save_image_to_txt(
 // ========
 // Misc
 // ========
+#define sq(x) ((x) * (x))
+
 double clamp(double value, double minimum, double maximum);
 
 double gettimelapsed(struct timeval start, struct timeval end);

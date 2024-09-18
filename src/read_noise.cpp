@@ -7,9 +7,9 @@
 #include "util.hpp"
 using namespace std;
 
-#define SQUARE(x) \
-    ((x) * (x))  //## might be useful but move to utils and maybe rename etc
-
+/*
+    ###
+*/
 void determine_read_noise_model(
     const double* imageIn, const double* imageOut, const int rows, const int cols,
     const double readNoiseAmp, const double readNoiseAmpFraction, const int smoothCol,
@@ -23,11 +23,11 @@ void determine_read_noise_model(
     double* dval9 = (double*)malloc(rows * cols * sizeof(double));
 
     double mod_clip = readNoiseAmp * readNoiseAmpFraction;
-    double readNoiseAmp2 = SQUARE(readNoiseAmp);
+    double readNoiseAmp2 = sq(readNoiseAmp);
 
     int idx;
-    print_v(1, "hello");
-    cout << "Hello World!";
+    print_v(1, "hello");     //###
+    cout << "Hello World!";  //###
 
     for (int i = 0; i < rows * cols; i++) {
         dval0[i] = imageIn[i] - imageOut[i];
@@ -122,11 +122,11 @@ void determine_read_noise_model(
     for (int i = 0; i < cols * rows; i++) {
 
         // setting dval0u to output
-        output[i] = fmin(1.0, fmax(-1.0, dval0[i])) * SQUARE(dval0[i]) /
-                    (SQUARE(dval0[i]) + 4.0 * readNoiseAmp2);
+        output[i] = fmin(1.0, fmax(-1.0, dval0[i])) * sq(dval0[i]) /
+                    (sq(dval0[i]) + 4.0 * readNoiseAmp2);
         // adding dval9u to output
-        output[i] += fmax(fmin(dval9[i], mod_clip), -mod_clip) * SQUARE(dval9[i]) /
-                     (SQUARE(dval9[i]) + 18.0 * readNoiseAmp2);
+        output[i] += fmax(fmin(dval9[i], mod_clip), -mod_clip) * sq(dval9[i]) /
+                     (sq(dval9[i]) + 18.0 * readNoiseAmp2);
 
         int rcol = i % cols;
         double dmod1, dmod2;
@@ -136,7 +136,7 @@ void determine_read_noise_model(
             dmod1 = imageOut[i - cols] - imageOut[i];
         }
         output[i] += fmax(fmin(dmod1, mod_clip), -mod_clip) * 4 * readNoiseAmp2 /
-                     (SQUARE(dmod1) + 4.0 * readNoiseAmp2);
+                     (sq(dmod1) + 4.0 * readNoiseAmp2);
 
         if (i >= (rows - 1) * cols) {  // last row
             dmod2 = 0.0;
@@ -144,7 +144,7 @@ void determine_read_noise_model(
             dmod2 = imageOut[i + cols] - imageOut[i];
         }
         output[i] += fmax(fmin(dmod2, mod_clip), -mod_clip) * 4 * readNoiseAmp2 /
-                     (SQUARE(dmod2) + 4.0 * readNoiseAmp2);
+                     (sq(dmod2) + 4.0 * readNoiseAmp2);
 
         if (smoothCol) {
             double cmod1, cmod2;
@@ -154,14 +154,14 @@ void determine_read_noise_model(
                 cmod1 = imageOut[i - 1] - imageOut[i];
             }
             output[i] += fmax(fmin(cmod1, mod_clip), -mod_clip) * 4 * readNoiseAmp2 /
-                         (SQUARE(cmod1) + 4.0 * readNoiseAmp2);
+                         (sq(cmod1) + 4.0 * readNoiseAmp2);
             if (rcol == cols - 1) {  // last column
                 cmod2 = 0.0;
             } else {
                 cmod2 = imageOut[i + 1] - imageOut[i];
             }
             output[i] += fmax(fmin(cmod2, mod_clip), -mod_clip) * 4 * readNoiseAmp2 /
-                         (SQUARE(cmod2) + 4.0 * readNoiseAmp2);
+                         (sq(cmod2) + 4.0 * readNoiseAmp2);
 
             output[i] /= 6.0;
         } else {
