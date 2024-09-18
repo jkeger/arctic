@@ -1,11 +1,11 @@
+import os
+import sys
 import numpy as np
 from typing import List, Optional
 
-try:
-    from arcticpy import wrapper as w
-except ImportError:
-    import wrapper as w
-
+path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(path, "../.."))
+import wrapper as w
 from arcticpy.ccd import CCDPhase, CCD
 from arcticpy.roe import ROE
 from arcticpy.traps import (

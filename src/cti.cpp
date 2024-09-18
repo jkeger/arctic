@@ -145,7 +145,6 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
     ROEStepPhase* roe_step_phase;
 
     // Print model inputs
-    // if (print_inputs == -1) print_inputs = verbosity >= 1;
     if (print_inputs > 0) {
         print_v(2, "\n");
         printf("  express = %d \n", express);
@@ -548,9 +547,6 @@ std::valarray<std::valarray<double> > clock_charge_in_one_direction(
         will catch numerical errors during CTI addition, and can speed up the
         iteration during CTI removal.
 
-    verbosity : int (opt.)
-        ##
-
     iteration : int (opt.)
         The interation when being called by remove_cti(), default 0 otherwise.
         Only used to control printing.
@@ -583,7 +579,7 @@ std::valarray<std::valarray<double> > add_cti(
     // Combined
     int allow_negative_pixels,
     // Output
-    int verbosity, int iteration) {
+    int iteration) {
 
     // Print unless being called by remove_cti()
     if (!iteration) print_version();
@@ -700,7 +696,7 @@ std::valarray<std::valarray<double> > remove_cti(
             serial_window_start, serial_window_stop, serial_time_start,
             serial_time_stop, serial_prune_n_electrons, serial_prune_frequency,
             //
-            allow_negative_pixels, 0, iteration);
+            allow_negative_pixels, iteration);
 
         // Improve the estimate of the image with CTI trails removed
         image_remove_cti += image_in - image_add_cti;

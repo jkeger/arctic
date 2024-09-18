@@ -39,7 +39,7 @@ std::valarray<std::valarray<double> > add_cti(
     int serial_window_stop = -1, int serial_time_start = 0, int serial_time_stop = -1,
     double serial_prune_n_electrons = 1e-10, int serial_prune_frequency = 20,
     // Combined
-    int allow_negative_pixels = 1, int verbosity = 0, int iteration = 0);
+    int allow_negative_pixels = 1, int iteration = 0);
 
 std::valarray<std::valarray<double> > remove_cti(
     std::valarray<std::valarray<double> >& image_in, int n_iterations,

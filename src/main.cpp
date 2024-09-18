@@ -40,12 +40,13 @@ int run_demo() {
             {0.0,   0.0,   0.0,   0.0},
         }  // clang-format on
     );
+    printf("\n# Saved test image to image_test_pre_cti.txt \n");
 
     // Load the image
     std::valarray<std::valarray<double>> image_pre_cti =
         load_image_from_txt((char*)"image_test_pre_cti.txt");
-    print_v(1, "\n# Loaded test image from image_test_pre_cti.txt: \n");
-    print_array_2D(image_pre_cti);
+    printf("# Loaded test image from image_test_pre_cti.txt: \n");
+    print_array_2D(image_pre_cti, "%.1f");
 
     // CTI model parameters
     // ic = instant capture, sc = slow capture, co = continuum release
@@ -71,18 +72,18 @@ int run_demo() {
     int prune_frequency = 0;
 
     // Add (only) parallel CTI
-    print_v(1, "\n# Add parallel CTI \n");
+    printf("\n# Add parallel CTI \n");
     std::valarray<std::valarray<double>> image_post_cti = add_cti(
         image_pre_cti,
         //
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, express, offset,
         window_start, window_stop, time_start, time_stop, prune_n_electrons,
         prune_frequency);
-    print_v(1, "\n# Image with parallel CTI added: \n");
+    printf("\n# Image with parallel CTI added: \n");
     print_array_2D(image_post_cti, "%.5f");
 
     // Add parallel and serial CTI
-    print_v(1, "\n# Add parallel and serial CTI \n");
+    printf("\n# Add parallel and serial CTI \n");
     image_post_cti = add_cti(
         image_pre_cti,
         //
@@ -93,11 +94,11 @@ int run_demo() {
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, express, offset,
         window_start, window_stop, time_start, time_stop, prune_n_electrons,
         prune_frequency);
-    print_v(1, "\n# Image with parallel and serial CTI added: \n");
+    printf("\n# Image with parallel and serial CTI added: \n");
     print_array_2D(image_post_cti, "%.5f");
 
     // Remove CTI
-    print_v(1, "\n# Remove CTI \n");
+    printf("\n# Remove CTI \n");
     int n_iterations = 5;
     std::valarray<std::valarray<double>> image_remove_cti = remove_cti(
         image_post_cti, n_iterations,
@@ -109,12 +110,12 @@ int run_demo() {
         &roe, &ccd, &traps_ic, &traps_sc, &traps_ic_co, &traps_sc_co, express, offset,
         window_start, window_stop, time_start, time_stop, prune_n_electrons,
         prune_frequency);
-    print_v(1, "\n# Image with CTI removed: \n");
+    printf("\n# Image with CTI removed: \n");
     print_array_2D(image_remove_cti, "%.5f");
 
     // Save the final image
     save_image_to_txt((char*)"image_test_cti_removed.txt", image_remove_cti);
-    print_v(1, "# Saved final image to image_test_cti_removed.txt \n");
+    printf("\n# Saved output image to image_test_cti_removed.txt \n");
 
     return 0;
 }
@@ -272,7 +273,7 @@ int main(int argc, char** argv) {
     parse_parameters(argc, argv);
 
     if (demo_mode) {
-        print_v(1, "# Running demo code! \n");
+        printf("# Running demo code! \n");
         return run_demo();
     }
     if (benchmark_mode) {

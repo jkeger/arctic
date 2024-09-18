@@ -303,7 +303,7 @@ void add_cti(
             // Combined
             allow_negative_pixels,
             // Output
-            verbosity, iteration);
+            iteration);
     }
     // No serial, parallel only
     else if (n_traps_serial == 0) {
@@ -321,7 +321,7 @@ void add_cti(
             // Combined
             allow_negative_pixels,
             // Output
-            verbosity, iteration);
+            iteration);
     }
     // Parallel and serial
     else {
@@ -341,7 +341,7 @@ void add_cti(
             // Combined
             allow_negative_pixels,
             // Output
-            verbosity, iteration);
+            iteration);
     }
 
     // Delete serial/parallel ROE if previously allocated
