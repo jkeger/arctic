@@ -26,12 +26,11 @@ class PixelBounce:
 
     Parameters
     ----------
-    kA : float
-        Initial condition of reference volatage in the pixel after a change in
-        signal voltage.
-    kv : float
-        Initial condition of rate of change of reference volatage in the pixel
-        after a change in signal voltage.
+    xi : float
+        Strength of pixel bounce. A change in signal of delta will produce oscillations 
+        of initial amplitude delta * xi.
+    phi : float
+        Starting phase of the oscillations in the reference voltage.
     gamma : float
         Damping coefficicent of oscillations in the reference voltage, expressed
         as a ~half life in units of the time between clocks.
@@ -40,13 +39,13 @@ class PixelBounce:
         i.e. freq in Hz * clock speed.
     """
 
-    def __init__(self, kA=0, kv=0, gamma=1.0, omega=1.0):
+    def __init__(self, xi=0, phi=0, gamma=1.0, omega=1.0):
         if gamma < 0:
             raise Exception("Damping factor gamma cannot be negative")
         if omega < 0:
             raise Exception("Oscillation frequency omega should not be negative")
-        self.kA = kA
-        self.kv = kv
+        self.xi = xi
+        self.phi = phi
         self.gamma = gamma
         self.omega = omega
 
@@ -57,11 +56,12 @@ class PixelBounce:
     def perturb_bias(
             self,
             image,
-            parallel_window_start=0,
-            parallel_window_stop=-1,
-            serial_window_start=0,
-            serial_window_stop=-1,
-            verbosity=1,
+            oversample,
+            parallel_window_start,
+            parallel_window_stop,
+            serial_window_start,
+            serial_window_stop,
+            verbosity
     ):
         """
         Applies pixel bounce to the effective bias level against which an image is
@@ -87,66 +87,95 @@ class PixelBounce:
         serial_window_start/stop : int
             First and last column of pixels (in the x direction) to process, for speed.
             Default is to process the entire image.
-
+        oversample : int
+    	    Factor by which to oversample the pixels, when calculating the oscillations. 
+    	    High values make the calculation more accurate.
+        
         Returns
         -------
         bias : [[float]]
             The output bias image array of pixel values.
         """
-        # Initialise bias offset voltage, which should settle during prescan
-        # of each row
-        bias = np.zeros(image.shape)
-        if (self.kA == 0) and (self.kv == 0):
-            return bias
+        if (self.xi == 0):
+            return np.zeros(image.shape)
         
         # Parse inputs needed to process only a subset of the image
         n_y, n_x = image.shape
         if parallel_window_stop == -1: parallel_window_stop = n_y
         if serial_window_stop == -1: serial_window_stop = n_x
 
-        # Pre-calcualte useful quantities from eqn (43) of
-        # Cieslinski & Ratkiewicz (2005) https://arxiv.org/abs/physics/0507182
+        # Supersample image for more accurate calculation
         epsilon = 1
+        if (oversample > 1):
+        	r_oversample = np.maximum(1, np.rint(oversample).astype(int))
+        	image = np.repeat(image, r_oversample, axis=1)
+        	serial_window_start *= r_oversample
+        	serial_window_stop *= r_oversample
+        	epsilon /= r_oversample
+
+        # Pre-calcualte useful quantities from eqn (43) of
+        # Cieslinski & Ratkiewicz (2005) https://arxiv.org/abs/physics/0507182        
         coeffA = 2 * np.exp(-1 * self.gamma * epsilon) * np.cos(self.omega * epsilon)
         coeffB = np.exp(-2 * self.gamma * epsilon)
+        #cos_phi = np.cos(self.phi)
+        #sin_phi = np.sin(self.phi)
+        #k_sin_minus_cos = self.k * ( np.sin(self.phi) - np.cos(self.phi) )
+        #k_2sin_minus_cos = self.k * ( 2 * np.sin(self.phi) - np.cos(self.phi) )
+
+        # Initialise bias offset voltage, which should settle during prescan
+        # of each row
+        bias = np.zeros(image.shape)
+        bias_im1 = np.zeros(parallel_window_stop-parallel_window_start)
 
         # Read out (a column of) pixels along a row, starting at second pixel (this
         # assumes the first pixel in each row cannot be affected by pixel bounce, as
         # the electronics have been reset and stabilised during prescan).
-        biasm1 = np.zeros(parallel_window_stop-parallel_window_start)
         for i in range(serial_window_start + 1, serial_window_stop):
             
             # Store previous values of bias, so difference equation can
             # compute rates of change
-            biasm2 = biasm1.copy()
-            biasm1 = bias[parallel_window_start:parallel_window_stop, i - 1].copy()
+            #bias_im2 = bias[parallel_window_start:parallel_window_stop, i - 2].copy()
+            bias_im2 = bias_im1.copy() # Could have been bias[...,i-2] but this works
+            bias_im1 = bias[parallel_window_start:parallel_window_stop, i - 1].copy()
 
             # What electronic impulse is being experienced?
             delta = (
                 image[parallel_window_start:parallel_window_stop, i] -
                 image[parallel_window_start:parallel_window_stop, i - 1]
             )
+            impulse = delta # This could be any function of delta
+            phi = self.phi  # This could be any function of delta
+            J_A = impulse * np.cos(phi) * self.omega * epsilon # Don't know why *omega but it works
+            J_v = impulse * np.sin(phi)
 
             # Impose this (linearly) on the difference equation,
             # as one term that creates a bias offset (propto pixel_bounce_kA)
             # and one that creates a rate of change of bias (propto pixel_bounce_kV)
-            biasm1 += (self.kA - self.kv) * delta
-            biasm2 += (self.kA - 2 * self.kv) * delta
+            #biasm1 += (self.kA - self.kv) * delta   # This was wrong by a factor -1!
+            #biasm2 += (self.kA - 2 * self.kv) * delta
+            bias_im1 += self.xi * ( J_A - J_v ) # Phase is switched compared to overleaf
+            bias_im2 += self.xi * ( 2 * J_A - J_v )
 
             # DHO difference equation, Cieslinski & Ratkiewicz (2005) eqn (43)
             bias[parallel_window_start:parallel_window_stop, i] = \
-                coeffA * biasm1 - coeffB * biasm2
+                coeffA * bias_im1 - coeffB * bias_im2
+
+        # Undo the supersampling of the image by taking means
+        if (oversample > 1):
+        	#bias = bias.reshape(n_y, n_x, r_oversample).mean(axis=2) # Mean of values
+        	bias = bias[:, ::r_oversample] # Take every nth value
 
         return bias
 
     def add_pixel_bounce(
         self,
         image,
+        oversample=1,
         parallel_window_start=0,
         parallel_window_stop=-1,
         serial_window_start=0,
         serial_window_stop=-1,
-        verbosity=1,
+        verbosity=1
     ):
         """
         Add pixel bounce to an image, modelled as Damped Harmonic Oscillations (DHO)
@@ -181,6 +210,7 @@ class PixelBounce:
         image_bounced = np.copy(image).astype(np.double)
         image_bounced -= self.perturb_bias(
             image,
+            oversample=oversample,
             parallel_window_start=parallel_window_start,
             parallel_window_stop=parallel_window_stop,
             serial_window_start=serial_window_start,
@@ -194,7 +224,8 @@ class PixelBounce:
         self,
         image,
         n_iterations,
-        parallel_window_start=0,
+        oversample=1,
+		parallel_window_start=0,
         parallel_window_stop=-1,
         serial_window_start=0,
         serial_window_stop=-1,
@@ -213,7 +244,8 @@ class PixelBounce:
             # Iteratively add pixel bounce to a model of the corrected image
             image_add_pixel_bounce = self.add_pixel_bounce(
                 image_remove_pixel_bounce,
-                parallel_window_start=parallel_window_start,
+                oversample=oversample,
+				parallel_window_start=parallel_window_start,
                 parallel_window_stop=parallel_window_stop,
                 serial_window_start=serial_window_start,
                 serial_window_stop=serial_window_stop,
@@ -225,64 +257,17 @@ class PixelBounce:
 
         return image_remove_pixel_bounce
 
-    def add_pixel_bounce_slow(self, image, do_Plot=False):
-        """
-        C++ style version, looping over each row one at a time
-        Results are identical to add_pixel_bounce()
-        """
-        # Pre-calcualte (once) useful quantities from eqn (43) of
-        # Cieslinski & Ratkiewicz (2005) https://arxiv.org/abs/physics/0507182
-        epsilon = 1
-        # omega = np.sqrt(self.omegaO**2 - self.gamma**2)
-        coeffA = 2 * np.exp(-1 * self.gamma * epsilon) * np.cos(self.omega * epsilon)
-        coeffB = np.exp(-2 * self.gamma * epsilon)
-        biasm1 = 0.0
-
-        # Read out one column of pixels through the (column of) traps
-        n_rows_in_image, n_columns_in_image = image.shape
-        import copy
-
-        for row_index in range(n_rows_in_image):
-            print("Bouncing, one row at a time")
-
-            # Initialise bias offset voltage, which should settle during prescan
-            # of each row
-            bias = np.zeros((1, n_columns_in_image))
-
-            # Each pixel
-            # for row_index in window_row_range:
-            for column_index in range(1, n_columns_in_image):
-                # Store previous values of bias, so difference equation can
-                # compute rates of change
-                biasm2 = copy.copy(biasm1)
-                biasm1 = bias[row_index, column_index - 1]
-
-                # What electronic impulse is being experienced?
-                delta = (
-                    image[row_index, column_index] - image[row_index, column_index - 1]
-                )
-
-                # Impose this (linearly) on the difference equation,
-                # as one term that creates a bias offset (propto pixel_bounce_kA)
-                # and one that creates a rate of change of bias (propto pixel_bounce_kV)
-                biasm1 += (self.kA - self.kv) * delta
-                biasm2 += (self.kA - 2 * self.kv) * delta
-
-                # DHO difference equation, Cieslinski & Ratkiewicz (2005) eqn (43)
-                bias[0, column_index] = coeffA * biasm1 - coeffB * biasm2
-
-            image[row_index : row_index + 1, :] -= bias
-
-        return image
-
 
 """
 Standalone functions to call the above, but mirroring syntax of add_cti() and remove_cti()
+These also enable the processing of several pixel bounces, in serial, in case that ever 
+becomes a plausible thing.
 """
 
 def add_pixel_bounce(
     image,
     pixel_bounce_list=None,
+    oversample=1,
     parallel_window_start=0,
     parallel_window_stop=-1,
     serial_window_start=0,
@@ -300,6 +285,7 @@ def add_pixel_bounce(
     for pixel_bounce in pixel_bounce_list:
         bias += pixel_bounce.perturb_bias(
             image,
+            oversample=oversample,
             parallel_window_start=parallel_window_start,
             parallel_window_stop=parallel_window_stop,
             serial_window_start=serial_window_start,
@@ -318,6 +304,7 @@ def remove_pixel_bounce(
     image,
     n_iterations,
     pixel_bounce_list=None,
+    oversample=1,
     parallel_window_start=0,
     parallel_window_stop=-1,
     serial_window_start=0,
@@ -337,6 +324,7 @@ def remove_pixel_bounce(
         image_add_pixel_bounce = add_pixel_bounce(
             image_remove_pixel_bounce,
             pixel_bounce_list=pixel_bounce_list,
+            oversample=oversample,
             parallel_window_start=parallel_window_start,
             parallel_window_stop=parallel_window_stop,
             serial_window_start=serial_window_start,
