@@ -1,8 +1,6 @@
-
 #include "ccd.hpp"
 
 #include <math.h>
-
 #include "util.hpp"
 
 
@@ -29,13 +27,20 @@ int sgn(double v) {
         depth as a list containing different values. If the potential in
         more than one phase is held high during any stage in the clocking
         cycle, their full well depths are added together. This value is
-        indpependent of the fraction of traps allocated to each phase.
+        independent of the fraction of traps allocated to each phase.
 
     well_notch_depth : double
-        The number of electrons that fit inside a 'notch' at the bottom of a
-        potential well, occupying negligible volume and therefore being
-        immune to trapping. These electrons still count towards the full
-        well depth. The notch depth can, in  principle, vary between phases.
+        If positive:
+        The number of electrons that fit inside a 'notch' or s'upplementary 
+        buried channel' at the bottom of a potential well, occupying 
+        negligible volume and therefore being immune to trapping. These 
+        electrons still count towards the full well depth. The notch depth 
+        can, in  principle, vary between phases. This is used with HST.
+        If negative:
+        The (negative) fraction of the volume of a pixel that remains 
+        permanently filled, even by a nominally small (zero) number of
+        electrons, because quantum mecahnics means electrons are fuzzy. 
+        In this case, there is necessarily no 'notch'. Used with Euclid.
 
     well_fill_power : double
         The exponent in a power-law model of the volume occupied by a cloud
@@ -65,10 +70,10 @@ CCDPhase::CCDPhase(
         The volume of the charge cloud as a fraction of the pixel (or phase).
 */
 double CCDPhase::cloud_fractional_volume_from_electrons(double n_electrons) {
-    
-    
+  
+/*
+    // HST version of volume filling function, from Massey et al. (2025)
     //double frac = (n_electrons - well_notch_depth) / full_well_depth;
-    //if (n_electrons == 0.0)
     if (n_electrons <= 0.0)
         return first_electron_fill ; //0.0;
     else
@@ -78,7 +83,60 @@ double CCDPhase::cloud_fractional_volume_from_electrons(double n_electrons) {
             clamp( (n_electrons - well_notch_depth) / 
                    (full_well_depth - well_notch_depth), 0.0, 1.0), 
             well_fill_power);
+*/
+    
+    // Euclid version of volume filling function, inspired by figure 3 of 
+    // Clarke et al. (2012) http://dx.doi.org/doi:10.1117/12.925887
+    // although the functional form there was V=alpha + gamma * n_electrons^beta, 
+    //  [where for parallel CTI, alpha=0.89, beta=0.51, gamma=0.09
+    //   and for serial CTI, alpha=3.195, beta=0.59, gamma=0.04]
+    //
+    // Instead the model here (so everything stays properly normalised) is
+    // V = ((n - d)/(w - d))^beta   for n>0
+    // V = a exp ( b * n )          for n<0 
+    // where a = ( -d / (w-d))^beta
+    // and   b = -beta / d                  so V & dV/dn are matched at n=0
+    //
+    // This should be used with d<0 to reproduce fig 3 of Clarke et al.
+    // and specifically to make V(0)/V(w) = Vclarke(0)/Vclarke(w), we should use 
+    // d = w/(1 - (1+gamma w^beta /alpha)^(1/beta) ) \approx -(alpha/gamma)^(1/beta)
+    //
+    // i.e for parallel (fig 3a) beta=0.51, d=-86, w=200000
+    // and for serial (fig 3b)   beta=0.59, d=-1530, w=200000
+    //
+    // Note that parameter d may be degenerate with beta. It might be possible to
+    // parameterise this instead with d'=-d^beta, but this destroys the sign information,
+    // or at least breaks/removes continuous symmetry if d passes through zero in MCMC.
+    //
+    if (n_electrons > 0.0) {
+        return first_electron_fill + (1 - first_electron_fill) * pow( 
+            clamp( (n_electrons - well_notch_depth) / 
+                   (full_well_depth - well_notch_depth), 0.0, 1.0), 
+            well_fill_power);
+    } else if (n_electrons < 0.0) {
+        if (well_notch_depth >= 0.0) {
+        	return first_electron_fill ; 
+		} else {
+			double a = (1 - first_electron_fill) * pow( 
+				( well_notch_depth / ( well_notch_depth - full_well_depth ) ), 
+           	well_fill_power) ;
+            double b = - n_electrons * well_fill_power / well_notch_depth ;
+        	if (b < -700) b = -700;
+        	return first_electron_fill + a * std::exp(b);
+		}
+	} else {
+        if (well_notch_depth >= 0.0) {
+        	return first_electron_fill ; 
+		} else {
+			double a = (1 - first_electron_fill) * pow( 
+				( well_notch_depth / ( well_notch_depth - full_well_depth ) ), 
+           	well_fill_power) ;
+        	return first_electron_fill + a ;
+        }
+    }
+
 }
+
 
 // ========
 // CCD::
