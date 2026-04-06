@@ -43,11 +43,17 @@
 # ========
 # Compiler
 CXX ?= g++
+#CXX = /usr/bin/g++
 CXXFLAGS := -std=c++11 -fPIC -O3 # -Wall -Wno-reorder -Wno-sign-compare
 #CXXFLAGS := -std=c++11 -fPIC -pg -no-pie -fno-builtin       # for gprof
 #CXXFLAGS := -std=c++11 -fPIC -g                             # for valgrind
 LDFLAGS := $(LDFLAGS) -shared
-VERSION := "7.0.6"
+VERSION := "7.0.7"
+
+#RJM: this doesn't do anything (but OMP gives 8x speedup on my laptop
+OMP_NUM_THREADS := 1
+export OMP_NUM_THREADS
+
 
 # Executables
 TARGET := arctic
@@ -65,13 +71,15 @@ DIR_TEST := $(DIR_ROOT)/test
 #DIR_GSL ?= /cosma/local/gsl/2.8
 #DIR_OMP ?= /cosma/local/openmpi/gnu_11.1.0/4.1.4
 # Use the following on a standalone machine
-DIR_HOMEBREW := /usr/local # brew install llvm libomp gsl
-DIR_MACPORTS := /opt/local # sudo port install libomp gsl
-#DIR_GSL ?= $(DIR_HOMEBREW)
-#DIR_OMP ?= $(DIR_HOMEBREW)
-#DIR_OMP ?= $(DIR_MACPORTS)/libomp
-DIR_OMP ?= $(DIR_MACPORTS)
-DIR_GSL ?= $(DIR_MACPORTS)
+#DIR_HOMEBREW := /usr/local# brew install llvm libomp gsl # on intel macs
+DIR_MACPORTS := /opt/local# sudo port install libomp gsl
+DIR_HOMEBREW := /opt/homebrew# brew install llvm libomp gsl  # on Apple silicon
+DIR_GSL ?= $(DIR_HOMEBREW)
+DIR_OMP ?= $(DIR_HOMEBREW)
+DIR_OMP = $(DIR_HOMEBREW)/opt/libomp# on Apple silicon
+DIR_OMP ?= $(DIR_MACPORTS)/libomp
+#DIR_OMP ?= $(DIR_MACPORTS)
+#DIR_GSL ?= $(DIR_MACPORTS)
 # Use the following if the above doesn't work - fall back to self-installing GSL
 #DIR_GSL ?= $(DIR_ROOT)/gsl
 DIR_WRAPPER := $(DIR_ROOT)/python/arcticpy
@@ -97,12 +105,13 @@ LIBS := -L $(DIR_GSL)/lib -Wl,-rpath,$(DIR_GSL)/lib -lgsl -lgslcblas -lm
 LIBARCTIC := -L $(DIR_ROOT) -Wl,-rpath,$(DIR_ROOT) -l$(TARGET)
 
 # Add multithreading to reduce runtime (requires OpenMP to have been installed)
-CXXFLAGS += -Xpreprocessor -fopenmp
+CXXFLAGS += -Xpreprocessor -fopenmp 
 # Use the following on a homebrew mac
-#LIBS += -L $(DIR_OMP)/lib -lomp
-# Use the following on linux, cosma, or a mac with macports
-LIBS += -L $(DIR_OMP)/lib -lgomp
+LIBS += -L $(DIR_OMP)/lib -lomp
 
+# Use the following on linux, cosma, or a mac with macports
+#LIBS += -L $(DIR_OMP)/lib -lgomp
+#CXXFLAGS += -Xclang -fopenmp 
 
 # ========
 # Rules
