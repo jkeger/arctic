@@ -25,9 +25,11 @@ dir_wrapper_include = dir_wrapper + "include/"
 # Find GSL
 dir_gsl_fallback = dir_arctic + "gsl/"
 if os.path.exists("/usr/local/include/gsl"):
-    dir_gsl_fallback = "/usr/local/"  # brew install llvm libomp gsl
+    dir_gsl_fallback = "/usr/local/"  # brew install llvm libomp gsl on intel silicon
 if os.path.exists("/opt/local/include/gsl"):
     dir_gsl_fallback = "/opt/local/"  # sudo port install libomp gsl
+if os.path.exists("/opt/homebrew/include/gsl"):
+    dir_gsl_fallback = "/opt/homebrew/"  # brew install llvm libomp gsl on Apple silicon
 if os.path.exists("/cosma/local/gsl/2.8"):
     dir_gsl_fallback = "/cosma/local/gsl/2.8/"  # use on cosma
 dir_gsl = os.environ.get("DIR_GSL", dir_gsl_fallback)
