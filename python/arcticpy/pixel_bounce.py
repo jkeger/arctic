@@ -116,7 +116,10 @@ class PixelBounce:
         serial_window_start/stop : int
             First and last column of pixels (in the x direction) to process, for speed.
             Default is to process the entire image.
-
+        oversample : int
+    	    Factor by which to oversample the pixels, when calculating the oscillations. 
+    	    High values make the calculation more accurate.
+        
         Returns
         -------
         bias : [[float]]

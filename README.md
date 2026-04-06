@@ -146,18 +146,16 @@ Python
 ------
 ArCTIc will typically be used via the `arcticpy` python wrapper module, which uses Cython to interface with the precompiled C++ dynamic library.
 
-For example, to correct CTI in a Hubble Space Telescope ACS image
-(using the [autoarray](https://pypi.org/project/autoarray/) package
-to load and save the fits image with correct units and quadrant rotations, etc):
+Several libraries have been written to wrap around or simplify the use of ArCTIc on fits images, such as [Pyxel](https://esa.gitlab.io/pyxel) and [pyAutoCTI](https://github.com/Jammy2211/PyAutoCTI). For example, to correct CTI in a Hubble Space Telescope ACS image, the following reads in CCD data, flips quadrants so their readout register is at position (0,0), then calls ArCTIc:
 ```python
 import arcticpy as arctic
-import autoarray as aa
+import autocti
 
 data_path = "data_path/image_name"
 
-# Load each quadrant of the image  (see pypi.org/project/autoarray)
+# Load each quadrant of the image  (see https://pyautocti.readthedocs.io)
 image_A, image_B, image_C, image_D = [
-    aa.acs.ImageACS.from_fits(
+    autocti.acs.ImageACS.from_fits(
         file_path=data_path + ".fits",
         quadrant_letter=quadrant,
         bias_subtract_via_bias_file=True,
@@ -194,7 +192,7 @@ image_out_A, image_out_B, image_out_C, image_out_D = [
 ]
 
 # Save the corrected image
-aa.acs.output_quadrants_to_fits(
+autocti.acs.output_quadrants_to_fits(
     file_path=data_path + "_out.fits",
     quadrant_a=image_out_A,
     quadrant_b=image_out_B,
@@ -652,17 +650,18 @@ Version history
 
 + **v7 (2022, C++/python)** Translation of v6, now back to full speed. Includes all features seen in Euclid CCDs before launch.
 
-+ **v6 (2020, [cython/python](https://github.com/jkeger/arcticpy))** Jacob Kegerreis implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps, charge injection, or trap pumping. Much slower than v5.
++ **[v6](https://github.com/jkeger/arcticpy) (2020, cython/python)** [Jacob Kegerreis](https://www.durham.ac.uk/staff/jacob-kegerreis/) implements non-instantaneous charge capture, distribution of charge release times within each species, non-uniform spatial distribution of e.g. surface traps, sophisticated readout for inter-pixel traps, charge injection, or trap pumping. Much slower than v5.
 
-+ **v5 (2015, [C++](https://github.com/ocordes/arctic/))** Adaptive 'neo2' gridding of traps by splitting the continuous field only at each electron fill levels, and recombining grid cells when traps refill at new high watermark [(Massey et al. 2015)](https://arxiv.org/abs/1506.07831)
++ **[v5](https://github.com/ocordes/arctic/) (2015, C++)** Adaptive 'neo2' gridding of traps by splitting the continuous field only at each electron fill levels, and recombining grid cells when traps refill at new high watermark [(Massey et al. 2015)](https://arxiv.org/abs/1506.07831)
 
-+ **v4 (2014, C++)** Oliver Cordes and Ole Marggraf implement huge speed up. Monitors the high water mark of signal electrons, and only considers traps that could have been filled. Post-correction noise-whitening. [(Massey et al. 2014)](https://arxiv.org/abs/1401.1151).
++ **[v4](https://www.astro.uni-bonn.de/download/software/cte-tool/) (2014, C++)** [Oliver Cordes](https://www.physik-astro.uni-bonn.de/de/Assets/staff/dr-oliver-mark-cordes-1) and [Ole Marggraf](https://astro.uni-bonn.de/m/marggraf/) implement huge speed up. Monitors the high water mark of signal electrons, and only considers traps that could have been filled. Post-correction noise-whitening. [(Massey et al. 2014)](https://arxiv.org/abs/1401.1151).
 
-+ **v3 (2010, IDL)** Richard Massey implements gradual tradeoff between accuracy and speed, through variable EXPRESS option. Inter-pixel traps confirmed to be degenerate with change of effective density, and release profile well-fit by sum of exponentials. Hubble Space Telescope model updated following shuttle servicing mission [(Massey 2010)](https://arxiv.org/abs/1009.4335).
++ **[v3](http://www.astro.dur.ac.uk/~rjm/acs/CTE/) (2010, IDL)** [Richard Massey](https://www.astro.dur.ac.uk/~rjm/) implements gradual tradeoff between accuracy and speed, through variable EXPRESS option. Inter-pixel traps confirmed to be degenerate with change of effective density, and release profile well-fit by sum of exponentials. Hubble Space Telescope model updated following shuttle servicing mission [(Massey 2010)](https://arxiv.org/abs/1009.4335).
 
-+ **v2 (2009, [Java/IDL](http://www.astro.dur.ac.uk/~rjm/acs/CTE/))** Assumes a fixed grid of fractional traps (and introduces concept of well fill level) to reduce noise. Charge trap parameters measured from hot/warm pixels in Hubble Space Telescope imaging [(Massey et al. 2009)](https://arxiv.org/abs/0909.0507). Later converted to python by STScI, with EXPRESS=1 speedup also used by and empirical f(t) trap release profile. Capture confirmed empirically to be instant.
++ **v2 (2009, Java/IDL)** Assumes a fixed grid of fractional traps (and introduces concept of well fill level) to reduce noise. Charge trap parameters measured from hot/warm pixels in Hubble Space Telescope imaging [(Massey et al. 2009)](https://arxiv.org/abs/0909.0507). Later converted to python by STScI, with EXPRESS=1 speedup also used by and empirical f(t) trap release profile. Capture confirmed empirically to be instant.
 
-+ **v1 (2008, Java)** Chris Stoughton extends Fortran77 code by [Bristow (2003)](https://arxiv.org/abs/astro-ph/0310714), introducing 3D pixel structure, multiple trap species, and reducing runtime by moving traps not charge. Discrete traps are distributed at random, which adds noise, and are monitored during every transfer, which is slow. Predicted effect for SNAP telescope [(Rhodes et al. 2010)](https://arxiv.org/abs/1002.1479).
++ **v1 (2008, Java)** [Chris Stoughton](https://chrisstoughton.com/about.html) extends Fortran77 code by [Bristow (2003)](https://arxiv.org/abs/astro-ph/0310714), introducing 3D pixel structure, multiple trap species, and reducing runtime by moving traps not charge. Discrete traps are distributed at random, which adds noise, and are monitored during every transfer, which is slow. Predicted effect for SNAP telescope [(Rhodes et al. 2010)](https://arxiv.org/abs/1002.1479).
 
 Older algorithms for CTI correction either approximated trailing as convolution with a flux-dependent kernel (e.g. [Rhodes et al. 2000](https://arxiv.org/abs/astro-ph/9905090)) or were additive/multiplicative factors applied to object flux/position/shape/etc at a catalogue level (e.g. [Riess et al. 2000](https://ui.adsabs.harvard.edu/link_gateway/2000wfpc.rept....4R/PUB_PDF), [2003](https://ui.adsabs.harvard.edu/link_gateway/2003acs..rept....9R/PUB_PDF), [Rhodes et al. 2007](https://arxiv.org/abs/astro-ph/0702140)).
+
 

@@ -26,13 +26,20 @@ int sgn(double v) {
         depth as a list containing different values. If the potential in
         more than one phase is held high during any stage in the clocking
         cycle, their full well depths are added together. This value is
-        indpependent of the fraction of traps allocated to each phase.
+        independent of the fraction of traps allocated to each phase.
 
     well_notch_depth : double
-        The number of electrons that fit inside a 'notch' at the bottom of a
-        potential well, occupying negligible volume and therefore being
-        immune to trapping. These electrons still count towards the full
-        well depth. The notch depth can, in  principle, vary between phases.
+        If positive:
+        The number of electrons that fit inside a 'notch' or s'upplementary 
+        buried channel' at the bottom of a potential well, occupying 
+        negligible volume and therefore being immune to trapping. These 
+        electrons still count towards the full well depth. The notch depth 
+        can, in  principle, vary between phases. This is used with HST.
+        If negative:
+        The (negative) fraction of the volume of a pixel that remains 
+        permanently filled, even by a nominally small (zero) number of
+        electrons, because quantum mecahnics means electrons are fuzzy. 
+        In this case, there is necessarily no 'notch'. Used with Euclid.
 
     well_fill_power : double
         The exponent in a power-law model of the volume occupied by a cloud
