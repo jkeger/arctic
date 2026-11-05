@@ -47,7 +47,8 @@ extensions = [
             *ext_sources,
         ],
         language="c++",
-        libraries=["gsl"],
+        libraries=["gsl", "gslcblas"],
+        library_dirs=[dir_gsl_lib],
         runtime_library_dirs=[dir_gsl_lib],
         include_dirs=[
             dir_wrapper_include,

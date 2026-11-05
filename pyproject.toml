@@ -1,24 +1,27 @@
 [build-system]
 requires = [
-    "setuptools_scm==7.0.5",
-    "setuptools >=62",
-    "numpy ~=1.21",
-    "Cython==0.29.36",
-    "pytest-runner",
+    "setuptools >=64",
+    # Building against numpy 2 gives an extension that runs on numpy 1.x and 2.x.
+    "numpy >=2.0",
+    "Cython >=3.0",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "arcticpy"
-version= "2.5"
+version = "2.7"
 description = "This is the python module for the arCTIc code"
 authors = [
     { name = "Richard Massey", email = "r.j.massey@durham.ac.uk" }
 ]
 dependencies = [
-    "numpy ~=1.21"
+    "numpy >=1.21,<3",
+    # Both are imported when arcticpy is imported: matplotlib by vv_test,
+    # scipy by read_noise.
+    "matplotlib",
+    "scipy",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 
 [tool.setuptools]
 package-dir = {"" = "python"}
