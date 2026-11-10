@@ -16,7 +16,26 @@ dir_wrapper_src = os.path.join(dir_wrapper, "src")
 dir_wrapper_include = os.path.join(dir_wrapper, "include")
 dir_include = "include/"
 dir_src = "src/"
-dir_gsl = os.environ.get("DIR_GSL", "/usr/local/")
+
+def _find_gsl_dir():
+    """Locate GSL: $DIR_GSL, else a conda/pixi env, else common prefixes."""
+    candidates = [
+        os.environ.get("DIR_GSL"),
+        os.environ.get("CONDA_PREFIX"),
+        os.environ.get("PIXI_PROJECT_ROOT")
+        and os.path.join(os.environ["PIXI_PROJECT_ROOT"], ".pixi", "envs", "default"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), ".pixi", "envs", "default"),
+        "/opt/homebrew",
+        "/usr/local",
+    ]
+    for d in candidates:
+        if d and os.path.isdir(os.path.join(d, "include", "gsl")):
+            return d
+    return "/usr/local"
+
+
+dir_gsl = _find_gsl_dir()
+print("Using GSL from", dir_gsl)
 dir_gsl_include = os.path.join(dir_gsl, "include")
 dir_gsl_lib = os.path.join(dir_gsl, "lib")
 
