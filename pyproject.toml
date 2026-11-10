@@ -1,10 +1,10 @@
 [build-system]
 requires = [
-    "setuptools_scm==7.0.5",
-    "setuptools >=62",
-    "numpy ~=1.21",
-    "Cython==0.29.36",
-    "pytest-runner",
+    "setuptools>=64",
+    # NumPy 2 ships a numpy/__init__.pxd that needs Cython 3. Building against
+    # NumPy 2 produces an extension that also runs on NumPy 1.x (>=1.23).
+    "numpy>=2.0",
+    "Cython>=3.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -16,7 +16,9 @@ authors = [
     { name = "Richard Massey", email = "r.j.massey@durham.ac.uk" }
 ]
 dependencies = [
-    "numpy ~=1.21"
+    "numpy>=1.23",
+    "scipy",
+    "matplotlib",
 ]
 requires-python = ">=3.8"
 
